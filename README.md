@@ -1,97 +1,197 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# 🎯 Rotary Club Mobile
 
-# Getting Started
+Application mobile complète pour les clubs Rotary, développée avec React Native, Expo et TypeScript.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## 🚀 Démo en ligne
 
-## Step 1: Start Metro
+**🔗 Testez immédiatement sur Expo Snack :**
+👉 **https://snack.expo.dev/@devmick/github.com-devmick-rotaryclubmobile**
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+1. Ouvrez le lien ci-dessus
+2. Installez [Expo Go](https://expo.dev/client) sur votre téléphone
+3. Scannez le QR code
+4. L'application se lance instantanément !
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+## 📱 Fonctionnalités principales
 
-```sh
-# Using npm
-npm start
+### 🏠 Tableau de bord intelligent
+- ✅ Vue d'ensemble des activités du club
+- ✅ Statistiques en temps réel (membres actifs, réunions)
+- ✅ Prochaines réunions avec détails
+- ✅ Actions rapides (navigation, QR code)
+- ✅ Pull-to-refresh et animations fluides
 
-# OR using Yarn
-yarn start
+### 📅 Gestion des réunions
+- ✅ Liste des réunions avec dates formatées
+- ✅ Scanner QR code intégré (simulé dans Snack)
+- ✅ Compteur de participants
+- ✅ Interface Material Design
+
+### 👥 Annuaire des membres
+- ✅ Liste complète avec avatars générés
+- ✅ Barre de recherche en temps réel
+- ✅ Informations de contact (email, téléphone)
+- ✅ Rôles et statuts des membres
+
+### 👤 Profil utilisateur
+- ✅ Informations personnelles
+- ✅ Préférences (notifications, thème)
+- ✅ Actions de profil (modifier, déconnexion)
+- ✅ Interface cohérente
+
+## 🎨 Design System
+
+### Couleurs Rotary officielles
+- **Bleu Rotary** : `#005AA9` (Primary)
+- **Or Rotary** : `#F7A81B` (Secondary)
+- **Material Design 3** avec React Native Paper
+
+### Architecture
+- **React Native** 0.72.6 + **Expo** 49.0.0
+- **TypeScript** strict pour la sécurité
+- **Redux Toolkit** pour l'état global
+- **React Navigation** v6 avec bottom tabs
+- **Material Design** avec animations 60fps
+
+## 📚 Documentation complète
+
+- 📖 **[Guide Expo Snack](./EXPO-SNACK-GUIDE.md)** - Comment utiliser l'app
+- 🎯 **[Fonctionnalités démo](./DEMO-FEATURES.md)** - Toutes les fonctionnalités
+- 🔧 **[Dépannage](./TROUBLESHOOTING.md)** - Résolution de problèmes
+- 📱 **[README Snack](./README-SNACK.md)** - Version simplifiée
+
+## 🛠️ Installation locale
+
+```bash
+# Cloner le repository
+git clone https://github.com/DevMick/RotaryClubMobile.git
+cd RotaryClubMobile
+
+# Installer les dépendances
+npm install
+
+# Lancer avec Expo
+npx expo start
 ```
 
-## Step 2: Build and run your app
+## 🔧 Technologies utilisées
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+### Frontend
+- **React Native** 0.72.6
+- **Expo** SDK 49
+- **TypeScript** 5.1.3
+- **React Navigation** v6
+- **React Native Paper** (Material Design)
 
-### Android
+### État global
+- **Redux Toolkit** 2.0.1
+- **React Redux** 9.0.4
+- Slices : user, meetings, members
 
-```sh
-# Using npm
-npm run android
+### UI/UX
+- **@expo/vector-icons** (Ionicons)
+- **react-native-safe-area-context**
+- **react-native-gesture-handler**
+- Animations et transitions fluides
 
-# OR using Yarn
-yarn android
+## 📱 Compatibilité
+
+- ✅ **iOS** 13.0+
+- ✅ **Android** 6.0+ (API 23+)
+- ✅ **Web** (via Expo Web)
+- ✅ **Expo Go** pour tests rapides
+- ✅ **Expo Snack** pour démo en ligne
+
+## 📁 Structure du projet
+
+```
+├── App.tsx                 # Point d'entrée principal
+├── src/
+│   ├── screens/           # Écrans de l'application
+│   │   ├── HomeScreen.tsx
+│   │   ├── ReunionsScreen.tsx
+│   │   ├── MembersScreen.tsx
+│   │   └── ProfileScreen.tsx
+│   ├── store/             # Redux store
+│   │   ├── index.ts
+│   │   └── slices/
+│   │       ├── userSlice.ts
+│   │       ├── meetingsSlice.ts
+│   │       └── membersSlice.ts
+│   ├── components/        # Composants réutilisables
+│   │   ├── ui/           # Composants UI de base
+│   │   ├── dashboard/    # Widgets dashboard
+│   │   └── auth/         # Composants d'authentification
+│   ├── navigation/       # Configuration navigation
+│   ├── services/         # Services API et business logic
+│   ├── utils/           # Utilitaires
+│   ├── types/           # Types TypeScript
+│   └── theme.ts         # Thème Material Design
+├── package.json         # Dépendances Expo Snack
+└── app.json            # Configuration Expo
 ```
 
-### iOS
+## 🎯 Données de démonstration
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+L'application utilise des données mockées pour la démonstration :
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+### Utilisateur connecté
+- **Nom** : Jean Dupont
+- **Club** : Rotary Club Paris Centre
+- **Rôle** : Membre
 
-```sh
-bundle install
+### Réunions
+- Réunion hebdomadaire (19 Décembre 2024, 18h30)
+- Assemblée générale (15 Avril 2024, 14h00)
+
+### Membres
+- John Doe (member)
+- Jane Smith (president)
+
+## 🚀 Démarrage rapide
+
+### Option 1 : Expo Snack (Recommandé)
+1. 🔗 Ouvrez https://snack.expo.dev/@devmick/github.com-devmick-rotaryclubmobile
+2. 📱 Installez Expo Go sur votre téléphone
+3. 📷 Scannez le QR code
+4. 🎉 L'application se lance !
+
+### Option 2 : Installation locale
+```bash
+git clone https://github.com/DevMick/RotaryClubMobile.git
+cd RotaryClubMobile
+npm install
+npx expo start
 ```
 
-Then, and every time you update your native dependencies, run:
+## 🤝 Contribution
 
-```sh
-bundle exec pod install
-```
+Les contributions sont les bienvenues ! Pour contribuer :
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+1. **Fork** le projet
+2. **Créez** une branche pour votre fonctionnalité (`git checkout -b feature/AmazingFeature`)
+3. **Committez** vos changements (`git commit -m 'Add some AmazingFeature'`)
+4. **Poussez** vers la branche (`git push origin feature/AmazingFeature`)
+5. **Ouvrez** une Pull Request
 
-```sh
-# Using npm
-npm run ios
+## 📄 Licence
 
-# OR using Yarn
-yarn ios
-```
+Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+## 👨‍💻 Auteur
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+**DevMick** - [GitHub](https://github.com/DevMick)
 
-## Step 3: Modify your app
+## 🙏 Remerciements
 
-Now that you have successfully run the app, let's make changes!
+- [Rotary International](https://www.rotary.org/) pour l'inspiration
+- [Expo](https://expo.dev/) pour la plateforme de développement
+- [React Native Paper](https://reactnativepaper.com/) pour les composants Material Design
+- La communauté React Native pour le support
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+---
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+⭐ **N'hésitez pas à donner une étoile si ce projet vous plaît !**
+3. Commiter vos changements
+4. Pousser vers la branche
+5. Ouvrir une Pull Request
