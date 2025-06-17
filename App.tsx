@@ -98,26 +98,52 @@ interface User {
 class ApiService {
   private async getToken(): Promise<string | null> {
     try {
+      // Fallback pour Expo Snack web - utiliser localStorage
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem('authToken');
+      }
       return await SecureStore.getItemAsync('authToken');
     } catch (error) {
       console.error('Erreur lors de la récupération du token:', error);
+      // Fallback vers localStorage en cas d'erreur
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem('authToken');
+      }
       return null;
     }
   }
 
   private async setToken(token: string): Promise<void> {
     try {
+      // Fallback pour Expo Snack web - utiliser localStorage
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem('authToken', token);
+        return;
+      }
       await SecureStore.setItemAsync('authToken', token);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde du token:', error);
+      // Fallback vers localStorage en cas d'erreur
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem('authToken', token);
+      }
     }
   }
 
   private async removeToken(): Promise<void> {
     try {
+      // Fallback pour Expo Snack web - utiliser localStorage
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem('authToken');
+        return;
+      }
       await SecureStore.deleteItemAsync('authToken');
     } catch (error) {
       console.error('Erreur lors de la suppression du token:', error);
+      // Fallback vers localStorage en cas d'erreur
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem('authToken');
+      }
     }
   }
 
@@ -388,14 +414,24 @@ export default function App() {
         'ngrok-skip-browser-warning': 'true',
       });
 
+      console.log('🚀 Début de la requête fetch...');
+
+      // Ajouter un timeout pour éviter que la requête reste bloquée
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 secondes
+
       const response = await fetch(`${API_CONFIG.BASE_URL}/api/Clubs`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
           'ngrok-skip-browser-warning': 'true',
         },
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
+
+      console.log('📡 Réponse reçue !');
       console.log('📡 Réponse API clubs - Status:', response.status);
       console.log('📡 Réponse API clubs - StatusText:', response.statusText);
       console.log('📡 Réponse API clubs - Headers:', Object.fromEntries(response.headers.entries()));
@@ -466,12 +502,21 @@ export default function App() {
       }
     } catch (error) {
       console.error('❌ Erreur lors du chargement des clubs:', error);
+      console.error('❌ Type d\'erreur:', error.name);
+      console.error('❌ Message d\'erreur:', error.message);
+
       setClubs([]); // Aucun club disponible en cas d'erreur
 
       if (showAlerts) {
-        const errorMessage = error.message.includes('fetch')
-          ? `Impossible de joindre l'API backend.\n\n⚠️ Vérifiez que :\n• Votre API backend est démarrée (port 5265)\n• Votre URL ngrok est à jour\n• Votre connexion internet fonctionne\n\nURL actuelle: ${API_CONFIG.BASE_URL}`
-          : `Erreur API: ${error.message}`;
+        let errorMessage = '';
+
+        if (error.name === 'AbortError') {
+          errorMessage = `Timeout de la requête (15s).\n\n⚠️ Vérifiez que :\n• Votre API backend est démarrée (port 5265)\n• Votre URL ngrok est à jour et accessible\n• Votre connexion internet fonctionne\n\nURL actuelle: ${API_CONFIG.BASE_URL}`;
+        } else if (error.message.includes('fetch') || error.message.includes('network')) {
+          errorMessage = `Impossible de joindre l'API backend.\n\n⚠️ Vérifiez que :\n• Votre API backend est démarrée (port 5265)\n• Votre URL ngrok est à jour\n• Votre connexion internet fonctionne\n\nURL actuelle: ${API_CONFIG.BASE_URL}`;
+        } else {
+          errorMessage = `Erreur API: ${error.message}\n\nURL: ${API_CONFIG.BASE_URL}`;
+        }
 
         Alert.alert('Erreur de connexion', errorMessage);
       }
