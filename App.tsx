@@ -26,7 +26,7 @@ const API_CONFIG = {
   // ⚠️ IMPORTANT: Remplacez cette URL par votre URL ngrok actuelle
   // Pour obtenir votre URL ngrok, exécutez: ngrok http 5265
   // Puis copiez l'URL HTTPS ici (ex: https://abc123.ngrok-free.app)
-  BASE_URL: 'https://your-ngrok-url.ngrok-free.app', // ⚠️ À REMPLACER PAR VOTRE URL NGROK
+  BASE_URL: 'https://2d3b-102-212-189-101.ngrok-free.app', // URL ngrok mise à jour
 
   // Configuration PostgreSQL pour connexion directe (Expo Snack compatible)
   // IMPORTANT: En production, utilisez des variables d'environnement
