@@ -22,8 +22,8 @@ import * as SecureStore from 'expo-secure-store';
 
 // Configuration API et Base de données
 const API_CONFIG = {
-  // URL de l'API backend (à remplacer par votre API déployée)
-  BASE_URL: 'https://your-api-backend.herokuapp.com', // Remplacez par votre URL d'API
+  // URL ngrok pour accès public à votre API locale
+  BASE_URL: 'https://dfda-102-212-189-33.ngrok-free.app', // URL ngrok publique
 
   // Configuration PostgreSQL pour connexion directe (Expo Snack compatible)
   // IMPORTANT: En production, utilisez des variables d'environnement
@@ -113,6 +113,7 @@ class ApiService {
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'ngrok-skip-browser-warning': 'true', // Header requis pour ngrok
         ...options.headers,
       };
 
@@ -359,14 +360,26 @@ export default function App() {
   const testApiConnection = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_CONFIG.BASE_URL}/api/health`);
-      if (response.ok) {
+      // Test de l'endpoint Auth
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/Auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
+        body: JSON.stringify({ email: 'test', password: 'test' }),
+      });
+
+      if (response.status === 400 || response.status === 401) {
+        Alert.alert('Connexion API', 'API accessible ! ✅\nEndpoint /api/Auth/login trouvé');
+      } else if (response.ok) {
         Alert.alert('Connexion API', 'API accessible ! ✅');
       } else {
-        Alert.alert('Erreur API', `Erreur HTTP: ${response.status}`);
+        Alert.alert('Erreur API', `Erreur HTTP: ${response.status}\nURL: ${API_CONFIG.BASE_URL}`);
       }
     } catch (error) {
-      Alert.alert('Erreur de connexion', `Impossible de joindre l'API: ${error}`);
+      Alert.alert('Erreur de connexion', `Impossible de joindre l'API:\n${error}\n\nURL: ${API_CONFIG.BASE_URL}`);
     } finally {
       setLoading(false);
     }
@@ -601,21 +614,17 @@ export default function App() {
             )}
           </TouchableOpacity>
 
-          <View style={styles.testAccountsContainer}>
-            <Text style={styles.testAccountsTitle}>Comptes de test :</Text>
-            <TouchableOpacity
-              style={styles.testAccountButton}
-              onPress={() => setLoginForm({ email: 'kouame.yao@rotary.org', password: 'password123' })}
-            >
-              <Text style={styles.testAccountText}>👤 Kouamé Yao (Président)</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.testAccountButton}
-              onPress={() => setLoginForm({ email: 'aya.traore@rotary.org', password: 'password123' })}
-            >
-              <Text style={styles.testAccountText}>👤 Aya Traoré (Secrétaire)</Text>
-            </TouchableOpacity>
-          </View>
+
+
+          <TouchableOpacity
+            style={styles.testApiButton}
+            onPress={testApiConnection}
+            disabled={loading}
+          >
+            <Text style={styles.testApiButtonText}>
+              {loading ? 'Test en cours...' : 'Tester la connexion API'}
+            </Text>
+          </TouchableOpacity>
 
           <Text style={styles.loginNote}>
             Note: En cas d'échec de connexion à l'API, l'application utilisera les données de démonstration.
@@ -1294,5 +1303,17 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 14,
     opacity: 0.9,
+  },
+  testApiButton: {
+    backgroundColor: colors.secondary,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 15,
+  },
+  testApiButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });
