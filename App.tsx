@@ -273,8 +273,9 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [showLogin, setShowLogin] = useState(false);
+  const [showLogin, setShowLogin] = useState(true); // Afficher le login par défaut
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  const [isInitializing, setIsInitializing] = useState(true);
 
   // Charger les données au démarrage
   useEffect(() => {
@@ -283,21 +284,23 @@ export default function App() {
 
   const initializeApp = async () => {
     try {
-      setLoading(true);
-      // Vérifier si l'utilisateur est connecté
+      setIsInitializing(true);
+      // Vérifier si l'utilisateur est déjà connecté (token stocké)
       const user = await apiService.getCurrentUser();
       setCurrentUser(user);
       setIsAuthenticated(true);
+      setShowLogin(false); // Masquer le login si déjà connecté
 
       // Charger les membres si on a un clubId
       if (user.clubId) {
         await loadMembers(user.clubId);
       }
     } catch (error) {
-      console.log('Utilisateur non connecté, utilisation des données de fallback');
+      console.log('Utilisateur non connecté, affichage de l\'écran de connexion');
       setIsAuthenticated(false);
+      setShowLogin(true); // Forcer l'affichage du login
     } finally {
-      setLoading(false);
+      setIsInitializing(false);
     }
   };
 
@@ -384,25 +387,9 @@ export default function App() {
         <Text style={styles.roleText}>
           {currentUser?.clubName || 'Rotary Club Abidjan II Plateaux'}
         </Text>
-        {!isAuthenticated && (
-          <View>
-            <TouchableOpacity
-              style={styles.loginButton}
-              onPress={() => setShowLogin(true)}
-            >
-              <Text style={styles.loginButtonText}>Se connecter à l'API</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.testButton}
-              onPress={testApiConnection}
-              disabled={loading}
-            >
-              <Text style={styles.testButtonText}>
-                {loading ? 'Test en cours...' : 'Tester la connexion API'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <Text style={styles.welcomeSubtext}>
+          Connecté en tant que {currentUser?.fullName || 'Utilisateur'}
+        </Text>
       </View>
 
       <View style={styles.statsContainer}>
@@ -559,24 +546,24 @@ export default function App() {
     );
   };
 
-  // Écran de connexion
+  // Écran de connexion obligatoire
   const LoginScreen = () => (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Connexion API</Text>
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={() => setShowLogin(false)}
-        >
-          <Ionicons name="close" size={24} color="white" />
-        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Connexion Requise</Text>
+        <View style={styles.headerSubtitle}>
+          <Text style={styles.headerSubtitleText}>Rotary Club Abidjan II Plateaux</Text>
+        </View>
       </View>
 
       <ScrollView style={styles.loginContainer}>
         <View style={styles.loginForm}>
-          <Text style={styles.loginTitle}>Se connecter à l'API Backend</Text>
+          <View style={styles.loginLogo}>
+            <Ionicons name="shield-checkmark" size={80} color={colors.primary} />
+          </View>
+          <Text style={styles.loginTitle}>Authentification Requise</Text>
           <Text style={styles.loginSubtitle}>
-            URL: {API_CONFIG.BASE_URL}
+            Veuillez vous connecter pour accéder à l'application
           </Text>
 
           <View style={styles.inputContainer}>
@@ -614,9 +601,24 @@ export default function App() {
             )}
           </TouchableOpacity>
 
+          <View style={styles.testAccountsContainer}>
+            <Text style={styles.testAccountsTitle}>Comptes de test :</Text>
+            <TouchableOpacity
+              style={styles.testAccountButton}
+              onPress={() => setLoginForm({ email: 'kouame.yao@rotary.org', password: 'password123' })}
+            >
+              <Text style={styles.testAccountText}>👤 Kouamé Yao (Président)</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.testAccountButton}
+              onPress={() => setLoginForm({ email: 'aya.traore@rotary.org', password: 'password123' })}
+            >
+              <Text style={styles.testAccountText}>👤 Aya Traoré (Secrétaire)</Text>
+            </TouchableOpacity>
+          </View>
+
           <Text style={styles.loginNote}>
-            Note: Cette fonctionnalité nécessite que l'API backend soit accessible.
-            En cas d'échec, l'application utilisera les données de démonstration.
+            Note: En cas d'échec de connexion à l'API, l'application utilisera les données de démonstration.
           </Text>
         </View>
       </ScrollView>
@@ -662,7 +664,26 @@ export default function App() {
           <Ionicons name="lock-closed" size={20} color={colors.primary} />
           <Text style={styles.profileActionText}>Changer le mot de passe</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.profileAction}>
+        <TouchableOpacity
+          style={styles.profileAction}
+          onPress={() => {
+            Alert.alert(
+              'Déconnexion',
+              'Êtes-vous sûr de vouloir vous déconnecter ?',
+              [
+                { text: 'Annuler', style: 'cancel' },
+                {
+                  text: 'Déconnecter',
+                  style: 'destructive',
+                  onPress: () => {
+                    handleLogout();
+                    setShowLogin(true);
+                  }
+                }
+              ]
+            );
+          }}
+        >
           <Ionicons name="log-out" size={20} color={colors.error} />
           <Text style={[styles.profileActionText, { color: colors.error }]}>Se déconnecter</Text>
         </TouchableOpacity>
@@ -670,9 +691,26 @@ export default function App() {
     </ScrollView>
   );
 
+  // Écran de chargement initial
+  const LoadingScreen = () => (
+    <View style={styles.loadingContainer}>
+      <Ionicons name="shield-checkmark" size={80} color={colors.primary} />
+      <Text style={styles.loadingTitle}>Rotary Club</Text>
+      <Text style={styles.loadingSubtitle}>Abidjan II Plateaux</Text>
+      <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 20 }} />
+      <Text style={styles.loadingText}>Vérification de l'authentification...</Text>
+    </View>
+  );
+
   // Fonction pour rendre l'écran actuel
   const renderCurrentScreen = () => {
-    if (showLogin) {
+    // Afficher l'écran de chargement pendant l'initialisation
+    if (isInitializing) {
+      return <LoadingScreen />;
+    }
+
+    // Forcer l'affichage du login si non authentifié
+    if (!isAuthenticated || showLogin) {
       return <LoginScreen />;
     }
 
@@ -695,8 +733,9 @@ export default function App() {
       <StatusBar style="light" />
       {renderCurrentScreen()}
 
-      {/* Navigation en bas */}
-      <View style={styles.tabBar}>
+      {/* Navigation en bas - seulement si authentifié */}
+      {isAuthenticated && !showLogin && !isInitializing && (
+        <View style={styles.tabBar}>
         <TouchableOpacity
           style={[styles.tabItem, currentScreen === 'Home' && styles.tabItemActive]}
           onPress={() => setCurrentScreen('Home')}
@@ -752,7 +791,8 @@ export default function App() {
             Profil
           </Text>
         </TouchableOpacity>
-      </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -802,6 +842,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.primary,
     marginTop: 4,
+  },
+  welcomeSubtext: {
+    fontSize: 14,
+    color: colors.text,
+    opacity: 0.7,
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -1200,5 +1247,52 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     textAlign: 'center',
+  },
+  // Styles pour l'authentification obligatoire
+  loginLogo: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  loadingTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: colors.primary,
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  loadingSubtitle: {
+    fontSize: 16,
+    color: colors.text,
+    textAlign: 'center',
+    marginTop: 5,
+  },
+  testAccountsContainer: {
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  testAccountsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  testAccountButton: {
+    backgroundColor: colors.surface,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  testAccountText: {
+    color: colors.primary,
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  headerSubtitleText: {
+    color: 'white',
+    fontSize: 14,
+    opacity: 0.9,
   },
 });
