@@ -23,8 +23,10 @@ import * as SecureStore from 'expo-secure-store';
 
 // Configuration API et Base de données
 const API_CONFIG = {
-  // URL ngrok pour accès public à votre API locale
-  BASE_URL: 'https://dfda-102-212-189-33.ngrok-free.app', // URL ngrok publique
+  // ⚠️ IMPORTANT: Remplacez cette URL par votre URL ngrok actuelle
+  // Pour obtenir votre URL ngrok, exécutez: ngrok http 5265
+  // Puis copiez l'URL HTTPS ici (ex: https://abc123.ngrok-free.app)
+  BASE_URL: 'https://your-ngrok-url.ngrok-free.app', // ⚠️ À REMPLACER PAR VOTRE URL NGROK
 
   // Configuration PostgreSQL pour connexion directe (Expo Snack compatible)
   // IMPORTANT: En production, utilisez des variables d'environnement
@@ -429,10 +431,11 @@ export default function App() {
       setClubs([]); // Aucun club disponible en cas d'erreur
 
       if (showAlerts) {
-        Alert.alert(
-          'Erreur de connexion',
-          `Impossible de charger les clubs depuis la base de données:\n${error.message}`
-        );
+        const errorMessage = error.message.includes('fetch')
+          ? `Impossible de joindre l'API backend.\n\n⚠️ Vérifiez que :\n• Votre API backend est démarrée (port 5265)\n• Votre URL ngrok est à jour\n• Votre connexion internet fonctionne\n\nURL actuelle: ${API_CONFIG.BASE_URL}`
+          : `Erreur API: ${error.message}`;
+
+        Alert.alert('Erreur de connexion', errorMessage);
       }
     } finally {
       setLoading(false);
@@ -833,7 +836,7 @@ export default function App() {
                   clubs.length === 0 && styles.selectTextDisabled
                 ]}>
                   {clubs.length === 0
-                    ? 'Chargement des clubs...'
+                    ? '⚠️ Aucun club disponible - Cliquez sur "Charger les clubs"'
                     : loginForm.clubId
                       ? clubs.find(club => club.id === loginForm.clubId)?.name || 'Sélectionnez votre club'
                       : 'Sélectionnez votre club'
