@@ -1,6 +1,6 @@
 /**
  * Rotary Club Mobile App - Version Expo Snack
- * Application simplifiée pour démonstration
+ * Application complète et autonome pour démonstration
  */
 
 import React, { useState } from 'react';
@@ -57,7 +57,6 @@ const colors = {
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('Home');
-  const [searchQuery, setSearchQuery] = useState('');
 
   // Écran d'accueil
   const HomeScreen = () => (
@@ -168,10 +167,7 @@ export default function App() {
 
   // Écran des membres
   const MembersScreen = () => {
-    const filteredMembers = mockMembers.filter(member =>
-      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredMembers = mockMembers;
 
     return (
       <View style={styles.container}>
