@@ -363,7 +363,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [showLogin, setShowLogin] = useState(true); // Afficher le login par défaut
   const [loginForm, setLoginForm] = useState({ email: '', password: '', clubId: '' });
-  const [clubs, setClubs] = useState<Club[]>([fallbackClub]);
+  const [clubs, setClubs] = useState<Club[]>([]);
   const [showClubPicker, setShowClubPicker] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
 
@@ -375,7 +375,8 @@ export default function App() {
 
   const loadClubs = async () => {
     try {
-      console.log('Chargement des clubs depuis:', `${API_CONFIG.BASE_URL}/api/Clubs`);
+      console.log('🔄 Chargement des clubs depuis la base de données...');
+      console.log('URL API:', `${API_CONFIG.BASE_URL}/api/Clubs`);
 
       const response = await fetch(`${API_CONFIG.BASE_URL}/api/Clubs`, {
         method: 'GET',
@@ -385,29 +386,51 @@ export default function App() {
         },
       });
 
-      console.log('Réponse clubs - Status:', response.status);
+      console.log('📡 Réponse API clubs - Status:', response.status);
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Erreur API clubs:', errorText);
         throw new Error(`Erreur ${response.status}: ${response.statusText}`);
       }
 
       const clubsData = await response.json();
-      console.log('Clubs reçus:', clubsData);
+      console.log('📊 Clubs reçus de la base de données:', clubsData);
+      console.log('📈 Nombre de clubs trouvés:', clubsData?.length || 0);
 
       if (Array.isArray(clubsData) && clubsData.length > 0) {
         setClubs(clubsData);
-        // Sélectionner automatiquement le premier club
-        setLoginForm(prev => ({ ...prev, clubId: clubsData[0].id }));
-        console.log('Premier club sélectionné:', clubsData[0].name);
+        console.log('✅ Clubs chargés avec succès depuis la base de données');
+
+        // Chercher le club "Rotary Club Abidjan II Plateaux" en priorité
+        const preferredClub = clubsData.find(club =>
+          club.name.toLowerCase().includes('abidjan') &&
+          club.name.toLowerCase().includes('plateaux')
+        );
+
+        if (preferredClub) {
+          setLoginForm(prev => ({ ...prev, clubId: preferredClub.id }));
+          console.log('🎯 Club préféré sélectionné:', preferredClub.name);
+        } else {
+          // Sinon, sélectionner le premier club
+          setLoginForm(prev => ({ ...prev, clubId: clubsData[0].id }));
+          console.log('🔄 Premier club sélectionné:', clubsData[0].name);
+        }
       } else {
-        console.log('Aucun club trouvé, utilisation du fallback');
-        setClubs([fallbackClub]);
-        setLoginForm(prev => ({ ...prev, clubId: fallbackClub.id }));
+        console.warn('⚠️ Aucun club trouvé dans la base de données');
+        setClubs([]);
+        Alert.alert(
+          'Aucun club trouvé',
+          'Impossible de charger les clubs depuis la base de données. Vérifiez votre connexion API.'
+        );
       }
     } catch (error) {
-      console.error('Erreur lors du chargement des clubs:', error);
-      setClubs([fallbackClub]);
-      setLoginForm(prev => ({ ...prev, clubId: fallbackClub.id }));
+      console.error('❌ Erreur lors du chargement des clubs:', error);
+      setClubs([]);
+      Alert.alert(
+        'Erreur de connexion',
+        `Impossible de charger les clubs depuis la base de données:\n${error.message}\n\nVérifiez que votre API est accessible.`
+      );
     }
   };
 
@@ -448,8 +471,18 @@ export default function App() {
   };
 
   const handleLogin = async () => {
-    if (!loginForm.email || !loginForm.password || !loginForm.clubId) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs (email, mot de passe et club)');
+    if (!loginForm.email || !loginForm.password) {
+      Alert.alert('Erreur', 'Veuillez remplir votre email et mot de passe');
+      return;
+    }
+
+    if (!loginForm.clubId) {
+      Alert.alert('Erreur', 'Veuillez sélectionner votre club dans la liste');
+      return;
+    }
+
+    if (clubs.length === 0) {
+      Alert.alert('Erreur', 'Aucun club disponible. Veuillez d\'abord charger les clubs depuis la base de données.');
       return;
     }
 
@@ -779,21 +812,46 @@ export default function App() {
             <Text style={styles.inputLabel}>Club</Text>
             <View style={styles.selectContainer}>
               <TouchableOpacity
-                style={styles.selectButton}
-                onPress={() => setShowClubPicker(true)}
+                style={[
+                  styles.selectButton,
+                  clubs.length === 0 && styles.selectButtonDisabled
+                ]}
+                onPress={() => {
+                  if (clubs.length === 0) {
+                    Alert.alert('Aucun club', 'Veuillez d\'abord charger les clubs depuis la base de données.');
+                    return;
+                  }
+                  setShowClubPicker(true);
+                }}
+                disabled={clubs.length === 0}
               >
                 <Text style={[
                   styles.selectText,
-                  !loginForm.clubId && styles.selectPlaceholder
+                  !loginForm.clubId && styles.selectPlaceholder,
+                  clubs.length === 0 && styles.selectTextDisabled
                 ]}>
-                  {loginForm.clubId
-                    ? clubs.find(club => club.id === loginForm.clubId)?.name || 'Sélectionnez votre club'
-                    : 'Sélectionnez votre club'
+                  {clubs.length === 0
+                    ? 'Chargement des clubs...'
+                    : loginForm.clubId
+                      ? clubs.find(club => club.id === loginForm.clubId)?.name || 'Sélectionnez votre club'
+                      : 'Sélectionnez votre club'
                   }
                 </Text>
                 <Text style={styles.selectArrow}>▼</Text>
               </TouchableOpacity>
             </View>
+
+            {clubs.length === 0 && (
+              <TouchableOpacity
+                style={styles.reloadClubsButton}
+                onPress={loadClubs}
+                disabled={loading}
+              >
+                <Text style={styles.reloadClubsButtonText}>
+                  {loading ? 'Chargement...' : '🔄 Charger les clubs depuis la base de données'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           <TouchableOpacity
@@ -1571,6 +1629,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  selectButtonDisabled: {
+    backgroundColor: '#f5f5f5',
+    borderColor: '#ccc',
+  },
   selectText: {
     fontSize: 16,
     color: colors.text,
@@ -1578,6 +1640,9 @@ const styles = StyleSheet.create({
   },
   selectPlaceholder: {
     color: '#999',
+  },
+  selectTextDisabled: {
+    color: '#ccc',
   },
   selectArrow: {
     fontSize: 12,
@@ -1649,5 +1714,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.primary,
     fontWeight: 'bold',
+  },
+  reloadClubsButton: {
+    backgroundColor: colors.secondary,
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  reloadClubsButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
