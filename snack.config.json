@@ -1,13 +1,8 @@
 {
-  "name": "rotary-club-snack",
-  "version": "1.0.0",
-  "main": "App.tsx",
-  "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
-  },
+  "name": "Rotary Club Mobile",
+  "description": "Application mobile pour les clubs Rotary avec React Native et Expo",
+  "sdkVersion": "49.0.0",
+  "platforms": ["ios", "android", "web"],
   "dependencies": {
     "expo": "~49.0.0",
     "expo-status-bar": "~1.6.0",
@@ -29,6 +24,5 @@
     "@babel/core": "^7.20.0",
     "@types/react": "~18.2.14",
     "typescript": "^5.1.3"
-  },
-  "private": true
+  }
 }
