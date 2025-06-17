@@ -26,7 +26,7 @@ const API_CONFIG = {
   // ⚠️ IMPORTANT: Remplacez cette URL par votre URL ngrok actuelle
   // Pour obtenir votre URL ngrok, exécutez: ngrok http 5265
   // Puis copiez l'URL HTTPS ici (ex: https://abc123.ngrok-free.app)
-  BASE_URL: 'https://2d3b-102-212-189-101.ngrok-free.app', // URL ngrok mise à jour
+  BASE_URL: 'https://REMPLACEZ-PAR-VOTRE-NOUVELLE-URL-NGROK.ngrok-free.app', // ⚠️ METTEZ À JOUR CETTE URL !
 
   // Configuration PostgreSQL pour connexion directe (Expo Snack compatible)
   // IMPORTANT: En production, utilisez des variables d'environnement
@@ -1045,6 +1045,18 @@ export default function App() {
             )}
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={styles.debugButton}
+            onPress={() => {
+              Alert.alert(
+                'URL API Actuelle',
+                `${API_CONFIG.BASE_URL}\n\n⚠️ Si les clubs ne se chargent pas, cette URL ngrok est probablement expirée.\n\n🔧 Redémarrez ngrok et mettez à jour l'URL dans le code.`
+              );
+            }}
+          >
+            <Text style={styles.debugButtonText}>🔍 Vérifier URL API</Text>
+          </TouchableOpacity>
+
           <Text style={styles.loginNote}>
             Connectez-vous avec vos identifiants Rotary pour accéder à l'application.
           </Text>
@@ -1697,6 +1709,21 @@ const styles = StyleSheet.create({
     marginTop: 16,
     textAlign: 'center',
     lineHeight: 18,
+  },
+
+  debugButton: {
+    backgroundColor: '#f0f0f0',
+    padding: 10,
+    borderRadius: 6,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  debugButtonText: {
+    color: '#666',
+    fontSize: 12,
+    textAlign: 'center',
+    fontWeight: '500',
   },
 
   // Styles pour l'authentification obligatoire
