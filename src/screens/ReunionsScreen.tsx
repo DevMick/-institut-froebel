@@ -1,28 +1,20 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
+import { View, StyleSheet, FlatList, Alert } from 'react-native';
 import { Text, FAB } from 'react-native-paper';
 import { useSelector } from 'react-redux';
 import { Card } from '../components/ui/Card';
-import { BarCodeScanner } from 'expo-barcode-scanner';
 import { theme } from '../theme';
 import type { RootState } from '../store';
 
 export default function ReunionsScreen() {
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [scannerVisible, setScannerVisible] = useState(false);
   const meetings = useSelector((state: RootState) => state.meetings.meetings);
 
-  React.useEffect(() => {
-    (async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
-  }, []);
-
-  const handleBarCodeScanned = ({ data }: { data: string }) => {
-    setScannerVisible(false);
-    // Handle scanned QR code data
-    console.log('Scanned:', data);
+  const handleQRScan = () => {
+    Alert.alert(
+      'Scanner QR',
+      'Fonctionnalité de scan QR disponible dans l\'application native complète.',
+      [{ text: 'OK' }]
+    );
   };
 
   const renderMeeting = ({ item }: { item: any }) => (
@@ -45,22 +37,6 @@ export default function ReunionsScreen() {
     </Card>
   );
 
-  if (scannerVisible) {
-    return (
-      <View style={styles.scannerContainer}>
-        <BarCodeScanner
-          onBarCodeScanned={handleBarCodeScanned}
-          style={StyleSheet.absoluteFillObject}
-        />
-        <FAB
-          icon="close"
-          style={styles.closeButton}
-          onPress={() => setScannerVisible(false)}
-        />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <FlatList
@@ -72,7 +48,7 @@ export default function ReunionsScreen() {
       <FAB
         icon="qrcode-scan"
         style={styles.fab}
-        onPress={() => setScannerVisible(true)}
+        onPress={handleQRScan}
       />
     </View>
   );
@@ -118,16 +94,5 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: theme.colors.primary,
-  },
-  scannerContainer: {
-    flex: 1,
-    backgroundColor: 'black',
-  },
-  closeButton: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    top: 0,
-    backgroundColor: theme.colors.error,
   },
 }); 

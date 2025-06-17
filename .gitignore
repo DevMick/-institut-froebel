@@ -20,7 +20,7 @@ DerivedData
 *.hmap
 *.ipa
 *.xcuserstate
-**/.xcode.env.local
+project.xcworkspace
 
 # Android/IntelliJ
 #
@@ -33,12 +33,12 @@ local.properties
 .cxx/
 *.keystore
 !debug.keystore
-.kotlin/
 
 # node.js
 #
 node_modules/
 npm-debug.log
+yarn-debug.log
 yarn-error.log
 
 # fastlane
@@ -56,12 +56,19 @@ yarn-error.log
 # Bundle artifact
 *.jsbundle
 
-# Ruby / CocoaPods
-**/Pods/
-/vendor/bundle/
+# CocoaPods
+/ios/Pods/
 
 # Temporary files created by Metro to check the health of the file watcher
 .metro-health-check*
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Local Netlify folder
+.netlify
 
 # testing
 /coverage
@@ -73,3 +80,45 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Windows specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# TypeScript
+*.tsbuildinfo
+
+# Flipper
+ios/Pods/Flipper
+ios/Pods/Flipper-*
+ios/Pods/FlipperKit
+android/app/src/debug/java/com/*/ReactNativeFlipper.java
+
+# React Native
+.react-native/

@@ -1,6 +1,6 @@
 /**
- * Rotary Club Mobile App
- * Application principale avec Redux Store, PersistGate et Navigation
+ * Rotary Club Mobile App - Version Expo Snack
+ * Application simplifiée pour démonstration
  */
 
 import React from 'react';
