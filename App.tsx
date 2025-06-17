@@ -382,7 +382,11 @@ export default function App() {
     try {
       setLoading(true);
       console.log('🔄 Chargement des clubs depuis la base de données...');
-      console.log('URL API:', `${API_CONFIG.BASE_URL}/api/Clubs`);
+      console.log('🌐 URL API complète:', `${API_CONFIG.BASE_URL}/api/Clubs`);
+      console.log('🔧 Headers envoyés:', {
+        'Accept': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      });
 
       const response = await fetch(`${API_CONFIG.BASE_URL}/api/Clubs`, {
         method: 'GET',
@@ -393,22 +397,52 @@ export default function App() {
       });
 
       console.log('📡 Réponse API clubs - Status:', response.status);
+      console.log('📡 Réponse API clubs - StatusText:', response.statusText);
+      console.log('📡 Réponse API clubs - Headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ Erreur API clubs:', errorText);
-        throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+        console.error('❌ Erreur API clubs - Status:', response.status);
+        console.error('❌ Erreur API clubs - Text:', errorText);
+        throw new Error(`Erreur ${response.status}: ${response.statusText} - ${errorText}`);
       }
 
-      const clubsData = await response.json();
-      console.log('📊 Clubs reçus de la base de données:', clubsData);
+      const responseText = await response.text();
+      console.log('📄 Réponse brute (text):', responseText);
+
+      let clubsData;
+      try {
+        clubsData = JSON.parse(responseText);
+        console.log('📊 Clubs parsés avec succès:', clubsData);
+      } catch (parseError) {
+        console.error('❌ Erreur de parsing JSON:', parseError);
+        console.error('📄 Contenu qui a causé l\'erreur:', responseText);
+        throw new Error('Réponse API invalide - pas du JSON valide');
+      }
+
+      console.log('📈 Type de données reçues:', typeof clubsData);
+      console.log('📈 Est-ce un tableau?', Array.isArray(clubsData));
       console.log('📈 Nombre de clubs trouvés:', clubsData?.length || 0);
 
+      if (Array.isArray(clubsData)) {
+        clubsData.forEach((club, index) => {
+          console.log(`🏢 Club ${index + 1}:`, {
+            id: club.id,
+            name: club.name,
+            code: club.code,
+            city: club.city
+          });
+        });
+      }
+
       if (Array.isArray(clubsData) && clubsData.length > 0) {
+        console.log('✅ Condition remplie: Array.isArray =', Array.isArray(clubsData), 'length > 0 =', clubsData.length > 0);
+
         // Remplacer par les clubs de la base de données
         setClubs(clubsData);
         console.log('✅ Clubs chargés avec succès depuis la base de données');
         console.log(`📊 ${clubsData.length} clubs disponibles pour la sélection`);
+        console.log('🎯 État clubs mis à jour avec:', clubsData.map(c => ({ id: c.id, name: c.name })));
 
         if (showAlerts) {
           Alert.alert('Succès', `${clubsData.length} clubs chargés depuis la base de données !`);
@@ -416,13 +450,17 @@ export default function App() {
 
         // Ne pas présélectionner de club - laisser l'utilisateur choisir
       } else {
-        console.warn('⚠️ Aucun club trouvé dans la base de données');
+        console.warn('⚠️ Condition non remplie pour les clubs');
+        console.warn('⚠️ Array.isArray(clubsData):', Array.isArray(clubsData));
+        console.warn('⚠️ clubsData.length:', clubsData?.length);
+        console.warn('⚠️ clubsData:', clubsData);
+
         setClubs([]); // Aucun club disponible
 
         if (showAlerts) {
           Alert.alert(
             'Aucun club trouvé',
-            'La base de données ne contient aucun club.'
+            `La réponse de l'API ne contient pas de clubs valides.\n\nType: ${typeof clubsData}\nArray: ${Array.isArray(clubsData)}\nLength: ${clubsData?.length || 'undefined'}`
           );
         }
       }
@@ -439,6 +477,7 @@ export default function App() {
       }
     } finally {
       setLoading(false);
+      console.log('🏁 Fin du chargement des clubs');
     }
   };
 
@@ -774,7 +813,13 @@ export default function App() {
   };
 
   // Écran de connexion obligatoire
-  const LoginScreen = () => (
+  const LoginScreen = () => {
+    console.log('🖥️ Rendu LoginScreen - État clubs:', {
+      length: clubs.length,
+      clubs: clubs.map(c => ({ id: c.id, name: c.name }))
+    });
+
+    return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Connexion Requise</Text>
@@ -937,7 +982,8 @@ export default function App() {
         </View>
       </Modal>
     </View>
-  );
+    );
+  };
 
   // Écran de profil
   const ProfileScreen = () => (
