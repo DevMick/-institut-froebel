@@ -418,7 +418,7 @@ export default function App() {
 
       // Ajouter un timeout pour éviter que la requête reste bloquée
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 secondes
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondes pour test plus rapide
 
       const response = await fetch(`${API_CONFIG.BASE_URL}/api/Clubs`, {
         method: 'GET',
@@ -505,20 +505,46 @@ export default function App() {
       console.error('❌ Type d\'erreur:', error.name);
       console.error('❌ Message d\'erreur:', error.message);
 
-      setClubs([]); // Aucun club disponible en cas d'erreur
+      // Utiliser des données de test en cas d'erreur pour permettre les tests
+      const testClubs = [
+        {
+          id: "1b435dcd-5f8a-4acf-97b3-10cf66b3b1a2",
+          name: "Rotary Club Abidjan II Plateau",
+          code: "ABJ-PLT-02",
+          city: "Abidjan",
+          country: "Côte d'Ivoire"
+        },
+        {
+          id: "dde25fd8-4e42-4373-87cd-e389c9a308f7",
+          name: "Rotary Club Abidjan Cocody",
+          code: "ABJ-COC-01",
+          city: "Abidjan",
+          country: "Côte d'Ivoire"
+        },
+        {
+          id: "e6b0e316-e3ff-4a1a-a5ab-dd9c56f21aed",
+          name: "Rotary Club Yamoussoukro",
+          code: "YAM-CAP-01",
+          city: "Yamoussoukro",
+          country: "Côte d'Ivoire"
+        }
+      ];
+
+      console.log('🔄 Utilisation des clubs de test en fallback');
+      setClubs(testClubs);
 
       if (showAlerts) {
         let errorMessage = '';
 
         if (error.name === 'AbortError') {
-          errorMessage = `Timeout de la requête (15s).\n\n⚠️ Vérifiez que :\n• Votre API backend est démarrée (port 5265)\n• Votre URL ngrok est à jour et accessible\n• Votre connexion internet fonctionne\n\nURL actuelle: ${API_CONFIG.BASE_URL}`;
+          errorMessage = `Timeout de la requête (5s).\n\n⚠️ Vérifiez que :\n• Votre API backend est démarrée (port 5265)\n• Votre URL ngrok est à jour et accessible\n• Votre connexion internet fonctionne\n\nURL actuelle: ${API_CONFIG.BASE_URL}\n\n✅ Clubs de test chargés pour permettre les tests.`;
         } else if (error.message.includes('fetch') || error.message.includes('network')) {
-          errorMessage = `Impossible de joindre l'API backend.\n\n⚠️ Vérifiez que :\n• Votre API backend est démarrée (port 5265)\n• Votre URL ngrok est à jour\n• Votre connexion internet fonctionne\n\nURL actuelle: ${API_CONFIG.BASE_URL}`;
+          errorMessage = `Impossible de joindre l'API backend.\n\n⚠️ Vérifiez que :\n• Votre API backend est démarrée (port 5265)\n• Votre URL ngrok est à jour\n• Votre connexion internet fonctionne\n\nURL actuelle: ${API_CONFIG.BASE_URL}\n\n✅ Clubs de test chargés pour permettre les tests.`;
         } else {
-          errorMessage = `Erreur API: ${error.message}\n\nURL: ${API_CONFIG.BASE_URL}`;
+          errorMessage = `Erreur API: ${error.message}\n\nURL: ${API_CONFIG.BASE_URL}\n\n✅ Clubs de test chargés pour permettre les tests.`;
         }
 
-        Alert.alert('Erreur de connexion', errorMessage);
+        Alert.alert('API non accessible - Mode test', errorMessage);
       }
     } finally {
       setLoading(false);
