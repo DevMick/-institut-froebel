@@ -22,7 +22,12 @@ import * as SecureStore from 'expo-secure-store';
 
 // Configuration API
 const API_CONFIG = {
-  BASE_URL: 'http://localhost:5265', // Changez cette URL selon votre environnement
+  // Pour développement local avec React Native CLI :
+  BASE_URL: 'http://localhost:5265',
+
+  // Pour Expo Snack, décommentez et utilisez ngrok :
+  // BASE_URL: 'https://votre-tunnel-ngrok.ngrok.io',
+
   API_PREFIX: '/api',
   TIMEOUT: 10000,
 };
@@ -326,6 +331,22 @@ export default function App() {
     }
   };
 
+  const testApiConnection = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/health`);
+      if (response.ok) {
+        Alert.alert('Connexion API', 'API accessible ! ✅');
+      } else {
+        Alert.alert('Erreur API', `Erreur HTTP: ${response.status}`);
+      }
+    } catch (error) {
+      Alert.alert('Erreur de connexion', `Impossible de joindre l'API: ${error}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Écran d'accueil
   const HomeScreen = () => (
     <ScrollView style={styles.container}>
@@ -342,12 +363,23 @@ export default function App() {
           {currentUser?.clubName || 'Rotary Club Paris Centre'}
         </Text>
         {!isAuthenticated && (
-          <TouchableOpacity
-            style={styles.loginButton}
-            onPress={() => setShowLogin(true)}
-          >
-            <Text style={styles.loginButtonText}>Se connecter à l'API</Text>
-          </TouchableOpacity>
+          <View>
+            <TouchableOpacity
+              style={styles.loginButton}
+              onPress={() => setShowLogin(true)}
+            >
+              <Text style={styles.loginButtonText}>Se connecter à l'API</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.testButton}
+              onPress={testApiConnection}
+              disabled={loading}
+            >
+              <Text style={styles.testButtonText}>
+                {loading ? 'Test en cours...' : 'Tester la connexion API'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
 
@@ -1133,5 +1165,18 @@ const styles = StyleSheet.create({
     marginTop: 16,
     textAlign: 'center',
     lineHeight: 18,
+  },
+  testButton: {
+    backgroundColor: colors.secondary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  testButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });
