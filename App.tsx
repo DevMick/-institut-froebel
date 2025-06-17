@@ -182,45 +182,59 @@ const apiService = new ApiService();
 const fallbackMembers: Member[] = [
   {
     id: '1',
-    email: 'jean.dupont@rotary.org',
-    firstName: 'Jean',
-    lastName: 'Dupont',
-    fullName: 'Jean Dupont',
-    phoneNumber: '+33 6 12 34 56 78',
+    email: 'kouame.yao@rotary.org',
+    firstName: 'Kouamé',
+    lastName: 'Yao',
+    fullName: 'Kouamé Yao',
+    phoneNumber: '+225 07 12 34 56 78',
     isActive: true,
     roles: ['Président'],
     clubId: 'club-1',
-    clubName: 'Rotary Club Paris Centre',
+    clubName: 'Rotary Club Abidjan II Plateaux',
     clubJoinedDate: '2020-01-15T00:00:00Z',
     clubJoinedDateFormatted: '15/01/2020'
   },
   {
     id: '2',
-    email: 'marie.martin@rotary.org',
-    firstName: 'Marie',
-    lastName: 'Martin',
-    fullName: 'Marie Martin',
-    phoneNumber: '+33 6 23 45 67 89',
+    email: 'aya.traore@rotary.org',
+    firstName: 'Aya',
+    lastName: 'Traoré',
+    fullName: 'Aya Traoré',
+    phoneNumber: '+225 05 23 45 67 89',
     isActive: true,
     roles: ['Secrétaire'],
     clubId: 'club-1',
-    clubName: 'Rotary Club Paris Centre',
+    clubName: 'Rotary Club Abidjan II Plateaux',
     clubJoinedDate: '2019-06-01T00:00:00Z',
     clubJoinedDateFormatted: '01/06/2019'
   },
   {
     id: '3',
-    email: 'pierre.durand@rotary.org',
-    firstName: 'Pierre',
-    lastName: 'Durand',
-    fullName: 'Pierre Durand',
-    phoneNumber: '+33 6 34 56 78 90',
+    email: 'ibrahim.kone@rotary.org',
+    firstName: 'Ibrahim',
+    lastName: 'Koné',
+    fullName: 'Ibrahim Koné',
+    phoneNumber: '+225 01 34 56 78 90',
     isActive: true,
     roles: ['Trésorier'],
     clubId: 'club-1',
-    clubName: 'Rotary Club Paris Centre',
+    clubName: 'Rotary Club Abidjan II Plateaux',
     clubJoinedDate: '2021-03-10T00:00:00Z',
     clubJoinedDateFormatted: '10/03/2021'
+  },
+  {
+    id: '4',
+    email: 'fatou.ouattara@rotary.org',
+    firstName: 'Fatou',
+    lastName: 'Ouattara',
+    fullName: 'Fatou Ouattara',
+    phoneNumber: '+225 09 45 67 89 01',
+    isActive: true,
+    roles: ['Vice-Présidente'],
+    clubId: 'club-1',
+    clubName: 'Rotary Club Abidjan II Plateaux',
+    clubJoinedDate: '2018-09-15T00:00:00Z',
+    clubJoinedDateFormatted: '15/09/2018'
   }
 ];
 
@@ -229,16 +243,16 @@ const mockMeetings = [
     id: '1',
     title: 'Réunion Hebdomadaire',
     date: '2024-12-19T18:30:00Z',
-    location: 'Hôtel Intercontinental',
-    attendees: ['1', '2', '3'],
+    location: 'Hôtel Pullman Abidjan',
+    attendees: ['1', '2', '3', '4'],
     status: 'upcoming'
   },
   {
     id: '2',
     title: 'Assemblée Générale',
     date: '2024-12-26T14:00:00Z',
-    location: 'Salle des Fêtes',
-    attendees: ['1', '2', '3', '4', '5'],
+    location: 'Centre de Conférences de Cocody',
+    attendees: ['1', '2', '3', '4'],
     status: 'upcoming'
   }
 ];
@@ -360,7 +374,7 @@ export default function App() {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Rotary Club</Text>
-        <Text style={styles.headerSubtitle}>Paris Centre</Text>
+        <Text style={styles.headerSubtitle}>Abidjan II Plateaux</Text>
       </View>
 
       <View style={styles.welcomeCard}>
@@ -368,7 +382,7 @@ export default function App() {
           Bienvenue, {currentUser ? currentUser.fullName : 'Utilisateur'}
         </Text>
         <Text style={styles.roleText}>
-          {currentUser?.clubName || 'Rotary Club Paris Centre'}
+          {currentUser?.clubName || 'Rotary Club Abidjan II Plateaux'}
         </Text>
         {!isAuthenticated && (
           <View>
@@ -614,9 +628,9 @@ export default function App() {
     <ScrollView style={styles.container}>
       <View style={[styles.header, styles.profileHeader]}>
         <View style={[styles.avatar, styles.profileAvatar]}>
-          <Text style={[styles.avatarText, styles.profileAvatarText]}>JD</Text>
+          <Text style={[styles.avatarText, styles.profileAvatarText]}>KY</Text>
         </View>
-        <Text style={[styles.headerTitle, styles.profileName]}>Jean Dupont</Text>
+        <Text style={[styles.headerTitle, styles.profileName]}>Kouamé Yao</Text>
         <Text style={[styles.headerSubtitle, styles.profileRole]}>Président</Text>
       </View>
 
@@ -626,14 +640,14 @@ export default function App() {
           <Ionicons name="mail" size={20} color={colors.primary} />
           <View style={styles.profileItemText}>
             <Text style={styles.profileItemLabel}>Email</Text>
-            <Text style={styles.profileItemValue}>jean.dupont@rotary.org</Text>
+            <Text style={styles.profileItemValue}>kouame.yao@rotary.org</Text>
           </View>
         </View>
         <View style={styles.profileItem}>
           <Ionicons name="business" size={20} color={colors.primary} />
           <View style={styles.profileItemText}>
             <Text style={styles.profileItemLabel}>Club</Text>
-            <Text style={styles.profileItemValue}>Rotary Club Paris Centre</Text>
+            <Text style={styles.profileItemValue}>Rotary Club Abidjan II Plateaux</Text>
           </View>
         </View>
       </View>
