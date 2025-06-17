@@ -363,6 +363,7 @@ export default function App() {
   const [showLogin, setShowLogin] = useState(true); // Afficher le login par défaut
   const [loginForm, setLoginForm] = useState({ email: '', password: '', clubId: '' });
   const [clubs, setClubs] = useState<Club[]>([fallbackClub]);
+  const [showClubPicker, setShowClubPicker] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
 
   // Charger les données au démarrage
@@ -775,24 +776,22 @@ export default function App() {
 
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Club</Text>
-            <View style={styles.pickerContainer}>
-              {clubs.map((club) => (
-                <TouchableOpacity
-                  key={club.id}
-                  style={[
-                    styles.clubOption,
-                    loginForm.clubId === club.id && styles.clubOptionSelected
-                  ]}
-                  onPress={() => setLoginForm(prev => ({ ...prev, clubId: club.id }))}
-                >
-                  <Text style={[
-                    styles.clubOptionText,
-                    loginForm.clubId === club.id && styles.clubOptionTextSelected
-                  ]}>
-                    {club.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+            <View style={styles.selectContainer}>
+              <TouchableOpacity
+                style={styles.selectButton}
+                onPress={() => setShowClubPicker(true)}
+              >
+                <Text style={[
+                  styles.selectText,
+                  !loginForm.clubId && styles.selectPlaceholder
+                ]}>
+                  {loginForm.clubId
+                    ? clubs.find(club => club.id === loginForm.clubId)?.name || 'Sélectionnez votre club'
+                    : 'Sélectionnez votre club'
+                  }
+                </Text>
+                <Text style={styles.selectArrow}>▼</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -825,6 +824,54 @@ export default function App() {
           </Text>
         </View>
       </ScrollView>
+
+      {/* Modal pour sélection du club */}
+      <Modal
+        visible={showClubPicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowClubPicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Sélectionnez votre club</Text>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => setShowClubPicker(false)}
+              >
+                <Text style={styles.modalCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalList}>
+              {clubs.map((club) => (
+                <TouchableOpacity
+                  key={club.id}
+                  style={[
+                    styles.modalOption,
+                    loginForm.clubId === club.id && styles.modalOptionSelected
+                  ]}
+                  onPress={() => {
+                    setLoginForm(prev => ({ ...prev, clubId: club.id }));
+                    setShowClubPicker(false);
+                  }}
+                >
+                  <Text style={[
+                    styles.modalOptionText,
+                    loginForm.clubId === club.id && styles.modalOptionTextSelected
+                  ]}>
+                    {club.name}
+                  </Text>
+                  {loginForm.clubId === club.id && (
+                    <Text style={styles.modalCheckmark}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 
@@ -1510,27 +1557,95 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
   },
-  pickerContainer: {
+  selectContainer: {
     marginTop: 5,
   },
-  clubOption: {
+  selectButton: {
     backgroundColor: colors.surface,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
     borderWidth: 1,
     borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 15,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  clubOptionSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primary + '10',
-  },
-  clubOptionText: {
+  selectText: {
     fontSize: 16,
     color: colors.text,
-    textAlign: 'center',
+    flex: 1,
   },
-  clubOptionTextSelected: {
+  selectPlaceholder: {
+    color: '#999',
+  },
+  selectArrow: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    width: '90%',
+    maxHeight: '70%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.text,
+  },
+  modalCloseButton: {
+    padding: 5,
+  },
+  modalCloseText: {
+    fontSize: 18,
+    color: '#666',
+    fontWeight: 'bold',
+  },
+  modalList: {
+    maxHeight: 400,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  modalOptionSelected: {
+    backgroundColor: colors.primary + '10',
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: colors.text,
+    flex: 1,
+  },
+  modalOptionTextSelected: {
+    color: colors.primary,
+    fontWeight: 'bold',
+  },
+  modalCheckmark: {
+    fontSize: 16,
     color: colors.primary,
     fontWeight: 'bold',
   },
