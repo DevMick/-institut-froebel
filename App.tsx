@@ -41,6 +41,22 @@ const API_CONFIG = {
 };
 
 // Types TypeScript
+interface Club {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+  address: string;
+  city: string;
+  country: string;
+  phoneNumber: string;
+  email: string;
+  website: string;
+  logoUrl: string;
+  foundedDate: string;
+  isActive: boolean;
+}
+
 interface Member {
   id: string;
   email: string;
@@ -239,6 +255,23 @@ const fallbackMembers: Member[] = [
     clubJoinedDateFormatted: '15/09/2018'
   }
 ];
+
+// Données de fallback pour le club
+const fallbackClub: Club = {
+  id: 'club-1',
+  name: 'Rotary Club Abidjan II Plateaux',
+  code: 'RC-ABIDJAN-II-PLATEAUX',
+  description: 'Club Rotary d\'Abidjan II Plateaux, fondé en 1988',
+  address: 'Boulevard Lagunaire, Cocody',
+  city: 'Abidjan',
+  country: 'Côte d\'Ivoire',
+  phoneNumber: '+225 27 22 48 56 78',
+  email: 'contact@rotary-abidjan-plateaux.org',
+  website: 'https://www.rotary-abidjan-plateaux.org',
+  logoUrl: '',
+  foundedDate: '1988-06-20T00:00:00Z',
+  isActive: true
+};
 
 const mockMeetings = [
   {
