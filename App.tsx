@@ -370,11 +370,12 @@ export default function App() {
   // Charger les données au démarrage
   useEffect(() => {
     initializeApp();
-    loadClubs();
+    loadClubs(); // Charger les clubs automatiquement
   }, []);
 
-  const loadClubs = async () => {
+  const loadClubs = async (showAlerts = false) => {
     try {
+      setLoading(true);
       console.log('🔄 Chargement des clubs depuis la base de données...');
       console.log('URL API:', `${API_CONFIG.BASE_URL}/api/Clubs`);
 
@@ -399,38 +400,39 @@ export default function App() {
       console.log('📈 Nombre de clubs trouvés:', clubsData?.length || 0);
 
       if (Array.isArray(clubsData) && clubsData.length > 0) {
+        // Remplacer par les clubs de la base de données
         setClubs(clubsData);
         console.log('✅ Clubs chargés avec succès depuis la base de données');
+        console.log(`📊 ${clubsData.length} clubs disponibles pour la sélection`);
 
-        // Chercher le club "Rotary Club Abidjan II Plateaux" en priorité
-        const preferredClub = clubsData.find(club =>
-          club.name.toLowerCase().includes('abidjan') &&
-          club.name.toLowerCase().includes('plateaux')
-        );
-
-        if (preferredClub) {
-          setLoginForm(prev => ({ ...prev, clubId: preferredClub.id }));
-          console.log('🎯 Club préféré sélectionné:', preferredClub.name);
-        } else {
-          // Sinon, sélectionner le premier club
-          setLoginForm(prev => ({ ...prev, clubId: clubsData[0].id }));
-          console.log('🔄 Premier club sélectionné:', clubsData[0].name);
+        if (showAlerts) {
+          Alert.alert('Succès', `${clubsData.length} clubs chargés depuis la base de données !`);
         }
+
+        // Ne pas présélectionner de club - laisser l'utilisateur choisir
       } else {
         console.warn('⚠️ Aucun club trouvé dans la base de données');
-        setClubs([]);
-        Alert.alert(
-          'Aucun club trouvé',
-          'Impossible de charger les clubs depuis la base de données. Vérifiez votre connexion API.'
-        );
+        setClubs([]); // Aucun club disponible
+
+        if (showAlerts) {
+          Alert.alert(
+            'Aucun club trouvé',
+            'La base de données ne contient aucun club.'
+          );
+        }
       }
     } catch (error) {
       console.error('❌ Erreur lors du chargement des clubs:', error);
-      setClubs([]);
-      Alert.alert(
-        'Erreur de connexion',
-        `Impossible de charger les clubs depuis la base de données:\n${error.message}\n\nVérifiez que votre API est accessible.`
-      );
+      setClubs([]); // Aucun club disponible en cas d'erreur
+
+      if (showAlerts) {
+        Alert.alert(
+          'Erreur de connexion',
+          `Impossible de charger les clubs depuis la base de données:\n${error.message}`
+        );
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -770,9 +772,6 @@ export default function App() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Connexion Requise</Text>
-        <View style={styles.headerSubtitle}>
-          <Text style={styles.headerSubtitleText}>Rotary Club Abidjan II Plateaux</Text>
-        </View>
       </View>
 
       <ScrollView style={styles.loginContainer}>
@@ -844,7 +843,7 @@ export default function App() {
             {clubs.length === 0 && (
               <TouchableOpacity
                 style={styles.reloadClubsButton}
-                onPress={loadClubs}
+                onPress={() => loadClubs(true)}
                 disabled={loading}
               >
                 <Text style={styles.reloadClubsButtonText}>
