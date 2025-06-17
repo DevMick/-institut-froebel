@@ -22,11 +22,11 @@ import * as SecureStore from 'expo-secure-store';
 
 // Configuration API
 const API_CONFIG = {
-  // Pour développement local avec React Native CLI :
-  BASE_URL: 'http://localhost:5265',
+  // URL ngrok pour accès public à votre API locale
+  BASE_URL: 'https://dfda-102-212-189-33.ngrok-free.app',
 
-  // Pour Expo Snack, décommentez et utilisez ngrok :
-  // BASE_URL: 'https://votre-tunnel-ngrok.ngrok.io',
+  // Pour développement local avec React Native CLI :
+  // BASE_URL: 'http://localhost:5265',
 
   API_PREFIX: '/api',
   TIMEOUT: 10000,
