@@ -527,6 +527,34 @@ export default function App() {
           code: "YAM-CAP-01",
           city: "Yamoussoukro",
           country: "Côte d'Ivoire"
+        },
+        {
+          id: "1cc41b86-d0a8-4f5d-8b51-22fe7a3cb868",
+          name: "Rotary Club Paris International",
+          code: "PAR-INT-07",
+          city: "Paris",
+          country: "France"
+        },
+        {
+          id: "6cd60b18-0d01-41d5-b1f4-a49085ddec7d",
+          name: "Rotary Club Dakar Almadies",
+          code: "DKR-ALM-03",
+          city: "Dakar",
+          country: "Sénégal"
+        },
+        {
+          id: "796f83c9-361a-4953-a7c3-87d4c42be6fc",
+          name: "Club Rotary International",
+          code: "CRI",
+          city: "Rotary City",
+          country: "World"
+        },
+        {
+          id: "test-club-7",
+          name: "Rotary Club Test 7",
+          code: "TEST-07",
+          city: "Test City",
+          country: "Test Country"
         }
       ];
 
@@ -1025,7 +1053,9 @@ export default function App() {
             </View>
 
             <ScrollView style={styles.modalList}>
-              {clubs.map((club) => (
+              {clubs.map((club, index) => {
+                console.log(`🏢 Rendu club ${index + 1}/${clubs.length}:`, club.name);
+                return (
                 <TouchableOpacity
                   key={club.id}
                   style={[
@@ -1047,7 +1077,8 @@ export default function App() {
                     <Text style={styles.modalCheckmark}>✓</Text>
                   )}
                 </TouchableOpacity>
-              ))}
+                );
+              })}
             </ScrollView>
           </View>
         </View>
@@ -1753,7 +1784,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   modalList: {
-    maxHeight: 400,
+    maxHeight: 500,
+    flex: 1,
   },
   modalOption: {
     flexDirection: 'row',
