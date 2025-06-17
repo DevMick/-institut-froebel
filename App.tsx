@@ -369,9 +369,12 @@ export default function App() {
 
   // Charger les données au démarrage
   useEffect(() => {
-    initializeApp();
-    loadClubs(); // Charger les clubs automatiquement
-  }, []);
+    const init = async () => {
+      await initializeApp();
+      await loadClubs(); // Charger les clubs automatiquement
+    };
+    init();
+  }, []); // Pas de dépendances car on veut que ça s'exécute une seule fois
 
   const loadClubs = async (showAlerts = false) => {
     try {
@@ -1434,19 +1437,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   // Nouveaux styles pour l'API
-  loginButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginTop: 12,
-  },
-  loginButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
   refreshButton: {
     padding: 8,
     borderRadius: 20,
@@ -1470,11 +1460,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     marginTop: 4,
   },
-  closeButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-  },
+
   loginContainer: {
     flex: 1,
     padding: 16,
@@ -1543,19 +1529,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
   },
-  testButton: {
-    backgroundColor: colors.secondary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  testButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
+
   // Styles pour l'authentification obligatoire
   loginLogo: {
     alignItems: 'center',
@@ -1574,35 +1548,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 5,
   },
-  testAccountsContainer: {
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  testAccountsTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  testAccountButton: {
-    backgroundColor: colors.surface,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  testAccountText: {
-    color: colors.primary,
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  headerSubtitleText: {
-    color: 'white',
-    fontSize: 14,
-    opacity: 0.9,
-  },
+
   testApiButton: {
     backgroundColor: colors.secondary,
     padding: 12,
