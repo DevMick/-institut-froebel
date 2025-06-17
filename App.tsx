@@ -20,13 +20,21 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 
-// Configuration API
+// Configuration API et Base de données
 const API_CONFIG = {
-  // URL ngrok pour accès public à votre API locale
-  BASE_URL: 'https://dfda-102-212-189-33.ngrok-free.app',
+  // URL de l'API backend (à remplacer par votre API déployée)
+  BASE_URL: 'https://your-api-backend.herokuapp.com', // Remplacez par votre URL d'API
 
-  // Pour développement local avec React Native CLI :
-  // BASE_URL: 'http://localhost:5265',
+  // Configuration PostgreSQL pour connexion directe (Expo Snack compatible)
+  // IMPORTANT: En production, utilisez des variables d'environnement
+  DATABASE: {
+    host: process.env.DB_HOST || 'your-postgres-host',
+    port: parseInt(process.env.DB_PORT || '5432'),
+    database: process.env.DB_NAME || 'defaultdb',
+    username: process.env.DB_USER || 'your-username',
+    password: process.env.DB_PASSWORD || 'your-password',
+    ssl: true
+  },
 
   API_PREFIX: '/api',
   TIMEOUT: 10000,
