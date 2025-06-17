@@ -548,13 +548,6 @@ export default function App() {
           code: "CRI",
           city: "Rotary City",
           country: "World"
-        },
-        {
-          id: "test-club-7",
-          name: "Rotary Club Test 7",
-          code: "TEST-07",
-          city: "Test City",
-          country: "Test Country"
         }
       ];
 
