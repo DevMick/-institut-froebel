@@ -1,9 +1,9 @@
 /**
- * Rotary Club Mobile App - Version Expo Snack
- * Application complète et autonome pour démonstration
+ * Rotary Club Mobile App - Version Expo Snack avec API Backend
+ * Application connectée à l'API ASP.NET Core avec PostgreSQL
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,18 +12,203 @@ import {
   TouchableOpacity,
   FlatList,
   SafeAreaView,
-  Alert
+  Alert,
+  ActivityIndicator,
+  TextInput
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 
-// Données mockées
-const mockMembers = [
-  { id: '1', name: 'Jean Dupont', role: 'Président', email: 'jean.dupont@rotary.org', phone: '+33 6 12 34 56 78' },
-  { id: '2', name: 'Marie Martin', role: 'Secrétaire', email: 'marie.martin@rotary.org', phone: '+33 6 23 45 67 89' },
-  { id: '3', name: 'Pierre Durand', role: 'Trésorier', email: 'pierre.durand@rotary.org', phone: '+33 6 34 56 78 90' },
-  { id: '4', name: 'Sophie Moreau', role: 'Membre', email: 'sophie.moreau@rotary.org', phone: '+33 6 45 67 89 01' },
-  { id: '5', name: 'Paul Bernard', role: 'Membre', email: 'paul.bernard@rotary.org', phone: '+33 6 56 78 90 12' },
+// Configuration API
+const API_CONFIG = {
+  BASE_URL: 'http://localhost:5265', // Changez cette URL selon votre environnement
+  API_PREFIX: '/api',
+  TIMEOUT: 10000,
+};
+
+// Types TypeScript
+interface Member {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  phoneNumber?: string;
+  profilePictureUrl?: string;
+  isActive: boolean;
+  roles: string[];
+  clubId: string;
+  clubName?: string;
+  clubJoinedDate: string;
+  clubJoinedDateFormatted: string;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  message?: string;
+  data?: T;
+  member?: T;
+  members?: T[];
+}
+
+interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  clubId?: string;
+  clubName?: string;
+}
+
+// Services API
+class ApiService {
+  private async getToken(): Promise<string | null> {
+    try {
+      return await SecureStore.getItemAsync('authToken');
+    } catch (error) {
+      console.error('Erreur lors de la récupération du token:', error);
+      return null;
+    }
+  }
+
+  private async setToken(token: string): Promise<void> {
+    try {
+      await SecureStore.setItemAsync('authToken', token);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde du token:', error);
+    }
+  }
+
+  private async removeToken(): Promise<void> {
+    try {
+      await SecureStore.deleteItemAsync('authToken');
+    } catch (error) {
+      console.error('Erreur lors de la suppression du token:', error);
+    }
+  }
+
+  private async makeRequest<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<ApiResponse<T>> {
+    try {
+      const token = await this.getToken();
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}${endpoint}`;
+
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...options.headers,
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(url, {
+        ...options,
+        headers,
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          await this.removeToken();
+          throw new Error('Session expirée. Veuillez vous reconnecter.');
+        }
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Erreur API:', error);
+      throw error;
+    }
+  }
+
+  async login(email: string, password: string): Promise<User> {
+    const response = await this.makeRequest<any>('/Auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (response.success && response.data?.token) {
+      await this.setToken(response.data.token);
+      return response.data.user;
+    }
+
+    throw new Error(response.message || 'Erreur de connexion');
+  }
+
+  async getCurrentUser(): Promise<User> {
+    const response = await this.makeRequest<User>('/Auth/me');
+    if (response.success && response.data) {
+      return response.data;
+    }
+    throw new Error(response.message || 'Erreur lors de la récupération de l\'utilisateur');
+  }
+
+  async getClubMembers(clubId: string): Promise<Member[]> {
+    const response = await this.makeRequest<Member>(`/club/${clubId}/members`);
+    if (response.success && response.members) {
+      return response.members;
+    }
+    throw new Error(response.message || 'Erreur lors de la récupération des membres');
+  }
+
+  async logout(): Promise<void> {
+    await this.removeToken();
+  }
+}
+
+const apiService = new ApiService();
+
+// Données de fallback (utilisées si l'API n'est pas disponible)
+const fallbackMembers: Member[] = [
+  {
+    id: '1',
+    email: 'jean.dupont@rotary.org',
+    firstName: 'Jean',
+    lastName: 'Dupont',
+    fullName: 'Jean Dupont',
+    phoneNumber: '+33 6 12 34 56 78',
+    isActive: true,
+    roles: ['Président'],
+    clubId: 'club-1',
+    clubName: 'Rotary Club Paris Centre',
+    clubJoinedDate: '2020-01-15T00:00:00Z',
+    clubJoinedDateFormatted: '15/01/2020'
+  },
+  {
+    id: '2',
+    email: 'marie.martin@rotary.org',
+    firstName: 'Marie',
+    lastName: 'Martin',
+    fullName: 'Marie Martin',
+    phoneNumber: '+33 6 23 45 67 89',
+    isActive: true,
+    roles: ['Secrétaire'],
+    clubId: 'club-1',
+    clubName: 'Rotary Club Paris Centre',
+    clubJoinedDate: '2019-06-01T00:00:00Z',
+    clubJoinedDateFormatted: '01/06/2019'
+  },
+  {
+    id: '3',
+    email: 'pierre.durand@rotary.org',
+    firstName: 'Pierre',
+    lastName: 'Durand',
+    fullName: 'Pierre Durand',
+    phoneNumber: '+33 6 34 56 78 90',
+    isActive: true,
+    roles: ['Trésorier'],
+    clubId: 'club-1',
+    clubName: 'Rotary Club Paris Centre',
+    clubJoinedDate: '2021-03-10T00:00:00Z',
+    clubJoinedDateFormatted: '10/03/2021'
+  }
 ];
 
 const mockMeetings = [
@@ -57,6 +242,89 @@ const colors = {
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('Home');
+  const [members, setMembers] = useState<Member[]>(fallbackMembers);
+  const [loading, setLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [showLogin, setShowLogin] = useState(false);
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+
+  // Charger les données au démarrage
+  useEffect(() => {
+    initializeApp();
+  }, []);
+
+  const initializeApp = async () => {
+    try {
+      setLoading(true);
+      // Vérifier si l'utilisateur est connecté
+      const user = await apiService.getCurrentUser();
+      setCurrentUser(user);
+      setIsAuthenticated(true);
+
+      // Charger les membres si on a un clubId
+      if (user.clubId) {
+        await loadMembers(user.clubId);
+      }
+    } catch (error) {
+      console.log('Utilisateur non connecté, utilisation des données de fallback');
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadMembers = async (clubId: string) => {
+    try {
+      setLoading(true);
+      const membersData = await apiService.getClubMembers(clubId);
+      setMembers(membersData);
+    } catch (error) {
+      console.error('Erreur lors du chargement des membres:', error);
+      Alert.alert('Erreur', 'Impossible de charger les membres. Utilisation des données hors ligne.');
+      setMembers(fallbackMembers);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = async () => {
+    if (!loginForm.email || !loginForm.password) {
+      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const user = await apiService.login(loginForm.email, loginForm.password);
+      setCurrentUser(user);
+      setIsAuthenticated(true);
+      setShowLogin(false);
+      setLoginForm({ email: '', password: '' });
+
+      if (user.clubId) {
+        await loadMembers(user.clubId);
+      }
+
+      Alert.alert('Succès', 'Connexion réussie !');
+    } catch (error) {
+      Alert.alert('Erreur de connexion', error instanceof Error ? error.message : 'Erreur inconnue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await apiService.logout();
+      setIsAuthenticated(false);
+      setCurrentUser(null);
+      setMembers(fallbackMembers);
+      Alert.alert('Déconnexion', 'Vous avez été déconnecté avec succès');
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+    }
+  };
 
   // Écran d'accueil
   const HomeScreen = () => (
@@ -67,13 +335,25 @@ export default function App() {
       </View>
 
       <View style={styles.welcomeCard}>
-        <Text style={styles.welcomeText}>Bienvenue, Jean Dupont</Text>
-        <Text style={styles.roleText}>Président</Text>
+        <Text style={styles.welcomeText}>
+          Bienvenue, {currentUser ? currentUser.fullName : 'Utilisateur'}
+        </Text>
+        <Text style={styles.roleText}>
+          {currentUser?.clubName || 'Rotary Club Paris Centre'}
+        </Text>
+        {!isAuthenticated && (
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={() => setShowLogin(true)}
+          >
+            <Text style={styles.loginButtonText}>Se connecter à l'API</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{mockMembers.length}</Text>
+          <Text style={styles.statNumber}>{members.length}</Text>
           <Text style={styles.statLabel}>Membres</Text>
         </View>
         <View style={styles.statCard}>
@@ -167,40 +447,127 @@ export default function App() {
 
   // Écran des membres
   const MembersScreen = () => {
-    const filteredMembers = mockMembers;
-
     return (
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Membres</Text>
+          {isAuthenticated && (
+            <TouchableOpacity
+              style={styles.refreshButton}
+              onPress={() => currentUser?.clubId && loadMembers(currentUser.clubId)}
+            >
+              <Ionicons name="refresh" size={20} color="white" />
+            </TouchableOpacity>
+          )}
         </View>
-        <FlatList
-          data={filteredMembers}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.memberCard}>
-              <View style={styles.memberHeader}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>
-                    {item.name.split(' ').map(n => n[0]).join('')}
+
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>Chargement des membres...</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={members}
+            keyExtractor={item => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.memberCard}>
+                <View style={styles.memberHeader}>
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>
+                      {item.fullName.split(' ').map((n: string) => n[0]).join('')}
+                    </Text>
+                  </View>
+                  <View style={styles.memberInfo}>
+                    <Text style={styles.memberName}>{item.fullName}</Text>
+                    <Text style={styles.memberRole}>
+                      {item.roles.length > 0 ? item.roles.join(', ') : 'Membre'}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.memberDetails}>
+                  <Text style={styles.memberEmail}>{item.email}</Text>
+                  {item.phoneNumber && (
+                    <Text style={styles.memberPhone}>{item.phoneNumber}</Text>
+                  )}
+                  <Text style={styles.memberJoinDate}>
+                    Membre depuis: {item.clubJoinedDateFormatted}
                   </Text>
                 </View>
-                <View style={styles.memberInfo}>
-                  <Text style={styles.memberName}>{item.name}</Text>
-                  <Text style={styles.memberRole}>{item.role}</Text>
-                </View>
               </View>
-              <View style={styles.memberDetails}>
-                <Text style={styles.memberEmail}>{item.email}</Text>
-                <Text style={styles.memberPhone}>{item.phone}</Text>
-              </View>
-            </View>
-          )}
-          contentContainerStyle={styles.listContainer}
-        />
+            )}
+            contentContainerStyle={styles.listContainer}
+            refreshing={loading}
+            onRefresh={() => currentUser?.clubId && loadMembers(currentUser.clubId)}
+          />
+        )}
       </View>
     );
   };
+
+  // Écran de connexion
+  const LoginScreen = () => (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Connexion API</Text>
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => setShowLogin(false)}
+        >
+          <Ionicons name="close" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView style={styles.loginContainer}>
+        <View style={styles.loginForm}>
+          <Text style={styles.loginTitle}>Se connecter à l'API Backend</Text>
+          <Text style={styles.loginSubtitle}>
+            URL: {API_CONFIG.BASE_URL}
+          </Text>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Email</Text>
+            <TextInput
+              style={styles.textInput}
+              value={loginForm.email}
+              onChangeText={(text) => setLoginForm(prev => ({ ...prev, email: text }))}
+              placeholder="votre.email@rotary.org"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Mot de passe</Text>
+            <TextInput
+              style={styles.textInput}
+              value={loginForm.password}
+              onChangeText={(text) => setLoginForm(prev => ({ ...prev, password: text }))}
+              placeholder="Votre mot de passe"
+              secureTextEntry
+            />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.loginSubmitButton, loading && styles.loginSubmitButtonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={styles.loginSubmitButtonText}>Se connecter</Text>
+            )}
+          </TouchableOpacity>
+
+          <Text style={styles.loginNote}>
+            Note: Cette fonctionnalité nécessite que l'API backend soit accessible.
+            En cas d'échec, l'application utilisera les données de démonstration.
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
+  );
 
   // Écran de profil
   const ProfileScreen = () => (
@@ -251,6 +618,10 @@ export default function App() {
 
   // Fonction pour rendre l'écran actuel
   const renderCurrentScreen = () => {
+    if (showLogin) {
+      return <LoginScreen />;
+    }
+
     switch (currentScreen) {
       case 'Home':
         return <HomeScreen />;
@@ -652,5 +1023,115 @@ const styles = StyleSheet.create({
   tabTextActive: {
     color: colors.primary,
     fontWeight: '500',
+  },
+  // Nouveaux styles pour l'API
+  loginButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  loginButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  refreshButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  memberJoinDate: {
+    fontSize: 12,
+    color: colors.text,
+    opacity: 0.6,
+    marginTop: 4,
+  },
+  closeButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  loginContainer: {
+    flex: 1,
+    padding: 16,
+  },
+  loginForm: {
+    backgroundColor: colors.surface,
+    padding: 20,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  loginTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  loginSubtitle: {
+    fontSize: 14,
+    color: colors.text,
+    opacity: 0.7,
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: 'white',
+  },
+  loginSubmitButton: {
+    backgroundColor: colors.primary,
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  loginSubmitButtonDisabled: {
+    opacity: 0.6,
+  },
+  loginSubmitButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  loginNote: {
+    fontSize: 12,
+    color: colors.text,
+    opacity: 0.7,
+    marginTop: 16,
+    textAlign: 'center',
+    lineHeight: 18,
   },
 });
