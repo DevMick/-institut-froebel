@@ -142,10 +142,11 @@ class ApiService {
     }
   }
 
-  async login(email: string, password: string): Promise<User> {
+  async login(email: string, password: string, clubId?: string): Promise<User> {
+    const loginData = clubId ? { email, password, clubId } : { email, password };
     const response = await this.makeRequest<any>('/Auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(loginData),
     });
 
     if (response.success && response.data?.token) {
@@ -275,13 +276,37 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [showLogin, setShowLogin] = useState(true); // Afficher le login par défaut
-  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  const [loginForm, setLoginForm] = useState({ email: '', password: '', clubId: '' });
+  const [clubs, setClubs] = useState<Club[]>([fallbackClub]);
   const [isInitializing, setIsInitializing] = useState(true);
 
   // Charger les données au démarrage
   useEffect(() => {
     initializeApp();
+    loadClubs();
   }, []);
+
+  const loadClubs = async () => {
+    try {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/Clubs`, {
+        headers: {
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
+      });
+      if (response.ok) {
+        const clubsData = await response.json();
+        setClubs(clubsData);
+        // Sélectionner automatiquement le premier club
+        if (clubsData.length > 0) {
+          setLoginForm(prev => ({ ...prev, clubId: clubsData[0].id }));
+        }
+      }
+    } catch (error) {
+      console.log('Erreur lors du chargement des clubs, utilisation du club par défaut');
+      setLoginForm(prev => ({ ...prev, clubId: fallbackClub.id }));
+    }
+  };
 
   const initializeApp = async () => {
     try {
@@ -320,14 +345,14 @@ export default function App() {
   };
 
   const handleLogin = async () => {
-    if (!loginForm.email || !loginForm.password) {
+    if (!loginForm.email || !loginForm.password || !loginForm.clubId) {
       Alert.alert('Erreur', 'Veuillez remplir tous les champs');
       return;
     }
 
     try {
       setLoading(true);
-      const user = await apiService.login(loginForm.email, loginForm.password);
+      const user = await apiService.login(loginForm.email, loginForm.password, loginForm.clubId);
       setCurrentUser(user);
       setIsAuthenticated(true);
       setShowLogin(false);
@@ -600,6 +625,29 @@ export default function App() {
               placeholder="Votre mot de passe"
               secureTextEntry
             />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Club</Text>
+            <View style={styles.pickerContainer}>
+              {clubs.map((club) => (
+                <TouchableOpacity
+                  key={club.id}
+                  style={[
+                    styles.clubOption,
+                    loginForm.clubId === club.id && styles.clubOptionSelected
+                  ]}
+                  onPress={() => setLoginForm(prev => ({ ...prev, clubId: club.id }))}
+                >
+                  <Text style={[
+                    styles.clubOptionText,
+                    loginForm.clubId === club.id && styles.clubOptionTextSelected
+                  ]}>
+                    {club.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
           <TouchableOpacity
@@ -1315,5 +1363,29 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     textAlign: 'center',
+  },
+  pickerContainer: {
+    marginTop: 5,
+  },
+  clubOption: {
+    backgroundColor: colors.surface,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  clubOptionSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary + '10',
+  },
+  clubOptionText: {
+    fontSize: 16,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  clubOptionTextSelected: {
+    color: colors.primary,
+    fontWeight: 'bold',
   },
 });
