@@ -262,6 +262,20 @@ class ApiService {
     throw new Error('Impossible de récupérer les informations utilisateur');
   }
 
+  async getCurrentProfile(): Promise<User> {
+    console.log('👤 Récupération du profil utilisateur via getCurrentProfile...');
+    try {
+      const response = await this.makeRequest<User>('/Auth/getCurrentProfile');
+      console.log('👤 Profil reçu via getCurrentProfile:', response);
+      return response.data || response;
+    } catch (error) {
+      console.log('👤 Tentative avec /Auth/me...');
+      const response = await this.makeRequest<User>('/Auth/me');
+      console.log('👤 Profil reçu via /Auth/me:', response);
+      return response.data || response;
+    }
+  }
+
   async getClubMembers(clubId: string): Promise<Member[]> {
     const response = await this.makeRequest<Member>(`/club/${clubId}/members`);
     if (response.success && response.members) {
@@ -667,66 +681,89 @@ export default function App() {
     }
   };
 
-  const testApiConnection = async () => {
+  // Fonction de connexion réelle (basée sur RotaryManager)
+  const handleRealLogin = async () => {
+    if (!loginForm.email || !loginForm.password || !loginForm.clubId) {
+      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+      return;
+    }
+
     try {
       setLoading(true);
+      console.log('🔐 === DÉBUT CONNEXION RÉELLE ===');
+      console.log('📧 Email:', loginForm.email);
+      console.log('🏢 Club ID:', loginForm.clubId);
+      console.log('🌐 URL API:', `${API_CONFIG.BASE_URL}/api/Auth/login`);
 
-      // Test 1: Chargement des clubs
-      console.log('Test 1: Chargement des clubs...');
-      const clubsResponse = await fetch(`${API_CONFIG.BASE_URL}/api/Clubs`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'ngrok-skip-browser-warning': 'true',
-        },
-      });
+      // Préparer les données de connexion (format exact du web)
+      const loginData = {
+        email: loginForm.email,
+        password: loginForm.password,
+        clubId: loginForm.clubId
+      };
 
-      let clubsOk = clubsResponse.ok;
-      let clubsData = null;
-      if (clubsOk) {
-        clubsData = await clubsResponse.json();
-      }
+      console.log('📤 Données envoyées:', { ...loginData, password: '[MASQUÉ]' });
 
-      // Test 2: Endpoint de login avec données de test
-      console.log('Test 2: Test endpoint login...');
-      const loginResponse = await fetch(`${API_CONFIG.BASE_URL}/api/Auth/login`, {
+      // Appel API de connexion
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/Auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'ngrok-skip-browser-warning': 'true',
         },
-        body: JSON.stringify({
-          email: 'test@test.com',
-          password: 'test123',
-          clubId: clubsData && clubsData.length > 0 ? clubsData[0].id : 'test-club-id'
-        }),
+        body: JSON.stringify(loginData),
       });
 
-      let message = '🔍 Résultats des tests:\n\n';
+      console.log('📥 Réponse HTTP Status:', response.status);
+      console.log('📥 Réponse OK:', response.ok);
 
-      if (clubsOk) {
-        message += `✅ Clubs: ${clubsData?.length || 0} clubs trouvés\n`;
-      } else {
-        message += `❌ Clubs: Erreur ${clubsResponse.status}\n`;
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Erreur de connexion:', errorText);
+        throw new Error(`Erreur ${response.status}: ${errorText}`);
       }
 
-      if (loginResponse.status === 400 || loginResponse.status === 401) {
-        message += '✅ Login: Endpoint trouvé (credentials invalides)\n';
-      } else if (loginResponse.ok) {
-        message += '✅ Login: Endpoint accessible\n';
+      const result = await response.json();
+      console.log('✅ Réponse de connexion reçue');
+      console.log('🔑 Token présent:', !!result.token);
+      console.log('✅ Success:', result.success);
+
+      // Vérifier la structure de la réponse (comme dans le web)
+      if (result.success && result.token) {
+        console.log('🎉 Connexion réussie - Sauvegarde du token...');
+
+        // Sauvegarder le token
+        await apiService.saveToken(result.token);
+        console.log('💾 Token sauvegardé');
+
+        // Récupérer le profil utilisateur (comme dans le web)
+        console.log('👤 Récupération du profil utilisateur...');
+        const profile = await apiService.getCurrentProfile();
+        console.log('👤 Profil récupéré:', { id: profile.id, email: profile.email, clubId: profile.clubId });
+
+        // Mettre à jour l'état de l'application
+        setCurrentUser(profile);
+        setIsAuthenticated(true);
+        setShowLogin(false);
+        setLoginForm({ email: '', password: '', clubId: '' });
+
+        console.log('🏠 Redirection vers l\'application...');
+        Alert.alert('Succès', 'Connexion réussie !');
       } else {
-        message += `❌ Login: Erreur ${loginResponse.status}\n`;
+        console.error('❌ Réponse invalide:', result);
+        throw new Error(result.message || result.Message || 'Erreur lors de la connexion');
       }
-
-      message += `\n🌐 URL: ${API_CONFIG.BASE_URL}`;
-
-      Alert.alert('Test de Connexion API', message);
 
     } catch (error) {
-      Alert.alert('Erreur de connexion', `Impossible de joindre l'API:\n${error}\n\nURL: ${API_CONFIG.BASE_URL}`);
+      console.error('💥 ERREUR DE CONNEXION:', error);
+      Alert.alert(
+        'Erreur de connexion',
+        error.message || 'Une erreur est survenue lors de la connexion'
+      );
     } finally {
       setLoading(false);
+      console.log('🔐 === FIN CONNEXION ===');
     }
   };
 
@@ -998,7 +1035,7 @@ export default function App() {
 
           <TouchableOpacity
             style={[styles.loginSubmitButton, loading && styles.loginSubmitButtonDisabled]}
-            onPress={handleLogin}
+            onPress={handleRealLogin}
             disabled={loading}
           >
             {loading ? (
@@ -1008,20 +1045,8 @@ export default function App() {
             )}
           </TouchableOpacity>
 
-
-
-          <TouchableOpacity
-            style={styles.testApiButton}
-            onPress={testApiConnection}
-            disabled={loading}
-          >
-            <Text style={styles.testApiButtonText}>
-              {loading ? 'Test en cours...' : 'Tester la connexion API'}
-            </Text>
-          </TouchableOpacity>
-
           <Text style={styles.loginNote}>
-            Note: En cas d'échec de connexion à l'API, l'application utilisera les données de démonstration.
+            Connectez-vous avec vos identifiants Rotary pour accéder à l'application.
           </Text>
         </View>
       </ScrollView>
@@ -1693,18 +1718,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
 
-  testApiButton: {
-    backgroundColor: colors.secondary,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 15,
-  },
-  testApiButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
+
   selectContainer: {
     marginTop: 5,
   },
