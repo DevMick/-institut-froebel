@@ -158,27 +158,79 @@ class ApiService {
     }
   }
 
-  async login(email: string, password: string, clubId?: string): Promise<User> {
-    const loginData = clubId ? { email, password, clubId } : { email, password };
-    const response = await this.makeRequest<any>('/Auth/login', {
-      method: 'POST',
-      body: JSON.stringify(loginData),
-    });
+  async login(email: string, password: string, clubId: string): Promise<User> {
+    // Format exact comme dans RotaryManager
+    const loginData = { email, password, clubId };
 
-    if (response.success && response.data?.token) {
-      await this.setToken(response.data.token);
-      return response.data.user;
+    try {
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/Auth/login`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
+        body: JSON.stringify(loginData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Erreur ${response.status}: ${errorText}`);
+      }
+
+      const result = await response.json();
+
+      // Vérifier si on a un token dans la réponse
+      if (result.token) {
+        await this.setToken(result.token);
+
+        // Récupérer le profil utilisateur après login
+        try {
+          const profile = await this.getCurrentUser();
+          return profile;
+        } catch (error) {
+          // Si on ne peut pas récupérer le profil, créer un utilisateur basique
+          return {
+            id: 'user-id',
+            email: email,
+            firstName: 'Utilisateur',
+            lastName: 'Connecté',
+            fullName: 'Utilisateur Connecté',
+            clubId: clubId
+          };
+        }
+      }
+
+      throw new Error(result.message || result.Message || 'Erreur de connexion');
+    } catch (error) {
+      console.error('Erreur lors du login:', error);
+      throw error;
     }
-
-    throw new Error(response.message || 'Erreur de connexion');
   }
 
   async getCurrentUser(): Promise<User> {
-    const response = await this.makeRequest<User>('/Auth/me');
-    if (response.success && response.data) {
-      return response.data;
+    try {
+      // Essayer d'abord /Auth/me
+      const response = await this.makeRequest<User>('/Auth/me');
+      if (response.success && response.data) {
+        return response.data;
+      }
+    } catch (error) {
+      console.log('Tentative avec getCurrentProfile...');
     }
-    throw new Error(response.message || 'Erreur lors de la récupération de l\'utilisateur');
+
+    try {
+      // Essayer getCurrentProfile comme dans RotaryManager
+      const response = await this.makeRequest<User>('/Auth/getCurrentProfile');
+      if (response) {
+        return response;
+      }
+    } catch (error) {
+      console.log('getCurrentProfile échoué aussi');
+    }
+
+    throw new Error('Impossible de récupérer les informations utilisateur');
   }
 
   async getClubMembers(clubId: string): Promise<Member[]> {
@@ -321,22 +373,38 @@ export default function App() {
 
   const loadClubs = async () => {
     try {
+      console.log('Chargement des clubs depuis:', `${API_CONFIG.BASE_URL}/api/Clubs`);
+
       const response = await fetch(`${API_CONFIG.BASE_URL}/api/Clubs`, {
+        method: 'GET',
         headers: {
           'Accept': 'application/json',
           'ngrok-skip-browser-warning': 'true',
         },
       });
-      if (response.ok) {
-        const clubsData = await response.json();
+
+      console.log('Réponse clubs - Status:', response.status);
+
+      if (!response.ok) {
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+      }
+
+      const clubsData = await response.json();
+      console.log('Clubs reçus:', clubsData);
+
+      if (Array.isArray(clubsData) && clubsData.length > 0) {
         setClubs(clubsData);
         // Sélectionner automatiquement le premier club
-        if (clubsData.length > 0) {
-          setLoginForm(prev => ({ ...prev, clubId: clubsData[0].id }));
-        }
+        setLoginForm(prev => ({ ...prev, clubId: clubsData[0].id }));
+        console.log('Premier club sélectionné:', clubsData[0].name);
+      } else {
+        console.log('Aucun club trouvé, utilisation du fallback');
+        setClubs([fallbackClub]);
+        setLoginForm(prev => ({ ...prev, clubId: fallbackClub.id }));
       }
     } catch (error) {
-      console.log('Erreur lors du chargement des clubs, utilisation du club par défaut');
+      console.error('Erreur lors du chargement des clubs:', error);
+      setClubs([fallbackClub]);
       setLoginForm(prev => ({ ...prev, clubId: fallbackClub.id }));
     }
   };
@@ -379,25 +447,35 @@ export default function App() {
 
   const handleLogin = async () => {
     if (!loginForm.email || !loginForm.password || !loginForm.clubId) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+      Alert.alert('Erreur', 'Veuillez remplir tous les champs (email, mot de passe et club)');
       return;
     }
 
     try {
       setLoading(true);
+      console.log('Tentative de connexion avec:', {
+        email: loginForm.email,
+        clubId: loginForm.clubId
+      });
+
       const user = await apiService.login(loginForm.email, loginForm.password, loginForm.clubId);
+      console.log('Utilisateur connecté:', user);
+
       setCurrentUser(user);
       setIsAuthenticated(true);
       setShowLogin(false);
-      setLoginForm({ email: '', password: '' });
+      setLoginForm({ email: '', password: '', clubId: '' });
 
+      // Charger les membres du club
       if (user.clubId) {
         await loadMembers(user.clubId);
       }
 
-      Alert.alert('Succès', 'Connexion réussie !');
+      Alert.alert('Succès', `Connexion réussie ! Bienvenue ${user.fullName || user.firstName}`);
     } catch (error) {
-      Alert.alert('Erreur de connexion', error instanceof Error ? error.message : 'Erreur inconnue');
+      console.error('Erreur de connexion:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      Alert.alert('Erreur de connexion', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -418,24 +496,59 @@ export default function App() {
   const testApiConnection = async () => {
     try {
       setLoading(true);
-      // Test de l'endpoint Auth
-      const response = await fetch(`${API_CONFIG.BASE_URL}/api/Auth/login`, {
+
+      // Test 1: Chargement des clubs
+      console.log('Test 1: Chargement des clubs...');
+      const clubsResponse = await fetch(`${API_CONFIG.BASE_URL}/api/Clubs`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
+      });
+
+      let clubsOk = clubsResponse.ok;
+      let clubsData = null;
+      if (clubsOk) {
+        clubsData = await clubsResponse.json();
+      }
+
+      // Test 2: Endpoint de login avec données de test
+      console.log('Test 2: Test endpoint login...');
+      const loginResponse = await fetch(`${API_CONFIG.BASE_URL}/api/Auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'ngrok-skip-browser-warning': 'true',
         },
-        body: JSON.stringify({ email: 'test', password: 'test' }),
+        body: JSON.stringify({
+          email: 'test@test.com',
+          password: 'test123',
+          clubId: clubsData && clubsData.length > 0 ? clubsData[0].id : 'test-club-id'
+        }),
       });
 
-      if (response.status === 400 || response.status === 401) {
-        Alert.alert('Connexion API', 'API accessible ! ✅\nEndpoint /api/Auth/login trouvé');
-      } else if (response.ok) {
-        Alert.alert('Connexion API', 'API accessible ! ✅');
+      let message = '🔍 Résultats des tests:\n\n';
+
+      if (clubsOk) {
+        message += `✅ Clubs: ${clubsData?.length || 0} clubs trouvés\n`;
       } else {
-        Alert.alert('Erreur API', `Erreur HTTP: ${response.status}\nURL: ${API_CONFIG.BASE_URL}`);
+        message += `❌ Clubs: Erreur ${clubsResponse.status}\n`;
       }
+
+      if (loginResponse.status === 400 || loginResponse.status === 401) {
+        message += '✅ Login: Endpoint trouvé (credentials invalides)\n';
+      } else if (loginResponse.ok) {
+        message += '✅ Login: Endpoint accessible\n';
+      } else {
+        message += `❌ Login: Erreur ${loginResponse.status}\n`;
+      }
+
+      message += `\n🌐 URL: ${API_CONFIG.BASE_URL}`;
+
+      Alert.alert('Test de Connexion API', message);
+
     } catch (error) {
       Alert.alert('Erreur de connexion', `Impossible de joindre l'API:\n${error}\n\nURL: ${API_CONFIG.BASE_URL}`);
     } finally {
