@@ -3978,33 +3978,7 @@ export default function App() {
                   </Text>
 
                   {/* Affichage des fonctions (comités) */}
-                  {(() => {
-                    console.log('🔍 === DEBUG FONCTIONS MEMBRE ===');
-                    console.log('🔍 Membre:', item.fullName);
-                    console.log('🔍 Fonctions disponibles:', item.fonctions);
-                    console.log('🔍 Nombre de fonctions:', item.fonctions?.length || 0);
-                    console.log('🔍 Commissions disponibles:', item.commissions);
-                    console.log('🔍 Nombre de commissions:', item.commissions?.length || 0);
-                    return null;
-                  })()}
 
-                  {/* Affichage de test pour voir si les données sont là */}
-                  <View style={styles.memberFunctionsContainer}>
-                    <Text style={styles.memberFunctionsTitle}>🔍 Debug Info:</Text>
-                    <Text style={styles.functionText}>
-                      Fonctions: {item.fonctions?.length || 0} | Commissions: {item.commissions?.length || 0}
-                    </Text>
-                    {item.fonctions && item.fonctions.length > 0 && (
-                      <Text style={styles.functionText}>
-                        ✅ Fonctions détectées: {item.fonctions.map(f => f.comiteNom).join(', ')}
-                      </Text>
-                    )}
-                    {item.commissions && item.commissions.length > 0 && (
-                      <Text style={styles.functionText}>
-                        ✅ Commissions détectées: {item.commissions.map(c => c.commissionNom).join(', ')}
-                      </Text>
-                    )}
-                  </View>
 
                   {item.fonctions && item.fonctions.length > 0 && (
                     <View style={styles.memberFunctionsContainer}>
