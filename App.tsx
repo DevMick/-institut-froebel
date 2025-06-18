@@ -26,7 +26,7 @@ const API_CONFIG = {
   // ⚠️ IMPORTANT: Remplacez cette URL par votre URL ngrok actuelle
   // Pour obtenir votre URL ngrok, exécutez: ngrok http 5265
   // Puis copiez l'URL HTTPS ici (ex: https://abc123.ngrok-free.app)
-  BASE_URL: 'https://REMPLACEZ-PAR-VOTRE-NOUVELLE-URL-NGROK.ngrok-free.app', // ⚠️ METTEZ À JOUR CETTE URL !
+  BASE_URL: 'https://19bf-102-212-189-101.ngrok-free.app', // ✅ URL ngrok mise à jour
 
   // Configuration PostgreSQL pour connexion directe (Expo Snack compatible)
   // IMPORTANT: En production, utilisez des variables d'environnement
@@ -1136,18 +1136,35 @@ export default function App() {
 
           <TouchableOpacity
             style={styles.debugButton}
-            onPress={() => {
-              console.log('🔍 === VÉRIFICATION URL API ===');
-              console.log('🔍 URL actuelle:', API_CONFIG.BASE_URL);
-              console.log('🔍 Nombre de clubs chargés:', clubs.length);
-              console.log('🔍 Clubs:', clubs);
-              Alert.alert(
-                'Debug Info',
-                `URL API: ${API_CONFIG.BASE_URL}\n\nClubs chargés: ${clubs.length}\n\n${clubs.length === 0 ? '❌ Aucun club chargé' : '✅ Clubs disponibles'}\n\n⚠️ Si les clubs ne se chargent pas, cette URL ngrok est probablement expirée.`
-              );
+            onPress={async () => {
+              console.log('🔍 === TEST NOUVELLE URL NGROK ===');
+              try {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/api/Clubs`, {
+                  method: 'GET',
+                  headers: {
+                    'Accept': 'application/json',
+                    'ngrok-skip-browser-warning': 'true',
+                  },
+                });
+
+                const isWorking = response.ok;
+                console.log('🔍 Test URL - Status:', response.status);
+                console.log('🔍 Test URL - OK:', isWorking);
+
+                Alert.alert(
+                  'Test URL ngrok',
+                  `URL: ${API_CONFIG.BASE_URL}\n\nStatus: ${response.status}\n\n${isWorking ? '✅ API accessible !' : '❌ API non accessible'}\n\nClubs locaux: ${clubs.length}`
+                );
+              } catch (error) {
+                console.error('🔍 Erreur test URL:', error);
+                Alert.alert(
+                  'Test URL ngrok',
+                  `URL: ${API_CONFIG.BASE_URL}\n\n❌ Erreur: ${error.message}\n\nClubs locaux: ${clubs.length}`
+                );
+              }
             }}
           >
-            <Text style={styles.debugButtonText}>🔍 Debug Info</Text>
+            <Text style={styles.debugButtonText}>🔍 Tester URL ngrok</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
