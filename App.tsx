@@ -98,6 +98,56 @@ interface MembreComite {
   commentaires?: string;
 }
 
+// Interface pour les réunions (selon RotaryManager)
+interface Reunion {
+  id: string;
+  clubId: string;
+  date: string;
+  heure: string;
+  typeReunionId: string;
+  typeReunionLibelle: string;
+  ordresDuJour: string[];
+  presences: PresenceReunion[];
+  invites: InviteReunion[];
+  lieu?: string;
+  description?: string;
+  statut?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Interface pour les types de réunion
+interface TypeReunion {
+  id: string;
+  libelle: string;
+  description?: string;
+  couleur?: string;
+  isActive: boolean;
+}
+
+// Interface pour les présences en réunion
+interface PresenceReunion {
+  id: string;
+  reunionId: string;
+  membreId: string;
+  nomMembre: string;
+  present: boolean;
+  excuse: boolean;
+  commentaire?: string;
+}
+
+// Interface pour les invités en réunion
+interface InviteReunion {
+  id: string;
+  reunionId: string;
+  nom: string;
+  prenom: string;
+  email?: string;
+  telephone?: string;
+  fonction?: string;
+  organisation?: string;
+}
+
 interface ApiResponse<T> {
   success: boolean;
   message?: string;
@@ -533,6 +583,183 @@ class ApiService {
       throw error;
     }
   }
+
+  // === SERVICES RÉUNIONS ===
+
+  // Obtenir les réunions d'un club
+  async getReunions(clubId: string): Promise<Reunion[]> {
+    console.log('🔄 === CHARGEMENT RÉUNIONS DU CLUB ===');
+    console.log('🏢 Club ID:', clubId);
+
+    try {
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/reunions`;
+      console.log('🌐 URL complète:', url);
+
+      const token = await this.getToken();
+      if (!token) {
+        throw new Error('Token d\'authentification manquant');
+      }
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true',
+          'User-Agent': 'RotaryClubMobile/1.0',
+          'Origin': 'https://snack.expo.dev',
+        },
+      });
+
+      console.log('📡 Réponse Status:', response.status);
+      console.log('📡 Réponse OK:', response.ok);
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          await this.removeToken();
+          throw new Error('Session expirée. Veuillez vous reconnecter.');
+        }
+        const errorText = await response.text();
+        console.error('❌ Erreur API réunions:', errorText);
+        throw new Error(`Erreur ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('📊 Données réunions reçues:', data);
+
+      // Traiter les données selon le format RotaryManager
+      let reunions: Reunion[] = [];
+
+      if (Array.isArray(data)) {
+        reunions = data;
+      } else if (data.reunions && Array.isArray(data.reunions)) {
+        reunions = data.reunions;
+      } else if (data.data && Array.isArray(data.data)) {
+        reunions = data.data;
+      }
+
+      console.log('✅ Réunions traitées:', reunions.length);
+      return reunions;
+
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des réunions:', error);
+      throw error;
+    }
+  }
+
+  // Obtenir le détail d'une réunion
+  async getReunion(clubId: string, reunionId: string): Promise<Reunion> {
+    try {
+      const response = await this.makeRequest<Reunion>(`/clubs/${clubId}/reunions/${reunionId}`);
+
+      if (response.success && response.data) {
+        return response.data;
+      }
+      throw new Error(response.message || 'Erreur lors de la récupération de la réunion');
+    } catch (error) {
+      console.error('Erreur lors de la récupération de la réunion:', error);
+      throw error;
+    }
+  }
+
+  // Créer une nouvelle réunion
+  async createReunion(clubId: string, reunionData: {
+    date: string;
+    heure: string;
+    typeReunionId: string;
+    ordresDuJour: string[];
+    lieu?: string;
+    description?: string;
+  }): Promise<Reunion> {
+    try {
+      const response = await this.makeRequest<Reunion>(`/clubs/${clubId}/reunions`, {
+        method: 'POST',
+        body: JSON.stringify({
+          Date: reunionData.date,
+          Heure: reunionData.heure,
+          TypeReunionId: reunionData.typeReunionId,
+          OrdresDuJour: reunionData.ordresDuJour,
+          Lieu: reunionData.lieu,
+          Description: reunionData.description
+        }),
+      });
+
+      if (response.success && response.data) {
+        return response.data;
+      }
+      throw new Error(response.message || 'Erreur lors de la création de la réunion');
+    } catch (error) {
+      console.error('Erreur lors de la création de la réunion:', error);
+      throw error;
+    }
+  }
+
+  // Mettre à jour une réunion
+  async updateReunion(clubId: string, reunionId: string, reunionData: any): Promise<Reunion> {
+    try {
+      const response = await this.makeRequest<Reunion>(`/clubs/${clubId}/reunions/${reunionId}`, {
+        method: 'PUT',
+        body: JSON.stringify(reunionData),
+      });
+
+      if (response.success && response.data) {
+        return response.data;
+      }
+      throw new Error(response.message || 'Erreur lors de la modification de la réunion');
+    } catch (error) {
+      console.error('Erreur lors de la modification de la réunion:', error);
+      throw error;
+    }
+  }
+
+  // Supprimer une réunion
+  async deleteReunion(clubId: string, reunionId: string): Promise<void> {
+    try {
+      const response = await this.makeRequest<void>(`/clubs/${clubId}/reunions/${reunionId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Erreur lors de la suppression de la réunion');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la réunion:', error);
+      throw error;
+    }
+  }
+
+  // Obtenir les types de réunion
+  async getTypesReunion(clubId: string): Promise<TypeReunion[]> {
+    try {
+      const response = await this.makeRequest<TypeReunion>(`/clubs/${clubId}/types-reunion`);
+
+      if (response.success && response.data) {
+        return Array.isArray(response.data) ? response.data : [response.data];
+      }
+      throw new Error(response.message || 'Erreur lors de la récupération des types de réunion');
+    } catch (error) {
+      console.error('Erreur lors de la récupération des types de réunion:', error);
+      throw error;
+    }
+  }
+
+  // Générer un compte-rendu de réunion
+  async genererCompteRendu(reunionId: string): Promise<any> {
+    try {
+      const response = await this.makeRequest<any>(`/Reunion/${reunionId}/compte-rendu`, {
+        method: 'POST',
+      });
+
+      if (response.success) {
+        return response.data;
+      }
+      throw new Error(response.message || 'Erreur lors de la génération du compte-rendu');
+    } catch (error) {
+      console.error('Erreur lors de la génération du compte-rendu:', error);
+      throw error;
+    }
+  }
 }
 
 const apiService = new ApiService();
@@ -560,6 +787,9 @@ export default function App() {
   const [isInitializing, setIsInitializing] = useState(true);
   const [meetings, setMeetings] = useState<any[]>([]);
   const [membresComite, setMembresComite] = useState<MembreComite[]>([]);
+  const [reunions, setReunions] = useState<Reunion[]>([]);
+  const [typesReunion, setTypesReunion] = useState<TypeReunion[]>([]);
+  const [selectedReunion, setSelectedReunion] = useState<Reunion | null>(null);
 
   // Charger les données au démarrage
   useEffect(() => {
@@ -771,10 +1001,12 @@ export default function App() {
       setIsAuthenticated(true);
       setShowLogin(false); // Masquer le login si déjà connecté
 
-      // Charger les membres si on a un clubId
+      // Charger les données si on a un clubId
       if (processedUser.clubId) {
-        console.log('🔄 Chargement des membres pour club:', processedUser.clubId);
+        console.log('🔄 Chargement des données pour club:', processedUser.clubId);
         await loadMembers(processedUser.clubId);
+        await loadReunions(processedUser.clubId);
+        await loadTypesReunion(processedUser.clubId);
       } else {
         console.log('❌ Pas de clubId trouvé dans processedUser');
       }
@@ -853,6 +1085,83 @@ export default function App() {
     }
   };
 
+  // Charger les réunions du club
+  const loadReunions = async (clubId: string) => {
+    try {
+      setLoading(true);
+      console.log('🔄 === DÉBUT CHARGEMENT RÉUNIONS ===');
+      console.log('🏢 Club ID:', clubId);
+
+      const reunionsData = await apiService.getReunions(clubId);
+      console.log('✅ Réunions chargées (brut):', reunionsData);
+      console.log('✅ Nombre de réunions:', reunionsData.length);
+
+      // Traiter les données pour s'assurer qu'elles ont le bon format
+      const processedReunions = reunionsData.map(reunion => ({
+        ...reunion,
+        dateFormatted: reunion.date ? new Date(reunion.date).toLocaleDateString('fr-FR', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }) : 'Date non disponible',
+        heureFormatted: reunion.heure || 'Heure non disponible',
+        ordresDuJour: reunion.ordresDuJour || [],
+        presences: reunion.presences || [],
+        invites: reunion.invites || []
+      }));
+
+      setReunions(processedReunions);
+      // Mettre à jour aussi l'ancien état meetings pour compatibilité
+      setMeetings(processedReunions.map(r => ({
+        id: r.id,
+        title: r.typeReunionLibelle || 'Réunion',
+        date: r.date,
+        location: r.lieu || 'Lieu non précisé',
+        attendees: r.presences || []
+      })));
+
+      console.log('✅ Réunions traitées et stockées:', processedReunions.length);
+
+    } catch (error) {
+      console.error('❌ Erreur lors du chargement des réunions:', error);
+
+      let errorMessage = 'Impossible de charger les réunions depuis l\'API.';
+
+      if (error.message.includes('401') || error.message.includes('Session expirée')) {
+        errorMessage = 'Session expirée. Veuillez vous reconnecter.';
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+        setShowLogin(true);
+      } else if (error.message.includes('403')) {
+        errorMessage = 'Vous n\'avez pas l\'autorisation d\'accéder aux réunions de ce club.';
+      } else if (error.message.includes('404')) {
+        errorMessage = 'Club non trouvé ou aucune réunion dans ce club.';
+      }
+
+      Alert.alert('Erreur de chargement des réunions', errorMessage);
+      setReunions([]);
+      setMeetings([]);
+    } finally {
+      setLoading(false);
+      console.log('🏁 Fin du chargement des réunions');
+    }
+  };
+
+  // Charger les types de réunion
+  const loadTypesReunion = async (clubId: string) => {
+    try {
+      console.log('🔄 === CHARGEMENT TYPES DE RÉUNION ===');
+      const typesData = await apiService.getTypesReunion(clubId);
+      console.log('✅ Types de réunion chargés:', typesData.length);
+      setTypesReunion(typesData);
+    } catch (error) {
+      console.error('❌ Erreur lors du chargement des types de réunion:', error);
+      // Ne pas afficher d'erreur car ce n'est pas critique
+      setTypesReunion([]);
+    }
+  };
+
   const handleLogin = async () => {
     if (!loginForm.email || !loginForm.password) {
       Alert.alert('Erreur', 'Veuillez remplir votre email et mot de passe');
@@ -903,10 +1212,12 @@ export default function App() {
       setShowLogin(false);
       setLoginForm({ email: '', password: '', clubId: '' });
 
-      // Charger les membres du club et les membres de comité
+      // Charger toutes les données du club
       if (processedUser.clubId) {
-        console.log('🔄 Chargement des membres pour club:', processedUser.clubId);
+        console.log('🔄 Chargement des données pour club:', processedUser.clubId);
         await loadMembers(processedUser.clubId);
+        await loadReunions(processedUser.clubId);
+        await loadTypesReunion(processedUser.clubId);
         await loadMembresComite();
       } else {
         console.log('❌ Pas de clubId trouvé après login');
@@ -1135,56 +1446,147 @@ export default function App() {
   );
 
   // Écran des réunions
-  const ReunionsScreen = () => (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Réunions</Text>
-      </View>
-      {meetings.length > 0 ? (
-        <FlatList
-          data={meetings}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.meetingCard}>
-              <Text style={styles.meetingTitle}>{item.title}</Text>
-              <Text style={styles.meetingDate}>
-                {new Date(item.date).toLocaleDateString('fr-FR', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </Text>
-              <Text style={styles.meetingLocation}>{item.location}</Text>
-              <Text style={styles.meetingAttendees}>
-                {item.attendees?.length || 0} participants
-              </Text>
-            </View>
+  const ReunionsScreen = () => {
+    console.log('🖥️ === RENDU REUNIONS SCREEN ===');
+    console.log('🖥️ Nombre de réunions:', reunions.length);
+    console.log('🖥️ Loading:', loading);
+    console.log('🖥️ Réunions détaillées:', reunions);
+
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Réunions ({reunions.length})</Text>
+          {isAuthenticated && (
+            <TouchableOpacity
+              style={styles.refreshButton}
+              onPress={() => {
+                console.log('🔄 Bouton refresh réunions cliqué');
+                if (currentUser?.clubId) {
+                  console.log('🔄 Rechargement des réunions pour club:', currentUser.clubId);
+                  loadReunions(currentUser.clubId);
+                } else {
+                  console.log('❌ Pas de clubId disponible');
+                  Alert.alert('Erreur', 'Impossible de recharger : club non identifié');
+                }
+              }}
+            >
+              <Ionicons name="refresh" size={20} color="white" />
+            </TouchableOpacity>
           )}
-          contentContainerStyle={styles.listContainer}
-        />
-      ) : (
-        <View style={styles.listContainer}>
-          <View style={styles.emptyState}>
-            <Ionicons name="calendar-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyStateTitle}>Aucune réunion</Text>
-            <Text style={styles.emptyStateText}>
-              Aucune réunion programmée pour le moment.{'\n'}
-              Les réunions s'afficheront ici une fois chargées depuis l'API.
+        </View>
+
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>Chargement des réunions...</Text>
+            <Text style={styles.debugText}>
+              Club ID: {currentUser?.clubId || 'Non défini'}
             </Text>
           </View>
-        </View>
-      )}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => Alert.alert('Scanner QR', 'Fonctionnalité disponible dans l\'app native')}
-      >
-        <Ionicons name="qr-code-outline" size={24} color="white" />
-      </TouchableOpacity>
-    </View>
-  );
+        ) : reunions.length === 0 ? (
+          <View style={styles.loadingContainer}>
+            <Ionicons name="calendar-outline" size={64} color="#ccc" />
+            <Text style={styles.emptyStateTitle}>Aucune réunion trouvée</Text>
+            <Text style={styles.emptyStateText}>
+              {!currentUser?.clubId
+                ? 'Club non identifié. Veuillez vous reconnecter.'
+                : 'Aucune réunion programmée dans ce club ou erreur de chargement.'
+              }
+            </Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={() => {
+                console.log('🔄 Bouton retry réunions cliqué');
+                if (currentUser?.clubId) {
+                  loadReunions(currentUser.clubId);
+                } else {
+                  Alert.alert('Erreur', 'Veuillez vous reconnecter pour identifier votre club');
+                }
+              }}
+            >
+              <Text style={styles.retryButtonText}>Réessayer</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <FlatList
+            data={reunions}
+            keyExtractor={item => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.meetingCard}
+                onPress={() => {
+                  setSelectedReunion(item);
+                  Alert.alert(
+                    item.typeReunionLibelle || 'Réunion',
+                    `Date: ${item.dateFormatted}\nHeure: ${item.heureFormatted}\nLieu: ${item.lieu || 'Non précisé'}\n\nOrdres du jour: ${item.ordresDuJour.length}\nPrésents: ${item.presences.length}\nInvités: ${item.invites.length}`,
+                    [
+                      { text: 'Fermer', style: 'cancel' },
+                      { text: 'Voir détails', onPress: () => console.log('Détails réunion:', item.id) }
+                    ]
+                  );
+                }}
+              >
+                <View style={styles.meetingHeader}>
+                  <Text style={styles.meetingTitle}>
+                    {item.typeReunionLibelle || 'Réunion'}
+                  </Text>
+                  <View style={styles.meetingTypeIndicator}>
+                    <Text style={styles.meetingTypeText}>
+                      {item.typeReunionLibelle?.substring(0, 3).toUpperCase() || 'REU'}
+                    </Text>
+                  </View>
+                </View>
+
+                <Text style={styles.meetingDate}>
+                  📅 {item.dateFormatted}
+                </Text>
+
+                <Text style={styles.meetingTime}>
+                  🕐 {item.heureFormatted}
+                </Text>
+
+                {item.lieu && (
+                  <Text style={styles.meetingLocation}>
+                    📍 {item.lieu}
+                  </Text>
+                )}
+
+                <View style={styles.meetingStats}>
+                  <Text style={styles.meetingStatItem}>
+                    📋 {item.ordresDuJour.length} ordre(s) du jour
+                  </Text>
+                  <Text style={styles.meetingStatItem}>
+                    👥 {item.presences.length} présent(s)
+                  </Text>
+                  {item.invites.length > 0 && (
+                    <Text style={styles.meetingStatItem}>
+                      🎯 {item.invites.length} invité(s)
+                    </Text>
+                  )}
+                </View>
+
+                {item.description && (
+                  <Text style={styles.meetingDescription} numberOfLines={2}>
+                    {item.description}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            )}
+            contentContainerStyle={styles.listContainer}
+            refreshing={loading}
+            onRefresh={() => currentUser?.clubId && loadReunions(currentUser.clubId)}
+          />
+        )}
+
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => Alert.alert('Nouvelle réunion', 'Fonctionnalité de création de réunion à venir')}
+        >
+          <Ionicons name="add" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   // Écran des membres
   const MembersScreen = () => {
@@ -1707,7 +2109,15 @@ export default function App() {
 
         <TouchableOpacity
           style={[styles.tabItem, currentScreen === 'Reunions' && styles.tabItemActive]}
-          onPress={() => setCurrentScreen('Reunions')}
+          onPress={() => {
+            console.log('🎯 Navigation vers Reunions');
+            setCurrentScreen('Reunions');
+            // Forcer le rechargement des réunions si nécessaire
+            if (currentUser?.clubId && reunions.length === 0 && !loading) {
+              console.log('🔄 Chargement automatique des réunions');
+              loadReunions(currentUser.clubId);
+            }
+          }}
         >
           <Ionicons
             name={currentScreen === 'Reunions' ? 'calendar' : 'calendar-outline'}
@@ -1920,6 +2330,49 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginTop: 8,
+  },
+  meetingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  meetingTypeIndicator: {
+    backgroundColor: colors.secondary,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    minWidth: 40,
+    alignItems: 'center',
+  },
+  meetingTypeText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  meetingTime: {
+    fontSize: 14,
+    color: colors.primary,
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  meetingStats: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  meetingStatItem: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 2,
+  },
+  meetingDescription: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 8,
+    fontStyle: 'italic',
+    lineHeight: 16,
   },
   memberCard: {
     backgroundColor: colors.surface,
