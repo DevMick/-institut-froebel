@@ -1600,6 +1600,11 @@ export default function App() {
 
   // === FONCTIONS DE COMMUNICATION ===
 
+  // Fonction utilitaire pour détecter l'environnement
+  const isExpoSnack = () => {
+    return typeof window !== 'undefined' && window.location?.hostname?.includes('snack.expo.dev');
+  };
+
   // Fonction utilitaire pour nettoyer les numéros de téléphone
   const cleanPhoneNumber = (phoneNumber: string): string => {
     if (!phoneNumber) return '';
@@ -1627,25 +1632,35 @@ export default function App() {
     }
 
     const cleanedNumber = cleanPhoneNumber(member.phoneNumber);
-    console.log('📞 Appel vers:', member.fullName, 'au', cleanedNumber);
+    console.log('📞 Lancement direct de l\'appel vers:', member.fullName, 'au', cleanedNumber);
 
-    Alert.alert(
-      'Appel téléphonique',
-      `Appeler ${member.fullName} au ${member.phoneNumber} ?`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Appeler',
-          onPress: () => {
-            // Dans une vraie app React Native :
-            // import { Linking } from 'react-native';
-            // Linking.openURL(`tel:${cleanedNumber}`);
-            console.log('📞 Appel lancé vers:', `tel:${cleanedNumber}`);
-            Alert.alert('Info', 'Fonctionnalité d\'appel disponible dans l\'app native');
-          }
+    // Lancement direct de l'appel
+    const phoneUrl = `tel:${cleanedNumber}`;
+
+    try {
+      console.log('📞 URL d\'appel générée:', phoneUrl);
+
+      if (isExpoSnack()) {
+        // Dans Expo Snack, on simule le lancement
+        console.log('🌐 Environnement Expo Snack détecté - Simulation du lancement d\'appel');
+        window.open(phoneUrl, '_self');
+        console.log('✅ Simulation d\'appel lancée vers:', cleanedNumber);
+      } else {
+        // Dans une vraie app React Native, cette ligne lancera directement l'appel :
+        // import { Linking } from 'react-native';
+        // await Linking.openURL(phoneUrl);
+        console.log('📱 App native - Lancement réel de l\'appel vers:', cleanedNumber);
+
+        // Pour le moment, on simule aussi dans le navigateur
+        if (typeof window !== 'undefined') {
+          window.location.href = phoneUrl;
         }
-      ]
-    );
+      }
+
+    } catch (error) {
+      console.error('❌ Erreur lors du lancement de l\'appel:', error);
+      Alert.alert('Erreur', 'Impossible de lancer l\'appel. Vérifiez que votre appareil supporte les appels.');
+    }
   };
 
   // Fonction pour envoyer un SMS
@@ -1656,24 +1671,35 @@ export default function App() {
     }
 
     const cleanedNumber = cleanPhoneNumber(member.phoneNumber);
-    console.log('💬 SMS vers:', member.fullName, 'au', cleanedNumber);
+    console.log('💬 Lancement direct du SMS vers:', member.fullName, 'au', cleanedNumber);
 
-    Alert.alert(
-      'Message SMS',
-      `Envoyer un SMS à ${member.fullName} au ${member.phoneNumber} ?`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Envoyer',
-          onPress: () => {
-            // Dans une vraie app React Native :
-            // Linking.openURL(`sms:${cleanedNumber}`);
-            console.log('💬 SMS lancé vers:', `sms:${cleanedNumber}`);
-            Alert.alert('Info', 'Fonctionnalité SMS disponible dans l\'app native');
-          }
+    // Lancement direct du SMS
+    const smsUrl = `sms:${cleanedNumber}`;
+
+    try {
+      console.log('💬 URL SMS générée:', smsUrl);
+
+      if (isExpoSnack()) {
+        // Dans Expo Snack, on simule le lancement
+        console.log('🌐 Environnement Expo Snack détecté - Simulation du lancement SMS');
+        window.open(smsUrl, '_self');
+        console.log('✅ Simulation SMS lancée vers:', cleanedNumber);
+      } else {
+        // Dans une vraie app React Native, cette ligne ouvrira directement l'app SMS :
+        // import { Linking } from 'react-native';
+        // await Linking.openURL(smsUrl);
+        console.log('📱 App native - Lancement réel du SMS vers:', cleanedNumber);
+
+        // Pour le moment, on simule aussi dans le navigateur
+        if (typeof window !== 'undefined') {
+          window.location.href = smsUrl;
         }
-      ]
-    );
+      }
+
+    } catch (error) {
+      console.error('❌ Erreur lors du lancement du SMS:', error);
+      Alert.alert('Erreur', 'Impossible de lancer l\'application SMS. Vérifiez que votre appareil supporte les SMS.');
+    }
   };
 
   // Fonction pour ouvrir WhatsApp
@@ -1684,24 +1710,35 @@ export default function App() {
     }
 
     const cleanedNumber = cleanPhoneNumber(member.phoneNumber);
-    console.log('📱 WhatsApp vers:', member.fullName, 'au', cleanedNumber);
+    console.log('📱 Lancement direct de WhatsApp vers:', member.fullName, 'au', cleanedNumber);
 
-    Alert.alert(
-      'WhatsApp',
-      `Ouvrir WhatsApp pour ${member.fullName} au ${member.phoneNumber} ?`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Ouvrir',
-          onPress: () => {
-            // Dans une vraie app React Native :
-            // Linking.openURL(`https://wa.me/${cleanedNumber}`);
-            console.log('📱 WhatsApp lancé vers:', `https://wa.me/${cleanedNumber}`);
-            Alert.alert('Info', 'Fonctionnalité WhatsApp disponible dans l\'app native');
-          }
+    // Lancement direct de WhatsApp
+    const whatsappUrl = `https://wa.me/${cleanedNumber}`;
+
+    try {
+      console.log('📱 URL WhatsApp générée:', whatsappUrl);
+
+      if (isExpoSnack()) {
+        // Dans Expo Snack, on ouvre WhatsApp Web dans un nouvel onglet
+        console.log('🌐 Environnement Expo Snack détecté - Ouverture de WhatsApp Web');
+        window.open(whatsappUrl, '_blank');
+        console.log('✅ WhatsApp Web ouvert vers:', cleanedNumber);
+      } else {
+        // Dans une vraie app React Native, cette ligne ouvrira directement WhatsApp :
+        // import { Linking } from 'react-native';
+        // await Linking.openURL(whatsappUrl);
+        console.log('📱 App native - Lancement réel de WhatsApp vers:', cleanedNumber);
+
+        // Pour le moment, on ouvre aussi WhatsApp Web dans le navigateur
+        if (typeof window !== 'undefined') {
+          window.open(whatsappUrl, '_blank');
         }
-      ]
-    );
+      }
+
+    } catch (error) {
+      console.error('❌ Erreur lors du lancement de WhatsApp:', error);
+      Alert.alert('Erreur', 'Impossible d\'ouvrir WhatsApp. Vérifiez que WhatsApp est installé sur votre appareil.');
+    }
   };
 
   const handleLogin = async () => {
@@ -2913,7 +2950,11 @@ export default function App() {
                     <View style={styles.communicationActions}>
                       <TouchableOpacity
                         style={[styles.actionButton, styles.callButton]}
-                        onPress={() => makePhoneCall(item)}
+                        onPress={() => {
+                          console.log('🎯 Clic sur bouton Appel pour:', item.fullName);
+                          makePhoneCall(item);
+                        }}
+                        activeOpacity={0.7}
                       >
                         <Ionicons name="call" size={16} color="white" />
                         <Text style={styles.actionButtonText}>Appel</Text>
@@ -2921,7 +2962,11 @@ export default function App() {
 
                       <TouchableOpacity
                         style={[styles.actionButton, styles.smsButton]}
-                        onPress={() => sendSMS(item)}
+                        onPress={() => {
+                          console.log('🎯 Clic sur bouton SMS pour:', item.fullName);
+                          sendSMS(item);
+                        }}
+                        activeOpacity={0.7}
                       >
                         <Ionicons name="chatbubble" size={16} color="white" />
                         <Text style={styles.actionButtonText}>SMS</Text>
@@ -2929,7 +2974,11 @@ export default function App() {
 
                       <TouchableOpacity
                         style={[styles.actionButton, styles.whatsappButton]}
-                        onPress={() => openWhatsApp(item)}
+                        onPress={() => {
+                          console.log('🎯 Clic sur bouton WhatsApp pour:', item.fullName);
+                          openWhatsApp(item);
+                        }}
+                        activeOpacity={0.7}
                       >
                         <Ionicons name="logo-whatsapp" size={16} color="white" />
                         <Text style={styles.actionButtonText}>WhatsApp</Text>
