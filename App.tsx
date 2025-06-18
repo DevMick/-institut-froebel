@@ -1463,25 +1463,49 @@ export default function App() {
 
     try {
       setLoading(true);
-      console.log('🔄 Chargement des détails de la réunion:', reunionId);
+      console.log('🔄 === CHARGEMENT DÉTAILS RÉUNION ===');
+      console.log('🔄 Réunion ID:', reunionId);
+      console.log('🔄 Club ID:', currentUser.clubId);
 
-      // Charger en parallèle toutes les données de la réunion
-      const [reunion, presences, invites, ordresJour] = await Promise.all([
-        apiService.getReunion(currentUser.clubId, reunionId),
-        apiService.getPresencesReunion(currentUser.clubId, reunionId).catch(() => []),
-        apiService.getInvitesReunion(currentUser.clubId, reunionId).catch(() => []),
-        apiService.getOrdresJourDetailles(currentUser.clubId, reunionId).catch(() => [])
-      ]);
+      // Trouver la réunion dans la liste existante
+      const reunionExistante = reunions.find(r => r.id === reunionId);
+      if (!reunionExistante) {
+        throw new Error('Réunion non trouvée dans la liste');
+      }
 
-      // Mettre à jour la réunion sélectionnée avec toutes les données
-      setSelectedReunion({
-        ...reunion,
-        presences,
-        invites
-      });
-      setOrdresJourDetailles(ordresJour);
+      console.log('📋 Réunion trouvée:', reunionExistante.typeReunionLibelle);
+      console.log('📋 Ordres du jour existants:', reunionExistante.ordresDuJour?.length || 0);
+      console.log('👥 Présences existantes:', reunionExistante.presences?.length || 0);
+      console.log('🎯 Invités existants:', reunionExistante.invites?.length || 0);
 
-      console.log('✅ Détails de la réunion chargés');
+      // Charger les détails supplémentaires si nécessaire
+      try {
+        // Essayer de charger les détails via l'API si disponible
+        const detailsSupplementaires = await apiService.getReunionDetails(currentUser.clubId, reunionId);
+        console.log('📊 Détails supplémentaires chargés:', detailsSupplementaires);
+
+        // Fusionner avec les données existantes
+        setSelectedReunion({
+          ...reunionExistante,
+          ...detailsSupplementaires,
+          // S'assurer que les tableaux existent
+          ordresDuJour: detailsSupplementaires.ordresDuJour || reunionExistante.ordresDuJour || [],
+          presences: detailsSupplementaires.presences || reunionExistante.presences || [],
+          invites: detailsSupplementaires.invites || reunionExistante.invites || []
+        });
+      } catch (detailError) {
+        console.log('⚠️ Impossible de charger les détails supplémentaires, utilisation des données existantes');
+        // Utiliser les données existantes
+        setSelectedReunion({
+          ...reunionExistante,
+          // S'assurer que les tableaux existent
+          ordresDuJour: reunionExistante.ordresDuJour || [],
+          presences: reunionExistante.presences || [],
+          invites: reunionExistante.invites || []
+        });
+      }
+
+      console.log('✅ Détails de la réunion chargés avec succès');
     } catch (error) {
       console.error('❌ Erreur lors du chargement des détails:', error);
       Alert.alert('Erreur', 'Impossible de charger les détails de la réunion');
@@ -2206,16 +2230,37 @@ export default function App() {
                 )}
 
                 <View style={styles.meetingStats}>
-                  <Text style={styles.meetingStatItem}>
-                    📋 {item.ordresDuJour.length} ordre(s) du jour
-                  </Text>
-                  <Text style={styles.meetingStatItem}>
-                    👥 {item.presences.length} présent(s)
-                  </Text>
-                  {item.invites.length > 0 && (
-                    <Text style={styles.meetingStatItem}>
-                      🎯 {item.invites.length} invité(s)
-                    </Text>
+                  <View style={styles.meetingStatRow}>
+                    <View style={styles.meetingStatBadge}>
+                      <Text style={styles.meetingStatBadgeText}>
+                        📋 {item.ordresDuJour?.length || 0}
+                      </Text>
+                      <Text style={styles.meetingStatBadgeLabel}>Ordre(s) du jour</Text>
+                    </View>
+                    <View style={styles.meetingStatBadge}>
+                      <Text style={styles.meetingStatBadgeText}>
+                        👥 {item.presences?.filter(p => p.present).length || 0}
+                      </Text>
+                      <Text style={styles.meetingStatBadgeLabel}>Présent(s)</Text>
+                    </View>
+                    {item.invites && item.invites.length > 0 && (
+                      <View style={styles.meetingStatBadge}>
+                        <Text style={styles.meetingStatBadgeText}>
+                          🎯 {item.invites.length}
+                        </Text>
+                        <Text style={styles.meetingStatBadgeLabel}>Invité(s)</Text>
+                      </View>
+                    )}
+                  </View>
+                  {item.presences && item.presences.length > 0 && (
+                    <View style={styles.meetingStatSummary}>
+                      <Text style={styles.meetingStatSummaryText}>
+                        {item.presences.filter(p => p.present).length} présents / {item.presences.length} membres
+                        {item.presences.filter(p => p.excuse).length > 0 &&
+                          ` (${item.presences.filter(p => p.excuse).length} excusés)`
+                        }
+                      </Text>
+                    </View>
                   )}
                 </View>
 
@@ -2476,44 +2521,78 @@ export default function App() {
               <View style={styles.detailSection}>
                 <View style={styles.detailSectionHeader}>
                   <Text style={styles.detailSectionTitle}>
-                    📋 Ordres du jour ({selectedReunion.ordresDuJour.length})
+                    📋 Ordres du jour ({selectedReunion.ordresDuJour?.length || 0})
                   </Text>
-                  <TouchableOpacity
-                    style={styles.detailActionButton}
-                    onPress={() => setShowOrdreJourManager(true)}
-                  >
-                    <Text style={styles.detailActionText}>Gérer</Text>
-                  </TouchableOpacity>
                 </View>
-                {selectedReunion.ordresDuJour.map((ordre, index) => (
-                  <Text key={index} style={styles.detailListItem}>
-                    {index + 1}. {ordre}
-                  </Text>
-                ))}
+                {selectedReunion.ordresDuJour && selectedReunion.ordresDuJour.length > 0 ? (
+                  <View style={styles.detailList}>
+                    {selectedReunion.ordresDuJour.map((ordre, index) => (
+                      <View key={index} style={styles.detailListItemContainer}>
+                        <View style={styles.detailListItemNumber}>
+                          <Text style={styles.detailListItemNumberText}>{index + 1}</Text>
+                        </View>
+                        <View style={styles.detailListItemContent}>
+                          <Text style={styles.detailListItemText}>
+                            {typeof ordre === 'string' ? ordre : ordre.description || ordre.titre || 'Ordre du jour'}
+                          </Text>
+                          {typeof ordre === 'object' && ordre.dureeEstimee && (
+                            <Text style={styles.detailListItemSubtext}>
+                              ⏱️ Durée estimée: {ordre.dureeEstimee} min
+                            </Text>
+                          )}
+                          {typeof ordre === 'object' && ordre.responsable && (
+                            <Text style={styles.detailListItemSubtext}>
+                              👤 Responsable: {ordre.responsable}
+                            </Text>
+                          )}
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  <View style={styles.emptyStateContainer}>
+                    <Text style={styles.emptyStateText}>📋 Aucun ordre du jour défini</Text>
+                  </View>
+                )}
               </View>
 
               {/* Présences */}
               <View style={styles.detailSection}>
                 <View style={styles.detailSectionHeader}>
                   <Text style={styles.detailSectionTitle}>
-                    👥 Présences ({selectedReunion.presences.length})
+                    👥 Présences ({selectedReunion.presences?.length || 0})
                   </Text>
-                  <TouchableOpacity
-                    style={styles.detailActionButton}
-                    onPress={() => setShowPresenceManager(true)}
-                  >
-                    <Text style={styles.detailActionText}>Gérer</Text>
-                  </TouchableOpacity>
                 </View>
-                {selectedReunion.presences.slice(0, 3).map((presence, index) => (
-                  <Text key={index} style={styles.detailListItem}>
-                    {presence.present ? '✅' : '❌'} {presence.nomMembre}
-                  </Text>
-                ))}
-                {selectedReunion.presences.length > 3 && (
-                  <Text style={styles.detailMoreText}>
-                    ... et {selectedReunion.presences.length - 3} autres
-                  </Text>
+                {selectedReunion.presences && selectedReunion.presences.length > 0 ? (
+                  <View style={styles.detailList}>
+                    {selectedReunion.presences.map((presence, index) => (
+                      <View key={index} style={styles.detailListItemContainer}>
+                        <View style={styles.detailListItemIcon}>
+                          <Text style={styles.detailListItemIconText}>
+                            {presence.present ? '✅' : presence.excuse ? '⚠️' : '❌'}
+                          </Text>
+                        </View>
+                        <View style={styles.detailListItemContent}>
+                          <Text style={styles.detailListItemText}>
+                            {presence.nomMembre || presence.fullName || 'Membre'}
+                          </Text>
+                          <Text style={styles.detailListItemSubtext}>
+                            {presence.present
+                              ? '✅ Présent'
+                              : presence.excuse
+                                ? '⚠️ Excusé'
+                                : '❌ Absent'
+                            }
+                            {presence.commentaire && ` - ${presence.commentaire}`}
+                          </Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  <View style={styles.emptyStateContainer}>
+                    <Text style={styles.emptyStateText}>👥 Aucune présence enregistrée</Text>
+                  </View>
                 )}
               </View>
 
@@ -2521,25 +2600,55 @@ export default function App() {
               <View style={styles.detailSection}>
                 <View style={styles.detailSectionHeader}>
                   <Text style={styles.detailSectionTitle}>
-                    🎯 Invités ({selectedReunion.invites.length})
+                    🎯 Invités ({selectedReunion.invites?.length || 0})
                   </Text>
-                  <TouchableOpacity
-                    style={styles.detailActionButton}
-                    onPress={() => setShowInviteManager(true)}
-                  >
-                    <Text style={styles.detailActionText}>Gérer</Text>
-                  </TouchableOpacity>
                 </View>
-                {selectedReunion.invites.slice(0, 3).map((invite, index) => (
-                  <Text key={index} style={styles.detailListItem}>
-                    👤 {invite.prenom} {invite.nom}
-                    {invite.organisation && ` (${invite.organisation})`}
-                  </Text>
-                ))}
-                {selectedReunion.invites.length > 3 && (
-                  <Text style={styles.detailMoreText}>
-                    ... et {selectedReunion.invites.length - 3} autres
-                  </Text>
+                {selectedReunion.invites && selectedReunion.invites.length > 0 ? (
+                  <View style={styles.detailList}>
+                    {selectedReunion.invites.map((invite, index) => (
+                      <View key={index} style={styles.detailListItemContainer}>
+                        <View style={styles.detailListItemIcon}>
+                          <Text style={styles.detailListItemIconText}>
+                            {invite.confirme ? '✅' : '❓'}
+                          </Text>
+                        </View>
+                        <View style={styles.detailListItemContent}>
+                          <Text style={styles.detailListItemText}>
+                            {invite.prenom} {invite.nom}
+                          </Text>
+                          <View style={styles.detailListItemSubtextContainer}>
+                            {invite.organisation && (
+                              <Text style={styles.detailListItemSubtext}>
+                                🏢 {invite.organisation}
+                              </Text>
+                            )}
+                            {invite.fonction && (
+                              <Text style={styles.detailListItemSubtext}>
+                                💼 {invite.fonction}
+                              </Text>
+                            )}
+                            {invite.email && (
+                              <Text style={styles.detailListItemSubtext}>
+                                📧 {invite.email}
+                              </Text>
+                            )}
+                            {invite.telephone && (
+                              <Text style={styles.detailListItemSubtext}>
+                                📞 {invite.telephone}
+                              </Text>
+                            )}
+                            <Text style={styles.detailListItemSubtext}>
+                              {invite.confirme ? '✅ Confirmé' : '❓ En attente de confirmation'}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  <View style={styles.emptyStateContainer}>
+                    <Text style={styles.emptyStateText}>🎯 Aucun invité pour cette réunion</Text>
+                  </View>
                 )}
               </View>
 
@@ -4368,5 +4477,124 @@ const styles = StyleSheet.create({
   tabTextActive: {
     color: colors.primary,
     fontWeight: '600',
+  },
+
+  // === STYLES POUR LES LISTES DE DÉTAILS ===
+  detailList: {
+    marginTop: 8,
+  },
+  detailListItemContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: colors.surface,
+    marginBottom: 8,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  detailListItemNumber: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    marginTop: 2,
+  },
+  detailListItemNumberText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  detailListItemIcon: {
+    width: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    marginTop: 2,
+  },
+  detailListItemIconText: {
+    fontSize: 18,
+  },
+  detailListItemContent: {
+    flex: 1,
+  },
+  detailListItemText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    lineHeight: 22,
+  },
+  detailListItemSubtext: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 4,
+    lineHeight: 18,
+  },
+  detailListItemSubtextContainer: {
+    marginTop: 6,
+  },
+  emptyStateContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 32,
+    paddingHorizontal: 16,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+
+  // === STYLES POUR LES STATISTIQUES DE RÉUNION ===
+  meetingStatRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  meetingStatBadge: {
+    backgroundColor: colors.primary + '15',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    alignItems: 'center',
+    minWidth: 80,
+    flex: 1,
+    marginHorizontal: 2,
+  },
+  meetingStatBadgeText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.primary,
+    textAlign: 'center',
+  },
+  meetingStatBadgeLabel: {
+    fontSize: 10,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  meetingStatSummary: {
+    backgroundColor: colors.background,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginTop: 4,
+  },
+  meetingStatSummaryText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });
