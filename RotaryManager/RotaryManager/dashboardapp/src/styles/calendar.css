@@ -1,0 +1,32 @@
+@import 'react-big-calendar/lib/css/react-big-calendar.css';
+
+/* Styles personnalisés pour le calendrier */
+.rbc-calendar {
+  min-height: 600px;
+}
+
+.rbc-event {
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.rbc-toolbar button {
+  color: #374151;
+  border: 1px solid #D1D5DB;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+}
+
+.rbc-toolbar button:hover {
+  background-color: #F3F4F6;
+}
+
+.rbc-toolbar button.rbc-active {
+  background-color: #3B82F6;
+  color: white;
+  border-color: #3B82F6;
+}
+
+.rbc-toolbar button.rbc-active:hover {
+  background-color: #2563EB;
+} 
