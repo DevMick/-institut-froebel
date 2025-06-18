@@ -1247,6 +1247,80 @@ export default function App() {
     init();
   }, []); // Pas de dépendances car on veut que ça s'exécute une seule fois
 
+  // Fonction pour obtenir le nom d'affichage d'un membre
+  const getMemberDisplayName = (member) => {
+    if (!member) return 'Membre inconnu';
+    return member.fullName || `${member.firstName || ''} ${member.lastName || ''}`.trim() || member.email || 'Membre sans nom';
+  };
+
+  // Fonction pour obtenir le nom d'affichage d'une présence
+  const getPresenceDisplayName = (presence) => {
+    console.log('🔍 === GET PRESENCE DISPLAY NAME ===');
+    console.log('🔍 Présence reçue:', {
+      membreId: presence?.membreId,
+      nomMembre: presence?.nomMembre,
+      fullName: presence?.fullName,
+      prenom: presence?.prenom,
+      nom: presence?.nom
+    });
+    console.log('🔍 Membres disponibles dans le state:', members.length);
+
+    if (!presence) {
+      console.log('❌ Pas de présence fournie');
+      return 'Membre inconnu';
+    }
+
+    // Vérifier si on a déjà un nom valide (pas juste l'ID)
+    if (presence.nomMembre && presence.nomMembre !== presence.membreId) {
+      console.log('✅ Utilisation nomMembre:', presence.nomMembre);
+      return presence.nomMembre;
+    }
+    if (presence.fullName && presence.fullName !== presence.membreId) {
+      console.log('✅ Utilisation fullName:', presence.fullName);
+      return presence.fullName;
+    }
+    if (presence.prenom && presence.nom) {
+      const fullName = `${presence.prenom} ${presence.nom}`;
+      console.log('✅ Utilisation prenom + nom:', fullName);
+      return fullName;
+    }
+    if (presence.nom && presence.nom !== presence.membreId) {
+      console.log('✅ Utilisation nom seul:', presence.nom);
+      return presence.nom;
+    }
+    if (presence.prenom && presence.prenom !== presence.membreId) {
+      console.log('✅ Utilisation prenom seul:', presence.prenom);
+      return presence.prenom;
+    }
+
+    // Chercher dans la liste des membres
+    if (presence.membreId) {
+      console.log('🔍 Recherche membre par ID:', presence.membreId);
+      const membre = members.find(m => m.id === presence.membreId);
+      console.log('🔍 Membre trouvé:', membre ? {
+        id: membre.id,
+        fullName: membre.fullName,
+        firstName: membre.firstName,
+        lastName: membre.lastName
+      } : 'NON TROUVÉ');
+
+      if (membre) {
+        const displayName = getMemberDisplayName(membre);
+        console.log('✅ Nom d\'affichage du membre:', displayName);
+        return displayName;
+      } else {
+        console.log('❌ Membre non trouvé dans la liste');
+        // Log des IDs des membres pour déboguer
+        console.log('🔍 IDs des membres disponibles:', members.map(m => m.id).slice(0, 5));
+      }
+    }
+
+    // Fallback avec ID tronqué
+    const fallback = `Membre ${presence.membreId ? presence.membreId.substring(0, 8) + '...' : 'inconnu'}`;
+    console.log('❌ Utilisation fallback:', fallback);
+    return fallback;
+  };
+
   const loadClubs = async (showAlerts = false) => {
     try {
       setLoading(true);
@@ -1581,36 +1655,65 @@ export default function App() {
             const presencesResponse = await apiService.getPresencesReunion(clubId, reunion.id);
             presences = presencesResponse || [];
 
-            // Enrichir les présences avec les données des membres si nécessaire
-            console.log(`🔄 Enrichissement des présences avec les données des membres...`);
+            // S'assurer que les membres sont chargés avant l'enrichissement
+            if (members.length === 0) {
+              console.log(`⚠️ Aucun membre chargé, tentative de chargement...`);
+              try {
+                await loadMembers(clubId);
+                console.log(`✅ ${members.length} membres chargés pour enrichissement`);
+              } catch (memberError) {
+                console.log(`❌ Impossible de charger les membres:`, memberError.message);
+              }
+            }
+
+            // Enrichir les présences avec les données des membres
+            console.log(`🔄 === ENRICHISSEMENT DES PRÉSENCES ===`);
             console.log(`📊 Membres disponibles pour enrichissement:`, members.length);
+            console.log(`📊 Présences à enrichir:`, presences.length);
 
             presences = presences.map((presence, idx) => {
               console.log(`🔄 Traitement présence ${idx + 1}:`, {
                 membreId: presence.membreId,
                 nomMembre: presence.nomMembre,
-                fullName: presence.fullName
+                fullName: presence.fullName,
+                prenom: presence.prenom,
+                nom: presence.nom
               });
 
-              if (!presence.nomMembre && !presence.fullName && presence.membreId) {
-                // Chercher le membre dans la liste des membres chargés
+              // Toujours essayer d'enrichir, même si des données existent déjà
+              if (presence.membreId) {
                 const membre = members.find(m => m.id === presence.membreId);
-                console.log(`🔍 Membre trouvé pour ${presence.membreId}:`, membre ? {
+                console.log(`🔍 Recherche membre ${presence.membreId}:`, membre ? {
                   id: membre.id,
                   fullName: membre.fullName,
                   firstName: membre.firstName,
-                  lastName: membre.lastName
+                  lastName: membre.lastName,
+                  email: membre.email
                 } : 'NON TROUVÉ');
 
                 if (membre) {
+                  const memberFullName = membre.fullName || `${membre.firstName || ''} ${membre.lastName || ''}`.trim();
                   const enriched = {
                     ...presence,
-                    nomMembre: membre.fullName || `${membre.firstName} ${membre.lastName}`,
+                    // Utiliser le nom du membre si pas de nom ou si c'est juste l'ID
+                    nomMembre: (presence.nomMembre && presence.nomMembre !== presence.membreId)
+                      ? presence.nomMembre
+                      : memberFullName,
+                    fullName: (presence.fullName && presence.fullName !== presence.membreId)
+                      ? presence.fullName
+                      : memberFullName,
                     email: presence.email || membre.email,
                     fonction: presence.fonction || membre.roles?.join(', ')
                   };
-                  console.log(`✅ Présence enrichie:`, enriched);
+                  console.log(`✅ Présence enrichie:`, {
+                    membreId: enriched.membreId,
+                    nomMembre: enriched.nomMembre,
+                    fullName: enriched.fullName,
+                    email: enriched.email
+                  });
                   return enriched;
+                } else {
+                  console.log(`❌ Membre ${presence.membreId} non trouvé dans la liste`);
                 }
               }
               return presence;
@@ -2953,18 +3056,7 @@ export default function App() {
                         </View>
                         <View style={styles.detailListItemContent}>
                           <Text style={styles.detailListItemText}>
-                            {(() => {
-                              // Essayer plusieurs formats de nom
-                              if (presence.nomMembre) return presence.nomMembre;
-                              if (presence.fullName) return presence.fullName;
-                              if (presence.prenom && presence.nom) return `${presence.prenom} ${presence.nom}`;
-                              if (presence.nom) return presence.nom;
-                              if (presence.prenom) return presence.prenom;
-                              // Si aucun nom n'est disponible, essayer de récupérer depuis la liste des membres
-                              const membre = members.find(m => m.id === presence.membreId);
-                              if (membre) return membre.fullName || `${membre.firstName} ${membre.lastName}`;
-                              return `Membre ${presence.membreId || 'inconnu'}`;
-                            })()}
+                            {getPresenceDisplayName(presence)}
                           </Text>
                           {presence.email && (
                             <Text style={styles.detailListItemSubtext}>
