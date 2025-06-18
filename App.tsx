@@ -82,6 +82,23 @@ interface Member {
   departement?: string;
   poste?: string;
   dateAdhesion?: string;
+  // Nouvelles propriétés pour fonctions et commissions
+  fonctions?: {
+    comiteId: string;
+    comiteNom: string;
+    estResponsable: boolean;
+    estActif: boolean;
+    dateNomination: string;
+    mandatAnnee: number;
+  }[];
+  commissions?: {
+    commissionId: string;
+    commissionNom: string;
+    estResponsable: boolean;
+    estActif: boolean;
+    dateNomination: string;
+    mandatAnnee: number;
+  }[];
 }
 
 // Interface pour les membres de comité (selon MembreComiteDto)
@@ -98,6 +115,41 @@ interface MembreComite {
   dateNomination: string;
   dateDemission?: string;
   commentaires?: string;
+}
+
+// Interface pour les membres de commission (selon MembreCommissionDetailDto)
+interface MembreCommission {
+  id: string;
+  membreId: string;
+  nomCompletMembre: string;
+  emailMembre: string;
+  estResponsable: boolean;
+  estActif: boolean;
+  dateNomination: string;
+  dateDemission?: string;
+  commentaires?: string;
+  mandatId: string;
+  mandatAnnee: number;
+  mandatDescription: string;
+  commissionId: string;
+  nomCommission: string;
+}
+
+// Interface pour les fonctions
+interface Fonction {
+  id: string;
+  nom: string;
+  description?: string;
+  estActive: boolean;
+}
+
+// Interface pour les commissions
+interface Commission {
+  id: string;
+  nom: string;
+  description?: string;
+  estActive: boolean;
+  notesSpecifiques?: string;
 }
 
 // Interface pour les réunions (selon RotaryManager)
@@ -1175,6 +1227,108 @@ class ApiService {
       throw error;
     }
   }
+
+  // === MÉTHODES POUR LES FONCTIONS ET COMMISSIONS ===
+
+  // Récupérer tous les membres de comité
+  async getMembresComite(): Promise<MembreComite[]> {
+    try {
+      console.log('🔄 === CHARGEMENT MEMBRES COMITÉ ===');
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/MembresComite`;
+      console.log('🌐 URL membres comité:', url);
+
+      const response = await this.makeRequest<MembreComite[]>(url);
+
+      if (response.success && response.data) {
+        console.log('✅ Membres comité chargés:', response.data.length);
+        return response.data;
+      }
+      throw new Error(response.message || 'Erreur lors de la récupération des membres de comité');
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des membres de comité:', error);
+      throw error;
+    }
+  }
+
+  // Récupérer les comités d'un club
+  async getClubComites(clubId: string): Promise<any[]> {
+    try {
+      console.log('🔄 === CHARGEMENT COMITÉS CLUB ===');
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/comites`;
+      console.log('🌐 URL comités club:', url);
+
+      const response = await this.makeRequest<any[]>(url);
+
+      if (response.success && response.data) {
+        console.log('✅ Comités club chargés:', response.data.length);
+        return response.data;
+      }
+      throw new Error(response.message || 'Erreur lors de la récupération des comités');
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des comités:', error);
+      throw error;
+    }
+  }
+
+  // Récupérer les membres d'un comité
+  async getComiteMembers(clubId: string, comiteId: string): Promise<any> {
+    try {
+      console.log('🔄 === CHARGEMENT MEMBRES COMITÉ SPÉCIFIQUE ===');
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/comites/${comiteId}/membres`;
+      console.log('🌐 URL membres comité spécifique:', url);
+
+      const response = await this.makeRequest<any>(url);
+
+      if (response.success && response.data) {
+        console.log('✅ Membres comité spécifique chargés');
+        return response.data;
+      }
+      throw new Error(response.message || 'Erreur lors de la récupération des membres du comité');
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des membres du comité:', error);
+      throw error;
+    }
+  }
+
+  // Récupérer les commissions actives d'un club
+  async getClubCommissions(clubId: string): Promise<any[]> {
+    try {
+      console.log('🔄 === CHARGEMENT COMMISSIONS CLUB ===');
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/commissions/actives`;
+      console.log('🌐 URL commissions club:', url);
+
+      const response = await this.makeRequest<any[]>(url);
+
+      if (response.success && response.data) {
+        console.log('✅ Commissions club chargées:', response.data.length);
+        return response.data;
+      }
+      throw new Error(response.message || 'Erreur lors de la récupération des commissions');
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des commissions:', error);
+      throw error;
+    }
+  }
+
+  // Récupérer les membres d'une commission
+  async getCommissionMembers(clubId: string, commissionClubId: string): Promise<any> {
+    try {
+      console.log('🔄 === CHARGEMENT MEMBRES COMMISSION SPÉCIFIQUE ===');
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/commissions/${commissionClubId}/membres`;
+      console.log('🌐 URL membres commission spécifique:', url);
+
+      const response = await this.makeRequest<any>(url);
+
+      if (response.success && response.data) {
+        console.log('✅ Membres commission spécifique chargés');
+        return response.data;
+      }
+      throw new Error(response.message || 'Erreur lors de la récupération des membres de la commission');
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des membres de la commission:', error);
+      throw error;
+    }
+  }
 }
 
 const apiService = new ApiService();
@@ -1203,6 +1357,8 @@ export default function App() {
   const [meetings, setMeetings] = useState<any[]>([]);
   const [membresComite, setMembresComite] = useState<MembreComite[]>([]);
   const [reunions, setReunions] = useState<Reunion[]>([]);
+  const [comites, setComites] = useState<any[]>([]);
+  const [commissions, setCommissions] = useState<any[]>([]);
   const [typesReunion, setTypesReunion] = useState<TypeReunion[]>([]);
   const [selectedReunion, setSelectedReunion] = useState<Reunion | null>(null);
   const [showCreateReunion, setShowCreateReunion] = useState(false);
@@ -1562,6 +1718,9 @@ export default function App() {
       setMembers(processedMembers);
       console.log('✅ Membres traités et stockés:', processedMembers.length);
 
+      // Enrichir les membres avec leurs fonctions et commissions
+      await enrichMembersWithFunctionsAndCommissions(clubId);
+
     } catch (error) {
       console.error('❌ Erreur lors du chargement des membres:', error);
 
@@ -1598,6 +1757,131 @@ export default function App() {
       console.error('❌ Erreur lors du chargement des membres de comité:', error);
       // Ne pas afficher d'erreur car ce n'est pas critique
       setMembresComite([]);
+    }
+  };
+
+  // Charger les comités d'un club
+  const loadComites = async (clubId: string) => {
+    try {
+      console.log('🔄 === CHARGEMENT COMITÉS ===');
+      const comitesData = await apiService.getClubComites(clubId);
+      console.log('✅ Comités chargés:', comitesData.length);
+      setComites(comitesData);
+    } catch (error) {
+      console.error('❌ Erreur lors du chargement des comités:', error);
+      setComites([]);
+    }
+  };
+
+  // Charger les commissions d'un club
+  const loadCommissions = async (clubId: string) => {
+    try {
+      console.log('🔄 === CHARGEMENT COMMISSIONS ===');
+      const commissionsData = await apiService.getClubCommissions(clubId);
+      console.log('✅ Commissions chargées:', commissionsData.length);
+      setCommissions(commissionsData);
+    } catch (error) {
+      console.error('❌ Erreur lors du chargement des commissions:', error);
+      setCommissions([]);
+    }
+  };
+
+  // Enrichir les membres avec leurs fonctions et commissions
+  const enrichMembersWithFunctionsAndCommissions = async (clubId: string) => {
+    try {
+      console.log('🔄 === ENRICHISSEMENT MEMBRES AVEC FONCTIONS ET COMMISSIONS ===');
+
+      // Charger les données nécessaires en parallèle
+      const [membresComiteData, comitesData, commissionsData] = await Promise.all([
+        apiService.getMembresComite().catch(() => []),
+        apiService.getClubComites(clubId).catch(() => []),
+        apiService.getClubCommissions(clubId).catch(() => [])
+      ]);
+
+      console.log('📊 Données chargées:', {
+        membresComite: membresComiteData.length,
+        comites: comitesData.length,
+        commissions: commissionsData.length
+      });
+
+      // Stocker les données
+      setMembresComite(membresComiteData);
+      setComites(comitesData);
+      setCommissions(commissionsData);
+
+      // Charger les détails des membres de chaque comité et commission
+      const allComiteMembers = [];
+      const allCommissionMembers = [];
+
+      // Charger les membres de chaque comité
+      for (const comite of comitesData) {
+        try {
+          const comiteMembers = await apiService.getComiteMembers(clubId, comite.id);
+          if (comiteMembers && comiteMembers.Membres) {
+            allComiteMembers.push(...comiteMembers.Membres.map(m => ({
+              ...m,
+              comiteNom: comite.nom || comite.nomComite,
+              comiteId: comite.id
+            })));
+          }
+        } catch (error) {
+          console.log(`⚠️ Impossible de charger les membres du comité ${comite.nom}:`, error.message);
+        }
+      }
+
+      // Charger les membres de chaque commission
+      for (const commission of commissionsData) {
+        try {
+          const commissionMembers = await apiService.getCommissionMembers(clubId, commission.id);
+          if (commissionMembers && commissionMembers.Membres) {
+            allCommissionMembers.push(...commissionMembers.Membres.map(m => ({
+              ...m,
+              commissionNom: commission.nom || commission.nomCommission,
+              commissionId: commission.id
+            })));
+          }
+        } catch (error) {
+          console.log(`⚠️ Impossible de charger les membres de la commission ${commission.nom}:`, error.message);
+        }
+      }
+
+      console.log('📊 Membres enrichis:', {
+        comiteMembers: allComiteMembers.length,
+        commissionMembers: allCommissionMembers.length
+      });
+
+      // Enrichir les membres existants avec leurs fonctions et commissions
+      setMembers(prevMembers => prevMembers.map(member => {
+        // Trouver les fonctions (comités) du membre
+        const memberFunctions = allComiteMembers.filter(cm => cm.membreId === member.id);
+
+        // Trouver les commissions du membre
+        const memberCommissions = allCommissionMembers.filter(cm => cm.membreId === member.id);
+
+        return {
+          ...member,
+          fonctions: memberFunctions.map(f => ({
+            comiteId: f.comiteId,
+            comiteNom: f.comiteNom,
+            estResponsable: f.estResponsable,
+            estActif: f.estActif,
+            dateNomination: f.dateNomination,
+            mandatAnnee: f.mandatAnnee || f.anneeMandat
+          })),
+          commissions: memberCommissions.map(c => ({
+            commissionId: c.commissionId,
+            commissionNom: c.commissionNom,
+            estResponsable: c.estResponsable,
+            estActif: c.estActif,
+            dateNomination: c.dateNomination,
+            mandatAnnee: c.mandatAnnee
+          }))
+        };
+      }));
+
+      console.log('✅ Enrichissement des membres terminé');
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'enrichissement des membres:', error);
     }
   };
 
@@ -3556,6 +3840,44 @@ export default function App() {
                     Membre depuis: {item.clubJoinedDateFormatted || 'Date non disponible'}
                   </Text>
 
+                  {/* Affichage des fonctions (comités) */}
+                  {item.fonctions && item.fonctions.length > 0 && (
+                    <View style={styles.memberFunctionsContainer}>
+                      <Text style={styles.memberFunctionsTitle}>🏛️ Fonctions:</Text>
+                      {item.fonctions.map((fonction, index) => (
+                        <View key={index} style={styles.functionItem}>
+                          <Text style={styles.functionText}>
+                            • {fonction.comiteNom}
+                            {fonction.estResponsable && ' (Responsable)'}
+                            {!fonction.estActif && ' (Inactif)'}
+                          </Text>
+                          <Text style={styles.functionYear}>
+                            Mandat {fonction.mandatAnnee}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* Affichage des commissions */}
+                  {item.commissions && item.commissions.length > 0 && (
+                    <View style={styles.memberCommissionsContainer}>
+                      <Text style={styles.memberCommissionsTitle}>🎯 Commissions:</Text>
+                      {item.commissions.map((commission, index) => (
+                        <View key={index} style={styles.commissionItem}>
+                          <Text style={styles.commissionText}>
+                            • {commission.commissionNom}
+                            {commission.estResponsable && ' (Responsable)'}
+                            {!commission.estActif && ' (Inactif)'}
+                          </Text>
+                          <Text style={styles.commissionYear}>
+                            Mandat {commission.mandatAnnee}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
                   {/* Boutons d'action de communication */}
                   {item.phoneNumber && (
                     <View style={styles.communicationActions}>
@@ -4535,6 +4857,58 @@ const styles = StyleSheet.create({
   noPhoneText: {
     fontSize: 12,
     color: '#999',
+    fontStyle: 'italic',
+  },
+
+  // Styles pour les fonctions et commissions
+  memberFunctionsContainer: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  memberFunctionsTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#005AA9',
+    marginBottom: 4,
+  },
+  functionItem: {
+    marginBottom: 2,
+  },
+  functionText: {
+    fontSize: 11,
+    color: '#333',
+    lineHeight: 16,
+  },
+  functionYear: {
+    fontSize: 10,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  memberCommissionsContainer: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  memberCommissionsTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#F7A81B',
+    marginBottom: 4,
+  },
+  commissionItem: {
+    marginBottom: 2,
+  },
+  commissionText: {
+    fontSize: 11,
+    color: '#333',
+    lineHeight: 16,
+  },
+  commissionYear: {
+    fontSize: 10,
+    color: '#666',
     fontStyle: 'italic',
   },
   memberStatus: {
