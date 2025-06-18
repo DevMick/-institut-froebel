@@ -15,7 +15,9 @@ import {
   Alert,
   ActivityIndicator,
   TextInput,
-  Modal
+  Modal,
+  Linking,
+  Platform
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -1625,7 +1627,7 @@ export default function App() {
   };
 
   // Fonction pour lancer un appel téléphonique
-  const makePhoneCall = (member: Member) => {
+  const makePhoneCall = async (member: Member) => {
     if (!member.phoneNumber) {
       Alert.alert('Erreur', 'Aucun numéro de téléphone disponible pour ce membre');
       return;
@@ -1634,27 +1636,44 @@ export default function App() {
     const cleanedNumber = cleanPhoneNumber(member.phoneNumber);
     console.log('📞 Lancement direct de l\'appel vers:', member.fullName, 'au', cleanedNumber);
 
-    // Lancement direct de l'appel
     const phoneUrl = `tel:${cleanedNumber}`;
 
     try {
       console.log('📞 URL d\'appel générée:', phoneUrl);
 
-      if (isExpoSnack()) {
-        // Dans Expo Snack, on simule le lancement
-        console.log('🌐 Environnement Expo Snack détecté - Simulation du lancement d\'appel');
-        window.open(phoneUrl, '_self');
-        console.log('✅ Simulation d\'appel lancée vers:', cleanedNumber);
-      } else {
-        // Dans une vraie app React Native, cette ligne lancera directement l'appel :
-        // import { Linking } from 'react-native';
-        // await Linking.openURL(phoneUrl);
-        console.log('📱 App native - Lancement réel de l\'appel vers:', cleanedNumber);
+      // Vérifier si on est dans un environnement React Native avec Linking
+      if (Linking && typeof Linking.openURL === 'function') {
+        console.log('📱 Utilisation de Linking.openURL pour l\'appel');
 
-        // Pour le moment, on simule aussi dans le navigateur
-        if (typeof window !== 'undefined') {
-          window.location.href = phoneUrl;
+        // Vérifier si l'URL est supportée
+        const supported = await Linking.canOpenURL(phoneUrl);
+        if (supported) {
+          await Linking.openURL(phoneUrl);
+          console.log('✅ Appel lancé avec succès vers:', cleanedNumber);
+        } else {
+          console.log('❌ URL d\'appel non supportée sur cet appareil');
+          Alert.alert('Erreur', 'Les appels téléphoniques ne sont pas supportés sur cet appareil.');
         }
+      } else if (isExpoSnack() && typeof window !== 'undefined') {
+        // Fallback pour Expo Snack web - afficher les informations
+        console.log('🌐 Environnement Expo Snack web détecté');
+        Alert.alert(
+          '📞 Appel téléphonique',
+          `Appeler ${member.fullName}\n\nNuméro: ${member.phoneNumber}\nNuméro formaté: ${cleanedNumber}\n\n💡 Dans l'app mobile native, cet appel se lancerait automatiquement.`,
+          [
+            { text: 'OK', style: 'default' },
+            {
+              text: 'Copier le numéro',
+              onPress: () => {
+                console.log('📋 Numéro copié:', cleanedNumber);
+                Alert.alert('Copié', `Numéro ${cleanedNumber} copié dans le presse-papiers`);
+              }
+            }
+          ]
+        );
+      } else {
+        console.log('❌ Aucune méthode de lancement d\'appel disponible');
+        Alert.alert('Erreur', 'Impossible de lancer l\'appel sur cette plateforme.');
       }
 
     } catch (error) {
@@ -1664,7 +1683,7 @@ export default function App() {
   };
 
   // Fonction pour envoyer un SMS
-  const sendSMS = (member: Member) => {
+  const sendSMS = async (member: Member) => {
     if (!member.phoneNumber) {
       Alert.alert('Erreur', 'Aucun numéro de téléphone disponible pour ce membre');
       return;
@@ -1673,27 +1692,44 @@ export default function App() {
     const cleanedNumber = cleanPhoneNumber(member.phoneNumber);
     console.log('💬 Lancement direct du SMS vers:', member.fullName, 'au', cleanedNumber);
 
-    // Lancement direct du SMS
     const smsUrl = `sms:${cleanedNumber}`;
 
     try {
       console.log('💬 URL SMS générée:', smsUrl);
 
-      if (isExpoSnack()) {
-        // Dans Expo Snack, on simule le lancement
-        console.log('🌐 Environnement Expo Snack détecté - Simulation du lancement SMS');
-        window.open(smsUrl, '_self');
-        console.log('✅ Simulation SMS lancée vers:', cleanedNumber);
-      } else {
-        // Dans une vraie app React Native, cette ligne ouvrira directement l'app SMS :
-        // import { Linking } from 'react-native';
-        // await Linking.openURL(smsUrl);
-        console.log('📱 App native - Lancement réel du SMS vers:', cleanedNumber);
+      // Vérifier si on est dans un environnement React Native avec Linking
+      if (Linking && typeof Linking.openURL === 'function') {
+        console.log('📱 Utilisation de Linking.openURL pour le SMS');
 
-        // Pour le moment, on simule aussi dans le navigateur
-        if (typeof window !== 'undefined') {
-          window.location.href = smsUrl;
+        // Vérifier si l'URL est supportée
+        const supported = await Linking.canOpenURL(smsUrl);
+        if (supported) {
+          await Linking.openURL(smsUrl);
+          console.log('✅ SMS lancé avec succès vers:', cleanedNumber);
+        } else {
+          console.log('❌ URL SMS non supportée sur cet appareil');
+          Alert.alert('Erreur', 'Les SMS ne sont pas supportés sur cet appareil.');
         }
+      } else if (isExpoSnack() && typeof window !== 'undefined') {
+        // Fallback pour Expo Snack web - afficher les informations
+        console.log('🌐 Environnement Expo Snack web détecté');
+        Alert.alert(
+          '💬 Message SMS',
+          `Envoyer un SMS à ${member.fullName}\n\nNuméro: ${member.phoneNumber}\nNuméro formaté: ${cleanedNumber}\n\n💡 Dans l'app mobile native, l'application SMS s'ouvrirait automatiquement.`,
+          [
+            { text: 'OK', style: 'default' },
+            {
+              text: 'Copier le numéro',
+              onPress: () => {
+                console.log('📋 Numéro copié:', cleanedNumber);
+                Alert.alert('Copié', `Numéro ${cleanedNumber} copié dans le presse-papiers`);
+              }
+            }
+          ]
+        );
+      } else {
+        console.log('❌ Aucune méthode de lancement SMS disponible');
+        Alert.alert('Erreur', 'Impossible de lancer l\'application SMS sur cette plateforme.');
       }
 
     } catch (error) {
@@ -1703,7 +1739,7 @@ export default function App() {
   };
 
   // Fonction pour ouvrir WhatsApp
-  const openWhatsApp = (member: Member) => {
+  const openWhatsApp = async (member: Member) => {
     if (!member.phoneNumber) {
       Alert.alert('Erreur', 'Aucun numéro de téléphone disponible pour ce membre');
       return;
@@ -1712,27 +1748,32 @@ export default function App() {
     const cleanedNumber = cleanPhoneNumber(member.phoneNumber);
     console.log('📱 Lancement direct de WhatsApp vers:', member.fullName, 'au', cleanedNumber);
 
-    // Lancement direct de WhatsApp
     const whatsappUrl = `https://wa.me/${cleanedNumber}`;
 
     try {
       console.log('📱 URL WhatsApp générée:', whatsappUrl);
 
-      if (isExpoSnack()) {
-        // Dans Expo Snack, on ouvre WhatsApp Web dans un nouvel onglet
-        console.log('🌐 Environnement Expo Snack détecté - Ouverture de WhatsApp Web');
+      // Vérifier si on est dans un environnement React Native avec Linking
+      if (Linking && typeof Linking.openURL === 'function') {
+        console.log('📱 Utilisation de Linking.openURL pour WhatsApp');
+
+        // Vérifier si l'URL est supportée
+        const supported = await Linking.canOpenURL(whatsappUrl);
+        if (supported) {
+          await Linking.openURL(whatsappUrl);
+          console.log('✅ WhatsApp lancé avec succès vers:', cleanedNumber);
+        } else {
+          console.log('❌ URL WhatsApp non supportée sur cet appareil');
+          Alert.alert('Erreur', 'WhatsApp n\'est pas installé sur cet appareil.');
+        }
+      } else if (typeof window !== 'undefined') {
+        // Fallback pour navigateur - ouvrir WhatsApp Web
+        console.log('🌐 Environnement navigateur détecté - Ouverture de WhatsApp Web');
         window.open(whatsappUrl, '_blank');
         console.log('✅ WhatsApp Web ouvert vers:', cleanedNumber);
       } else {
-        // Dans une vraie app React Native, cette ligne ouvrira directement WhatsApp :
-        // import { Linking } from 'react-native';
-        // await Linking.openURL(whatsappUrl);
-        console.log('📱 App native - Lancement réel de WhatsApp vers:', cleanedNumber);
-
-        // Pour le moment, on ouvre aussi WhatsApp Web dans le navigateur
-        if (typeof window !== 'undefined') {
-          window.open(whatsappUrl, '_blank');
-        }
+        console.log('❌ Aucune méthode de lancement WhatsApp disponible');
+        Alert.alert('Erreur', 'Impossible d\'ouvrir WhatsApp sur cette plateforme.');
       }
 
     } catch (error) {
