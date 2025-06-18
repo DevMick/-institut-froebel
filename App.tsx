@@ -1182,27 +1182,27 @@ export default function App() {
                 clubs.map((club, index) => {
                   console.log(`🏢 Rendu club ${index + 1}/${clubs.length}:`, club.name);
                   return (
-                <TouchableOpacity
-                  key={club.id}
-                  style={[
-                    styles.modalOption,
-                    loginForm.clubId === club.id && styles.modalOptionSelected
-                  ]}
-                  onPress={() => {
-                    setLoginForm(prev => ({ ...prev, clubId: club.id }));
-                    setShowClubPicker(false);
-                  }}
-                >
-                  <Text style={[
-                    styles.modalOptionText,
-                    loginForm.clubId === club.id && styles.modalOptionTextSelected
-                  ]}>
-                    {club.name}
-                  </Text>
-                    {loginForm.clubId === club.id && (
-                      <Text style={styles.modalCheckmark}>✓</Text>
-                    )}
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      key={club.id}
+                      style={[
+                        styles.modalOption,
+                        loginForm.clubId === club.id && styles.modalOptionSelected
+                      ]}
+                      onPress={() => {
+                        setLoginForm(prev => ({ ...prev, clubId: club.id }));
+                        setShowClubPicker(false);
+                      }}
+                    >
+                      <Text style={[
+                        styles.modalOptionText,
+                        loginForm.clubId === club.id && styles.modalOptionTextSelected
+                      ]}>
+                        {club.name}
+                      </Text>
+                      {loginForm.clubId === club.id && (
+                        <Text style={styles.modalCheckmark}>✓</Text>
+                      )}
+                    </TouchableOpacity>
                   );
                 })
               )}
