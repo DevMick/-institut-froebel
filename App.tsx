@@ -306,10 +306,18 @@ class ApiService {
       // Utiliser l'endpoint exact de RotaryManager
       const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/Auth/club/${clubId}/members`;
       console.log('🌐 URL complète:', url);
+      console.log('🔧 API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
+      console.log('🔧 API_CONFIG.API_PREFIX:', API_CONFIG.API_PREFIX);
 
       const token = await this.getToken();
       if (!token) {
         throw new Error('Token d\'authentification manquant');
+      }
+      console.log('🔑 Token présent:', !!token);
+
+      // Vérifier si l'URL ngrok est configurée
+      if (API_CONFIG.BASE_URL.includes('REMPLACEZ-PAR-VOTRE-NOUVELLE-URL-NGROK')) {
+        throw new Error('URL ngrok non configurée. Veuillez mettre à jour API_CONFIG.BASE_URL');
       }
 
       const response = await fetch(url, {
@@ -1102,14 +1110,30 @@ export default function App() {
 
   // Écran des membres
   const MembersScreen = () => {
+    console.log('🖥️ === RENDU MEMBERS SCREEN ===');
+    console.log('🖥️ Nombre de membres:', members.length);
+    console.log('🖥️ Loading:', loading);
+    console.log('🖥️ IsAuthenticated:', isAuthenticated);
+    console.log('🖥️ CurrentUser:', currentUser);
+    console.log('🖥️ Membres détaillés:', members);
+
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Membres</Text>
+          <Text style={styles.headerTitle}>Membres ({members.length})</Text>
           {isAuthenticated && (
             <TouchableOpacity
               style={styles.refreshButton}
-              onPress={() => currentUser?.clubId && loadMembers(currentUser.clubId)}
+              onPress={() => {
+                console.log('🔄 Bouton refresh cliqué');
+                if (currentUser?.clubId) {
+                  console.log('🔄 Rechargement des membres pour club:', currentUser.clubId);
+                  loadMembers(currentUser.clubId);
+                } else {
+                  console.log('❌ Pas de clubId disponible');
+                  Alert.alert('Erreur', 'Impossible de recharger : club non identifié');
+                }
+              }}
             >
               <Ionicons name="refresh" size={20} color="white" />
             </TouchableOpacity>
@@ -1120,6 +1144,66 @@ export default function App() {
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
             <Text style={styles.loadingText}>Chargement des membres...</Text>
+            <Text style={styles.debugText}>
+              Club ID: {currentUser?.clubId || 'Non défini'}
+            </Text>
+          </View>
+        ) : members.length === 0 ? (
+          <View style={styles.loadingContainer}>
+            <Ionicons name="people-outline" size={64} color="#ccc" />
+            <Text style={styles.emptyStateTitle}>Aucun membre trouvé</Text>
+            <Text style={styles.emptyStateText}>
+              {!currentUser?.clubId
+                ? 'Club non identifié. Veuillez vous reconnecter.'
+                : 'Aucun membre dans ce club ou erreur de chargement.'
+              }
+            </Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={() => {
+                console.log('🔄 Bouton retry cliqué');
+                if (currentUser?.clubId) {
+                  loadMembers(currentUser.clubId);
+                } else {
+                  Alert.alert('Erreur', 'Veuillez vous reconnecter pour identifier votre club');
+                }
+              }}
+            >
+              <Text style={styles.retryButtonText}>Réessayer</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.retryButton, { backgroundColor: colors.secondary, marginTop: 8 }]}
+              onPress={async () => {
+                console.log('🔍 Test de connectivité API...');
+                try {
+                  const testUrl = `${API_CONFIG.BASE_URL}/api/Clubs`;
+                  const response = await fetch(testUrl, {
+                    method: 'GET',
+                    headers: {
+                      'Accept': 'application/json',
+                      'ngrok-skip-browser-warning': 'true',
+                    },
+                  });
+
+                  const isWorking = response.ok;
+                  console.log('🔍 Test API - Status:', response.status);
+
+                  Alert.alert(
+                    'Test de connectivité',
+                    `URL: ${API_CONFIG.BASE_URL}\n\nStatus: ${response.status}\n\n${isWorking ? '✅ API accessible' : '❌ API non accessible'}\n\nClub ID: ${currentUser?.clubId || 'Non défini'}`
+                  );
+                } catch (error) {
+                  console.error('🔍 Erreur test:', error);
+                  Alert.alert(
+                    'Test de connectivité',
+                    `URL: ${API_CONFIG.BASE_URL}\n\n❌ Erreur: ${error.message}`
+                  );
+                }
+              }}
+            >
+              <Text style={styles.retryButtonText}>🔍 Tester API</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <FlatList
@@ -1540,7 +1624,15 @@ export default function App() {
 
         <TouchableOpacity
           style={[styles.tabItem, currentScreen === 'Members' && styles.tabItemActive]}
-          onPress={() => setCurrentScreen('Members')}
+          onPress={() => {
+            console.log('🎯 Navigation vers Members');
+            setCurrentScreen('Members');
+            // Forcer le rechargement des membres si nécessaire
+            if (currentUser?.clubId && members.length === 0 && !loading) {
+              console.log('🔄 Chargement automatique des membres');
+              loadMembers(currentUser.clubId);
+            }
+          }}
         >
           <Ionicons
             name={currentScreen === 'Members' ? 'people' : 'people-outline'}
@@ -1818,6 +1910,24 @@ const styles = StyleSheet.create({
   },
   statusInactive: {
     backgroundColor: '#F44336',
+  },
+  debugText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: colors.primary,
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 16,
+    paddingHorizontal: 24,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '500',
   },
   refreshButton: {
     backgroundColor: colors.secondary,
