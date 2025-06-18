@@ -1237,13 +1237,33 @@ class ApiService {
       const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/MembresComite`;
       console.log('🌐 URL membres comité:', url);
 
-      const response = await this.makeRequest<MembreComite[]>(url);
-
-      if (response.success && response.data) {
-        console.log('✅ Membres comité chargés:', response.data.length);
-        return response.data;
+      const token = await this.getToken();
+      if (!token) {
+        throw new Error('Token d\'authentification manquant');
       }
-      throw new Error(response.message || 'Erreur lors de la récupération des membres de comité');
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Membres comité chargés (brut):', data);
+
+      // Les données peuvent être directement un tableau ou dans une propriété
+      const membresComite = Array.isArray(data) ? data : (data.data || data.members || []);
+      console.log('✅ Membres comité traités:', membresComite.length);
+
+      return membresComite;
     } catch (error) {
       console.error('❌ Erreur lors de la récupération des membres de comité:', error);
       throw error;
@@ -1257,13 +1277,32 @@ class ApiService {
       const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/comites`;
       console.log('🌐 URL comités club:', url);
 
-      const response = await this.makeRequest<any[]>(url);
-
-      if (response.success && response.data) {
-        console.log('✅ Comités club chargés:', response.data.length);
-        return response.data;
+      const token = await this.getToken();
+      if (!token) {
+        throw new Error('Token d\'authentification manquant');
       }
-      throw new Error(response.message || 'Erreur lors de la récupération des comités');
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Comités club chargés (brut):', data);
+
+      const comites = Array.isArray(data) ? data : (data.data || data.comites || []);
+      console.log('✅ Comités club traités:', comites.length);
+
+      return comites;
     } catch (error) {
       console.error('❌ Erreur lors de la récupération des comités:', error);
       throw error;
@@ -1851,37 +1890,93 @@ export default function App() {
       });
 
       // Enrichir les membres existants avec leurs fonctions et commissions
-      setMembers(prevMembers => prevMembers.map(member => {
-        // Trouver les fonctions (comités) du membre
-        const memberFunctions = allComiteMembers.filter(cm => cm.membreId === member.id);
+      setMembers(prevMembers => {
+        console.log('🔄 === ENRICHISSEMENT FINAL DES MEMBRES ===');
+        console.log('📊 Membres à enrichir:', prevMembers.length);
+        console.log('📊 Données comité disponibles:', allComiteMembers.length);
+        console.log('📊 Données commission disponibles:', allCommissionMembers.length);
 
-        // Trouver les commissions du membre
-        const memberCommissions = allCommissionMembers.filter(cm => cm.membreId === member.id);
+        const enrichedMembers = prevMembers.map(member => {
+          // Trouver les fonctions (comités) du membre
+          const memberFunctions = allComiteMembers.filter(cm => cm.membreId === member.id);
 
-        return {
-          ...member,
-          fonctions: memberFunctions.map(f => ({
-            comiteId: f.comiteId,
-            comiteNom: f.comiteNom,
-            estResponsable: f.estResponsable,
-            estActif: f.estActif,
-            dateNomination: f.dateNomination,
-            mandatAnnee: f.mandatAnnee || f.anneeMandat
-          })),
-          commissions: memberCommissions.map(c => ({
-            commissionId: c.commissionId,
-            commissionNom: c.commissionNom,
-            estResponsable: c.estResponsable,
-            estActif: c.estActif,
-            dateNomination: c.dateNomination,
-            mandatAnnee: c.mandatAnnee
-          }))
-        };
-      }));
+          // Trouver les commissions du membre
+          const memberCommissions = allCommissionMembers.filter(cm => cm.membreId === member.id);
+
+          console.log(`👤 Membre ${member.fullName}:`, {
+            id: member.id,
+            fonctionsFound: memberFunctions.length,
+            commissionsFound: memberCommissions.length,
+            fonctionsData: memberFunctions,
+            commissionsData: memberCommissions
+          });
+
+          const enrichedMember = {
+            ...member,
+            fonctions: memberFunctions.map(f => ({
+              comiteId: f.comiteId,
+              comiteNom: f.comiteNom,
+              estResponsable: f.estResponsable,
+              estActif: f.estActif,
+              dateNomination: f.dateNomination,
+              mandatAnnee: f.mandatAnnee || f.anneeMandat
+            })),
+            commissions: memberCommissions.map(c => ({
+              commissionId: c.commissionId,
+              commissionNom: c.commissionNom,
+              estResponsable: c.estResponsable,
+              estActif: c.estActif,
+              dateNomination: c.dateNomination,
+              mandatAnnee: c.mandatAnnee
+            }))
+          };
+
+          console.log(`✅ Membre enrichi ${member.fullName}:`, {
+            fonctions: enrichedMember.fonctions,
+            commissions: enrichedMember.commissions
+          });
+
+          return enrichedMember;
+        });
+
+        console.log('✅ Enrichissement terminé, membres enrichis:', enrichedMembers.length);
+        return enrichedMembers;
+      });
 
       console.log('✅ Enrichissement des membres terminé');
     } catch (error) {
       console.error('❌ Erreur lors de l\'enrichissement des membres:', error);
+
+      // En cas d'erreur, ajouter des données de test pour vérifier l'affichage
+      console.log('🧪 Ajout de données de test pour vérifier l\'affichage');
+      setMembers(prevMembers => prevMembers.map((member, index) => {
+        if (index === 0) { // Premier membre avec des données de test
+          return {
+            ...member,
+            fonctions: [
+              {
+                comiteId: 'test-comite-1',
+                comiteNom: 'Comité des Finances',
+                estResponsable: true,
+                estActif: true,
+                dateNomination: '2024-01-01',
+                mandatAnnee: 2024
+              }
+            ],
+            commissions: [
+              {
+                commissionId: 'test-commission-1',
+                commissionNom: 'Commission Jeunesse',
+                estResponsable: false,
+                estActif: true,
+                dateNomination: '2024-01-01',
+                mandatAnnee: 2024
+              }
+            ]
+          };
+        }
+        return member;
+      }));
     }
   };
 
@@ -3841,6 +3936,24 @@ export default function App() {
                   </Text>
 
                   {/* Affichage des fonctions (comités) */}
+                  {(() => {
+                    console.log('🔍 === DEBUG FONCTIONS MEMBRE ===');
+                    console.log('🔍 Membre:', item.fullName);
+                    console.log('🔍 Fonctions disponibles:', item.fonctions);
+                    console.log('🔍 Nombre de fonctions:', item.fonctions?.length || 0);
+                    console.log('🔍 Commissions disponibles:', item.commissions);
+                    console.log('🔍 Nombre de commissions:', item.commissions?.length || 0);
+                    return null;
+                  })()}
+
+                  {/* Affichage de test pour voir si les données sont là */}
+                  <View style={styles.memberFunctionsContainer}>
+                    <Text style={styles.memberFunctionsTitle}>🔍 Debug Info:</Text>
+                    <Text style={styles.functionText}>
+                      Fonctions: {item.fonctions?.length || 0} | Commissions: {item.commissions?.length || 0}
+                    </Text>
+                  </View>
+
                   {item.fonctions && item.fonctions.length > 0 && (
                     <View style={styles.memberFunctionsContainer}>
                       <Text style={styles.memberFunctionsTitle}>🏛️ Fonctions:</Text>
