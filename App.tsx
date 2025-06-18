@@ -74,6 +74,28 @@ interface Member {
   clubName?: string;
   clubJoinedDate: string;
   clubJoinedDateFormatted: string;
+  // Champs additionnels selon RotaryManager
+  nom?: string;
+  prenom?: string;
+  departement?: string;
+  poste?: string;
+  dateAdhesion?: string;
+}
+
+// Interface pour les membres de comité (selon MembreComiteDto)
+interface MembreComite {
+  id: string;
+  membreId: string;
+  nomMembre: string;
+  comiteId: string;
+  nomComite: string;
+  mandatId: string;
+  anneeMandat: number;
+  estResponsable: boolean;
+  estActif: boolean;
+  dateNomination: string;
+  dateDemission?: string;
+  commentaires?: string;
 }
 
 interface ApiResponse<T> {
@@ -277,11 +299,147 @@ class ApiService {
   }
 
   async getClubMembers(clubId: string): Promise<Member[]> {
-    const response = await this.makeRequest<Member>(`/club/${clubId}/members`);
-    if (response.success && response.members) {
-      return response.members;
+    console.log('🔄 === CHARGEMENT MEMBRES DU CLUB ===');
+    console.log('🏢 Club ID:', clubId);
+
+    try {
+      // Utiliser l'endpoint exact de RotaryManager
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/Auth/club/${clubId}/members`;
+      console.log('🌐 URL complète:', url);
+
+      const token = await this.getToken();
+      if (!token) {
+        throw new Error('Token d\'authentification manquant');
+      }
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true',
+          'User-Agent': 'RotaryClubMobile/1.0',
+          'Origin': 'https://snack.expo.dev',
+        },
+      });
+
+      console.log('📡 Réponse Status:', response.status);
+      console.log('📡 Réponse OK:', response.ok);
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          await this.removeToken();
+          throw new Error('Session expirée. Veuillez vous reconnecter.');
+        }
+        const errorText = await response.text();
+        console.error('❌ Erreur API membres:', errorText);
+        throw new Error(`Erreur ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('📊 Données membres reçues:', data);
+
+      // Traiter les données selon le format RotaryManager
+      let members: Member[] = [];
+
+      if (Array.isArray(data)) {
+        members = data;
+      } else if (data.members && Array.isArray(data.members)) {
+        members = data.members;
+      } else if (data.data && Array.isArray(data.data)) {
+        members = data.data;
+      }
+
+      console.log('✅ Membres traités:', members.length);
+      return members;
+
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des membres:', error);
+      throw error;
     }
-    throw new Error(response.message || 'Erreur lors de la récupération des membres');
+  }
+
+  // Ajouter un nouveau membre (selon RotaryManager)
+  async addMember(memberData: any): Promise<Member> {
+    try {
+      const response = await this.makeRequest<Member>('/Auth/register', {
+        method: 'POST',
+        body: JSON.stringify(memberData),
+      });
+
+      if (response.success && response.data) {
+        return response.data;
+      }
+      throw new Error(response.message || 'Erreur lors de l\'ajout du membre');
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du membre:', error);
+      throw error;
+    }
+  }
+
+  // Mettre à jour un membre
+  async updateMember(clubId: string, userId: string, memberData: any): Promise<Member> {
+    try {
+      const response = await this.makeRequest<Member>(`/clubs/${clubId}/members/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify(memberData),
+      });
+
+      if (response.success && response.data) {
+        return response.data;
+      }
+      throw new Error(response.message || 'Erreur lors de la modification du membre');
+    } catch (error) {
+      console.error('Erreur lors de la modification du membre:', error);
+      throw error;
+    }
+  }
+
+  // Supprimer un membre
+  async deleteMember(clubId: string, userId: string): Promise<void> {
+    try {
+      const response = await this.makeRequest<void>(`/auth/club/${clubId}/member/${userId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Erreur lors de la suppression du membre');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression du membre:', error);
+      throw error;
+    }
+  }
+
+  // Obtenir les détails d'un membre
+  async getMemberDetail(clubId: string, userId: string): Promise<Member> {
+    try {
+      const response = await this.makeRequest<Member>(`/clubs/${clubId}/members/${userId}`);
+
+      if (response.success && response.data) {
+        return response.data;
+      }
+      throw new Error(response.message || 'Erreur lors de la récupération des détails du membre');
+    } catch (error) {
+      console.error('Erreur lors de la récupération des détails du membre:', error);
+      throw error;
+    }
+  }
+
+  // Rechercher un membre par email
+  async getMemberByEmail(clubId: string, email: string): Promise<Member> {
+    try {
+      const response = await this.makeRequest<Member>(`/clubs/${clubId}/members/search?email=${encodeURIComponent(email)}`);
+
+      if (response.success && response.data) {
+        return response.data;
+      }
+      throw new Error(response.message || 'Membre non trouvé');
+    } catch (error) {
+      console.error('Erreur lors de la recherche du membre:', error);
+      throw error;
+    }
   }
 
   async logout(): Promise<void> {
@@ -290,6 +448,82 @@ class ApiService {
 
   async saveToken(token: string): Promise<void> {
     await this.setToken(token);
+  }
+
+  // Gestion des membres de comité (selon RotaryManager)
+  async getMembresComite(): Promise<MembreComite[]> {
+    try {
+      const response = await this.makeRequest<MembreComite>('/MembresComite');
+
+      if (response.success && response.data) {
+        return Array.isArray(response.data) ? response.data : [response.data];
+      }
+      throw new Error(response.message || 'Erreur lors de la récupération des membres de comité');
+    } catch (error) {
+      console.error('Erreur lors de la récupération des membres de comité:', error);
+      throw error;
+    }
+  }
+
+  // Affecter un membre à un comité
+  async affecterMembreComite(data: {
+    membreId: string;
+    comiteId: string;
+    mandatId: string;
+    estResponsable: boolean;
+    commentaires?: string;
+  }): Promise<MembreComite> {
+    try {
+      const response = await this.makeRequest<MembreComite>('/MembresComite', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+
+      if (response.success && response.data) {
+        return response.data;
+      }
+      throw new Error(response.message || 'Erreur lors de l\'affectation du membre au comité');
+    } catch (error) {
+      console.error('Erreur lors de l\'affectation du membre au comité:', error);
+      throw error;
+    }
+  }
+
+  // Affecter un membre à une commission
+  async affecterMembreCommission(
+    clubId: string,
+    commissionClubId: string,
+    data: { membreId: string; [key: string]: any }
+  ): Promise<any> {
+    try {
+      const response = await this.makeRequest<any>(`/clubs/${clubId}/commissions/${commissionClubId}/membres`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+
+      if (response.success) {
+        return response.data;
+      }
+      throw new Error(response.message || 'Erreur lors de l\'affectation du membre à la commission');
+    } catch (error) {
+      console.error('Erreur lors de l\'affectation du membre à la commission:', error);
+      throw error;
+    }
+  }
+
+  // Obtenir les membres d'une commission
+  async getMembresCommission(clubId: string, commissionClubId: string): Promise<any[]> {
+    try {
+      const response = await this.makeRequest<any>(`/clubs/${clubId}/commissions/${commissionClubId}/membres`);
+
+      if (response.success && response.data) {
+        return Array.isArray(response.data) ? response.data : [response.data];
+      }
+      throw new Error(response.message || 'Erreur lors de la récupération des membres de la commission');
+    } catch (error) {
+      console.error('Erreur lors de la récupération des membres de la commission:', error);
+      throw error;
+    }
   }
 }
 
@@ -317,6 +551,7 @@ export default function App() {
   const [showClubPicker, setShowClubPicker] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [meetings, setMeetings] = useState<any[]>([]);
+  const [membresComite, setMembresComite] = useState<MembreComite[]>([]);
 
   // Charger les données au démarrage
   useEffect(() => {
@@ -523,14 +758,61 @@ export default function App() {
   const loadMembers = async (clubId: string) => {
     try {
       setLoading(true);
+      console.log('🔄 === DÉBUT CHARGEMENT MEMBRES ===');
+      console.log('🏢 Club ID:', clubId);
+
       const membersData = await apiService.getClubMembers(clubId);
-      setMembers(membersData);
+      console.log('✅ Membres chargés:', membersData.length);
+
+      // Traiter les données pour s'assurer qu'elles ont le bon format
+      const processedMembers = membersData.map(member => ({
+        ...member,
+        fullName: member.fullName || `${member.firstName || member.prenom || ''} ${member.lastName || member.nom || ''}`.trim(),
+        clubJoinedDateFormatted: member.clubJoinedDateFormatted ||
+          (member.dateAdhesion ? new Date(member.dateAdhesion).toLocaleDateString('fr-FR') :
+           member.clubJoinedDate ? new Date(member.clubJoinedDate).toLocaleDateString('fr-FR') : 'N/A'),
+        roles: member.roles || []
+      }));
+
+      setMembers(processedMembers);
+      console.log('✅ Membres traités et stockés:', processedMembers.length);
+
     } catch (error) {
-      console.error('Erreur lors du chargement des membres:', error);
-      Alert.alert('Erreur', 'Impossible de charger les membres depuis l\'API.');
+      console.error('❌ Erreur lors du chargement des membres:', error);
+
+      let errorMessage = 'Impossible de charger les membres depuis l\'API.';
+
+      if (error.message.includes('401') || error.message.includes('Session expirée')) {
+        errorMessage = 'Session expirée. Veuillez vous reconnecter.';
+        // Forcer la déconnexion
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+        setShowLogin(true);
+      } else if (error.message.includes('403')) {
+        errorMessage = 'Vous n\'avez pas l\'autorisation d\'accéder aux membres de ce club.';
+      } else if (error.message.includes('404')) {
+        errorMessage = 'Club non trouvé ou aucun membre dans ce club.';
+      }
+
+      Alert.alert('Erreur de chargement des membres', errorMessage);
       setMembers([]);
     } finally {
       setLoading(false);
+      console.log('🏁 Fin du chargement des membres');
+    }
+  };
+
+  // Charger les membres de comité
+  const loadMembresComite = async () => {
+    try {
+      console.log('🔄 === CHARGEMENT MEMBRES DE COMITÉ ===');
+      const membresComiteData = await apiService.getMembresComite();
+      console.log('✅ Membres de comité chargés:', membresComiteData.length);
+      setMembresComite(membresComiteData);
+    } catch (error) {
+      console.error('❌ Erreur lors du chargement des membres de comité:', error);
+      // Ne pas afficher d'erreur car ce n'est pas critique
+      setMembresComite([]);
     }
   };
 
@@ -565,9 +847,10 @@ export default function App() {
       setShowLogin(false);
       setLoginForm({ email: '', password: '', clubId: '' });
 
-      // Charger les membres du club
+      // Charger les membres du club et les membres de comité
       if (user.clubId) {
         await loadMembers(user.clubId);
+        await loadMembresComite();
       }
 
       Alert.alert('Succès', `Connexion réussie ! Bienvenue ${user.fullName || user.firstName}`);
@@ -847,24 +1130,42 @@ export default function App() {
                 <View style={styles.memberHeader}>
                   <View style={styles.avatar}>
                     <Text style={styles.avatarText}>
-                      {item.fullName.split(' ').map((n: string) => n[0]).join('')}
+                      {item.fullName ?
+                        item.fullName.split(' ').map((n: string) => n[0]).join('').substring(0, 2) :
+                        ((item.firstName || item.prenom || 'U')[0] + (item.lastName || item.nom || 'U')[0])
+                      }
                     </Text>
                   </View>
                   <View style={styles.memberInfo}>
-                    <Text style={styles.memberName}>{item.fullName}</Text>
-                    <Text style={styles.memberRole}>
-                      {item.roles.length > 0 ? item.roles.join(', ') : 'Membre'}
+                    <Text style={styles.memberName}>
+                      {item.fullName || `${item.firstName || item.prenom || ''} ${item.lastName || item.nom || ''}`.trim() || 'Nom non disponible'}
                     </Text>
+                    <Text style={styles.memberRole}>
+                      {item.roles && item.roles.length > 0 ? item.roles.join(', ') :
+                       item.poste || 'Membre'}
+                    </Text>
+                    {item.departement && (
+                      <Text style={styles.memberDepartment}>{item.departement}</Text>
+                    )}
+                  </View>
+                  <View style={styles.memberStatus}>
+                    <View style={[
+                      styles.statusIndicator,
+                      item.isActive ? styles.statusActive : styles.statusInactive
+                    ]} />
                   </View>
                 </View>
                 <View style={styles.memberDetails}>
                   <Text style={styles.memberEmail}>{item.email}</Text>
                   {item.phoneNumber && (
-                    <Text style={styles.memberPhone}>{item.phoneNumber}</Text>
+                    <Text style={styles.memberPhone}>📞 {item.phoneNumber}</Text>
                   )}
                   <Text style={styles.memberJoinDate}>
-                    Membre depuis: {item.clubJoinedDateFormatted}
+                    Membre depuis: {item.clubJoinedDateFormatted || 'Date non disponible'}
                   </Text>
+                  {item.clubName && (
+                    <Text style={styles.memberClub}>🏢 {item.clubName}</Text>
+                  )}
                 </View>
               </View>
             )}
@@ -1490,6 +1791,33 @@ const styles = StyleSheet.create({
   memberJoinDate: {
     fontSize: 12,
     color: '#999',
+  },
+  memberDepartment: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+    marginTop: 2,
+  },
+  memberClub: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  memberStatus: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  statusIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  statusActive: {
+    backgroundColor: '#4CAF50',
+  },
+  statusInactive: {
+    backgroundColor: '#F44336',
   },
   refreshButton: {
     backgroundColor: colors.secondary,
