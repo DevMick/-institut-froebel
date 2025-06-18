@@ -412,8 +412,57 @@ export default function App() {
   // Charger les données au démarrage
   useEffect(() => {
     const init = async () => {
+      // Charger les clubs de test immédiatement pour que l'utilisateur puisse les voir
+      const testClubs = [
+        {
+          id: "1b435dcd-5f8a-4acf-97b3-10cf66b3b1a2",
+          name: "Rotary Club Abidjan II Plateau",
+          code: "ABJ-PLT-02",
+          city: "Abidjan",
+          country: "Côte d'Ivoire"
+        },
+        {
+          id: "dde25fd8-4e42-4373-87cd-e389c9a308f7",
+          name: "Rotary Club Abidjan Cocody",
+          code: "ABJ-COC-01",
+          city: "Abidjan",
+          country: "Côte d'Ivoire"
+        },
+        {
+          id: "e6b0e316-e3ff-4a1a-a5ab-dd9c56f21aed",
+          name: "Rotary Club Yamoussoukro",
+          code: "YAM-CAP-01",
+          city: "Yamoussoukro",
+          country: "Côte d'Ivoire"
+        },
+        {
+          id: "1cc41b86-d0a8-4f5d-8b51-22fe7a3cb868",
+          name: "Rotary Club Paris International",
+          code: "PAR-INT-07",
+          city: "Paris",
+          country: "France"
+        },
+        {
+          id: "6cd60b18-0d01-41d5-b1f4-a49085ddec7d",
+          name: "Rotary Club Dakar Almadies",
+          code: "DKR-ALM-03",
+          city: "Dakar",
+          country: "Sénégal"
+        },
+        {
+          id: "796f83c9-361a-4953-a7c3-87d4c42be6fc",
+          name: "Club Rotary International",
+          code: "CRI",
+          city: "Rotary City",
+          country: "World"
+        }
+      ];
+
+      console.log('🚀 Chargement immédiat des clubs de test pour l\'interface');
+      setClubs(testClubs);
+
       await initializeApp();
-      await loadClubs(); // Charger les clubs automatiquement
+      await loadClubs(); // Essayer de charger depuis l'API (remplacera les clubs de test si succès)
     };
     init();
   }, []); // Pas de dépendances car on veut que ça s'exécute une seule fois
@@ -421,18 +470,27 @@ export default function App() {
   const loadClubs = async (showAlerts = false) => {
     try {
       setLoading(true);
-      console.log('🔄 Chargement des clubs depuis la base de données...');
+      console.log('🔄 === DÉBUT CHARGEMENT CLUBS ===');
       console.log('🌐 URL API complète:', `${API_CONFIG.BASE_URL}/api/Clubs`);
       console.log('🔧 Headers envoyés:', {
         'Accept': 'application/json',
         'ngrok-skip-browser-warning': 'true',
       });
 
+      // Vérifier d'abord si l'URL est configurée
+      if (API_CONFIG.BASE_URL.includes('REMPLACEZ-PAR-VOTRE-NOUVELLE-URL-NGROK')) {
+        console.error('❌ URL ngrok non configurée !');
+        throw new Error('URL ngrok non configurée. Veuillez mettre à jour API_CONFIG.BASE_URL avec votre vraie URL ngrok.');
+      }
+
       console.log('🚀 Début de la requête fetch...');
 
       // Ajouter un timeout pour éviter que la requête reste bloquée
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondes pour test plus rapide
+      const timeoutId = setTimeout(() => {
+        console.log('⏰ TIMEOUT de la requête après 10 secondes');
+        controller.abort();
+      }, 10000); // 10 secondes
 
       const response = await fetch(`${API_CONFIG.BASE_URL}/api/Clubs`, {
         method: 'GET',
@@ -445,67 +503,97 @@ export default function App() {
 
       clearTimeout(timeoutId);
 
-      console.log('📡 Réponse reçue !');
-      console.log('📡 Réponse API clubs - Status:', response.status);
-      console.log('📡 Réponse API clubs - StatusText:', response.statusText);
-      console.log('📡 Réponse API clubs - Headers:', Object.fromEntries(response.headers.entries()));
+      console.log('📡 === RÉPONSE REÇUE ===');
+      console.log('📡 Status:', response.status);
+      console.log('📡 StatusText:', response.statusText);
+      console.log('📡 OK:', response.ok);
+      console.log('📡 Headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ Erreur API clubs - Status:', response.status);
-        console.error('❌ Erreur API clubs - Text:', errorText);
-        throw new Error(`Erreur ${response.status}: ${response.statusText} - ${errorText}`);
+        console.error('❌ === ERREUR HTTP ===');
+        console.error('❌ Status:', response.status);
+        console.error('❌ StatusText:', response.statusText);
+        console.error('❌ Error Text:', errorText);
+
+        if (response.status === 404) {
+          throw new Error(`Endpoint non trouvé (404). Vérifiez que votre API backend est démarrée et que l'endpoint /api/Clubs existe.`);
+        } else if (response.status === 500) {
+          throw new Error(`Erreur serveur (500). Vérifiez les logs de votre API backend.`);
+        } else {
+          throw new Error(`Erreur HTTP ${response.status}: ${response.statusText}\n${errorText}`);
+        }
       }
 
       const responseText = await response.text();
-      console.log('📄 Réponse brute (text):', responseText);
+      console.log('📄 === RÉPONSE BRUTE ===');
+      console.log('📄 Longueur:', responseText.length);
+      console.log('📄 Premiers 200 caractères:', responseText.substring(0, 200));
+      console.log('📄 Réponse complète:', responseText);
 
       let clubsData;
       try {
         clubsData = JSON.parse(responseText);
-        console.log('📊 Clubs parsés avec succès:', clubsData);
+        console.log('📊 === PARSING JSON RÉUSSI ===');
+        console.log('📊 Type:', typeof clubsData);
+        console.log('📊 Est un tableau:', Array.isArray(clubsData));
+        console.log('📊 Données parsées:', clubsData);
       } catch (parseError) {
-        console.error('❌ Erreur de parsing JSON:', parseError);
-        console.error('📄 Contenu qui a causé l\'erreur:', responseText);
-        throw new Error('Réponse API invalide - pas du JSON valide');
+        console.error('❌ === ERREUR PARSING JSON ===');
+        console.error('❌ Erreur:', parseError);
+        console.error('❌ Contenu qui a causé l\'erreur:', responseText);
+        throw new Error(`Réponse API invalide - pas du JSON valide: ${parseError.message}`);
       }
 
+      console.log('📈 === ANALYSE DES DONNÉES ===');
       console.log('📈 Type de données reçues:', typeof clubsData);
       console.log('📈 Est-ce un tableau?', Array.isArray(clubsData));
-      console.log('📈 Nombre de clubs trouvés:', clubsData?.length || 0);
+      console.log('📈 Nombre d\'éléments:', clubsData?.length || 'N/A');
+
+      // Gérer différents formats de réponse
+      let finalClubsData = [];
 
       if (Array.isArray(clubsData)) {
-        clubsData.forEach((club, index) => {
+        finalClubsData = clubsData;
+        console.log('✅ Format: Tableau direct');
+      } else if (clubsData && clubsData.data && Array.isArray(clubsData.data)) {
+        finalClubsData = clubsData.data;
+        console.log('✅ Format: Objet avec propriété data');
+      } else if (clubsData && clubsData.clubs && Array.isArray(clubsData.clubs)) {
+        finalClubsData = clubsData.clubs;
+        console.log('✅ Format: Objet avec propriété clubs');
+      } else if (clubsData && typeof clubsData === 'object') {
+        // Si c'est un objet unique, le mettre dans un tableau
+        finalClubsData = [clubsData];
+        console.log('✅ Format: Objet unique converti en tableau');
+      }
+
+      console.log('📊 === CLUBS FINAUX ===');
+      console.log('📊 Nombre de clubs finaux:', finalClubsData.length);
+
+      if (finalClubsData.length > 0) {
+        finalClubsData.forEach((club, index) => {
           console.log(`🏢 Club ${index + 1}:`, {
             id: club.id,
             name: club.name,
             code: club.code,
-            city: club.city
+            city: club.city,
+            country: club.country
           });
         });
-      }
 
-      if (Array.isArray(clubsData) && clubsData.length > 0) {
-        console.log('✅ Condition remplie: Array.isArray =', Array.isArray(clubsData), 'length > 0 =', clubsData.length > 0);
-
-        // Remplacer par les clubs de la base de données
-        setClubs(clubsData);
-        console.log('✅ Clubs chargés avec succès depuis la base de données');
-        console.log(`📊 ${clubsData.length} clubs disponibles pour la sélection`);
-        console.log('🎯 État clubs mis à jour avec:', clubsData.map(c => ({ id: c.id, name: c.name })));
+        // Mettre à jour l'état
+        setClubs(finalClubsData);
+        console.log('✅ === CLUBS CHARGÉS AVEC SUCCÈS ===');
+        console.log(`📊 ${finalClubsData.length} clubs disponibles pour la sélection`);
 
         if (showAlerts) {
-          Alert.alert('Succès', `${clubsData.length} clubs chargés depuis la base de données !`);
+          Alert.alert('Succès', `${finalClubsData.length} clubs chargés depuis la base de données !`);
         }
-
-        // Ne pas présélectionner de club - laisser l'utilisateur choisir
       } else {
-        console.warn('⚠️ Condition non remplie pour les clubs');
-        console.warn('⚠️ Array.isArray(clubsData):', Array.isArray(clubsData));
-        console.warn('⚠️ clubsData.length:', clubsData?.length);
-        console.warn('⚠️ clubsData:', clubsData);
-
-        setClubs([]); // Aucun club disponible
+        console.warn('⚠️ === AUCUN CLUB TROUVÉ ===');
+        console.warn('⚠️ Données reçues:', clubsData);
+        setClubs([]);
 
         if (showAlerts) {
           Alert.alert(
@@ -943,10 +1031,11 @@ export default function App() {
 
   // Écran de connexion obligatoire
   const LoginScreen = () => {
-    console.log('🖥️ Rendu LoginScreen - État clubs:', {
-      length: clubs.length,
-      clubs: clubs.map(c => ({ id: c.id, name: c.name }))
-    });
+    console.log('🖥️ === RENDU LOGIN SCREEN ===');
+    console.log('🖥️ Nombre de clubs:', clubs.length);
+    console.log('🖥️ État clubs détaillé:', clubs);
+    console.log('🖥️ Clubs pour sélection:', clubs.map(c => ({ id: c.id, name: c.name })));
+    console.log('🖥️ Club sélectionné:', loginForm.clubId);
 
     return (
     <View style={styles.container}>
@@ -1010,10 +1099,10 @@ export default function App() {
                   clubs.length === 0 && styles.selectTextDisabled
                 ]}>
                   {clubs.length === 0
-                    ? '⚠️ Aucun club disponible - Cliquez sur "Charger les clubs"'
+                    ? '⚠️ Chargement des clubs...'
                     : loginForm.clubId
                       ? clubs.find(club => club.id === loginForm.clubId)?.name || 'Sélectionnez votre club'
-                      : 'Sélectionnez votre club'
+                      : `Sélectionnez votre club (${clubs.length} disponibles)`
                   }
                 </Text>
                 <Text style={styles.selectArrow}>▼</Text>
@@ -1048,13 +1137,30 @@ export default function App() {
           <TouchableOpacity
             style={styles.debugButton}
             onPress={() => {
+              console.log('🔍 === VÉRIFICATION URL API ===');
+              console.log('🔍 URL actuelle:', API_CONFIG.BASE_URL);
+              console.log('🔍 Nombre de clubs chargés:', clubs.length);
+              console.log('🔍 Clubs:', clubs);
               Alert.alert(
-                'URL API Actuelle',
-                `${API_CONFIG.BASE_URL}\n\n⚠️ Si les clubs ne se chargent pas, cette URL ngrok est probablement expirée.\n\n🔧 Redémarrez ngrok et mettez à jour l'URL dans le code.`
+                'Debug Info',
+                `URL API: ${API_CONFIG.BASE_URL}\n\nClubs chargés: ${clubs.length}\n\n${clubs.length === 0 ? '❌ Aucun club chargé' : '✅ Clubs disponibles'}\n\n⚠️ Si les clubs ne se chargent pas, cette URL ngrok est probablement expirée.`
               );
             }}
           >
-            <Text style={styles.debugButtonText}>🔍 Vérifier URL API</Text>
+            <Text style={styles.debugButtonText}>🔍 Debug Info</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.reloadClubsButton}
+            onPress={() => {
+              console.log('🔄 === RECHARGEMENT FORCÉ DES CLUBS ===');
+              loadClubs(true);
+            }}
+            disabled={loading}
+          >
+            <Text style={styles.reloadClubsButtonText}>
+              {loading ? 'Chargement...' : '🔄 Recharger les clubs'}
+            </Text>
           </TouchableOpacity>
 
           <Text style={styles.loginNote}>
@@ -1083,9 +1189,17 @@ export default function App() {
             </View>
 
             <ScrollView style={styles.modalList}>
-              {clubs.map((club, index) => {
-                console.log(`🏢 Rendu club ${index + 1}/${clubs.length}:`, club.name);
-                return (
+              {clubs.length === 0 ? (
+                <View style={{ padding: 20, alignItems: 'center' }}>
+                  <Text style={{ color: '#666', textAlign: 'center' }}>
+                    Aucun club disponible.{'\n'}
+                    Vérifiez votre connexion API.
+                  </Text>
+                </View>
+              ) : (
+                clubs.map((club, index) => {
+                  console.log(`🏢 Rendu club ${index + 1}/${clubs.length}:`, club.name);
+                  return (
                 <TouchableOpacity
                   key={club.id}
                   style={[
@@ -1103,12 +1217,13 @@ export default function App() {
                   ]}>
                     {club.name}
                   </Text>
-                  {loginForm.clubId === club.id && (
-                    <Text style={styles.modalCheckmark}>✓</Text>
-                  )}
-                </TouchableOpacity>
-                );
-              })}
+                    {loginForm.clubId === club.id && (
+                      <Text style={styles.modalCheckmark}>✓</Text>
+                    )}
+                  </TouchableOpacity>
+                  );
+                })
+              )}
             </ScrollView>
           </View>
         </View>
