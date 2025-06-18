@@ -891,6 +891,13 @@ export default function App() {
     console.log('🖥️ Clubs pour sélection:', clubs.map(c => ({ id: c.id, name: c.name })));
     console.log('🖥️ Club sélectionné:', loginForm.clubId);
 
+    // Debug modal
+    console.log('🔍 DEBUG MODAL:', {
+      showClubPicker,
+      clubsLength: clubs.length,
+      clubsData: clubs.map(c => ({ id: c.id, name: c.name }))
+    });
+
     return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -943,6 +950,7 @@ export default function App() {
                     Alert.alert('Aucun club', 'Aucun club disponible. Vérifiez votre connexion API.');
                     return;
                   }
+                  console.log(`🎯 Ouverture du sélecteur de clubs avec ${clubs.length} clubs disponibles`);
                   setShowClubPicker(true);
                 }}
                 disabled={clubs.length === 0}
@@ -1032,16 +1040,21 @@ export default function App() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Sélectionnez votre club</Text>
+              <Text style={styles.modalTitle}>
+                Sélectionnez votre club ({clubs.length} disponibles)
+              </Text>
               <TouchableOpacity
                 style={styles.modalCloseButton}
-                onPress={() => setShowClubPicker(false)}
+                onPress={() => {
+                  console.log('🚪 Fermeture de la modal');
+                  setShowClubPicker(false);
+                }}
               >
                 <Text style={styles.modalCloseText}>✕</Text>
               </TouchableOpacity>
             </View>
 
-            <View style={styles.modalList}>
+            <ScrollView style={styles.modalScrollView}>
               {clubs.length === 0 ? (
                 <View style={styles.modalEmptyState}>
                   <Text style={styles.modalEmptyText}>
@@ -1050,42 +1063,40 @@ export default function App() {
                   </Text>
                 </View>
               ) : (
-                <ScrollView showsVerticalScrollIndicator={true}>
-                  {clubs.map((club, index) => {
-                    console.log(`🏢 Rendu club ${index + 1}/${clubs.length}:`, club.name);
-                    return (
-                      <TouchableOpacity
-                        key={club.id}
-                        style={[
-                          styles.modalOption,
-                          loginForm.clubId === club.id && styles.modalOptionSelected
-                        ]}
-                        onPress={() => {
-                          console.log(`🎯 Club sélectionné: ${club.name} (ID: ${club.id})`);
-                          setLoginForm(prev => ({ ...prev, clubId: club.id }));
-                          setShowClubPicker(false);
-                        }}
-                      >
-                        <View style={styles.modalOptionContent}>
-                          <Text style={[
-                            styles.modalOptionText,
-                            loginForm.clubId === club.id && styles.modalOptionTextSelected
-                          ]}>
-                            {club.name}
-                          </Text>
-                          <Text style={styles.modalOptionSubtext}>
-                            {club.city}, {club.country}
-                          </Text>
-                        </View>
-                        {loginForm.clubId === club.id && (
-                          <Text style={styles.modalCheckmark}>✓</Text>
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
+                clubs.map((club, index) => {
+                  console.log(`🏢 Rendu club modal ${index + 1}/${clubs.length}: ${club.name}`);
+                  return (
+                    <TouchableOpacity
+                      key={club.id}
+                      style={[
+                        styles.modalOption,
+                        loginForm.clubId === club.id && styles.modalOptionSelected
+                      ]}
+                      onPress={() => {
+                        console.log(`🎯 Club sélectionné: ${club.name} (ID: ${club.id})`);
+                        setLoginForm(prev => ({ ...prev, clubId: club.id }));
+                        setShowClubPicker(false);
+                      }}
+                    >
+                      <View style={styles.modalOptionContent}>
+                        <Text style={[
+                          styles.modalOptionText,
+                          loginForm.clubId === club.id && styles.modalOptionTextSelected
+                        ]}>
+                          {club.name}
+                        </Text>
+                        <Text style={styles.modalOptionSubtext}>
+                          {club.city}, {club.country}
+                        </Text>
+                      </View>
+                      {loginForm.clubId === club.id && (
+                        <Text style={styles.modalCheckmark}>✓</Text>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })
               )}
-            </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -1765,7 +1776,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 12,
     width: '90%',
-    maxHeight: '70%',
+    maxHeight: '80%',
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -1780,24 +1791,26 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
+    backgroundColor: colors.surface,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: colors.text,
+    flex: 1,
   },
   modalCloseButton: {
     padding: 5,
+    marginLeft: 10,
   },
   modalCloseText: {
     fontSize: 18,
     color: '#666',
     fontWeight: 'bold',
   },
-  modalList: {
-    minHeight: 200,
+  modalScrollView: {
     maxHeight: 400,
-    flex: 1,
+    backgroundColor: colors.surface,
   },
   modalOption: {
     flexDirection: 'row',
@@ -1806,37 +1819,41 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
+    backgroundColor: colors.surface,
+    minHeight: 60,
   },
   modalOptionSelected: {
-    backgroundColor: `${colors.primary}10`,
+    backgroundColor: '#E3F2FD',
   },
   modalOptionText: {
     fontSize: 16,
     color: colors.text,
-    flex: 1,
+    fontWeight: '500',
   },
   modalOptionTextSelected: {
     color: colors.primary,
     fontWeight: 'bold',
   },
   modalCheckmark: {
-    fontSize: 16,
+    fontSize: 18,
     color: colors.primary,
     fontWeight: 'bold',
   },
   modalEmptyState: {
-    padding: 20,
+    padding: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 100,
+    minHeight: 150,
   },
   modalEmptyText: {
     color: '#666',
     textAlign: 'center',
     fontSize: 16,
+    lineHeight: 24,
   },
   modalOptionContent: {
     flex: 1,
+    marginRight: 10,
   },
   modalOptionSubtext: {
     fontSize: 14,
