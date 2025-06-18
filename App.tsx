@@ -1598,6 +1598,112 @@ export default function App() {
     }
   };
 
+  // === FONCTIONS DE COMMUNICATION ===
+
+  // Fonction utilitaire pour nettoyer les numéros de téléphone
+  const cleanPhoneNumber = (phoneNumber: string): string => {
+    if (!phoneNumber) return '';
+    // Enlever tous les caractères non numériques sauf le +
+    let cleaned = phoneNumber.replace(/[^\d+]/g, '');
+
+    // Si le numéro commence par 0, le remplacer par +225 (indicatif Côte d'Ivoire)
+    if (cleaned.startsWith('0')) {
+      cleaned = '+225' + cleaned.substring(1);
+    }
+
+    // Si le numéro ne commence pas par +, ajouter +225
+    if (!cleaned.startsWith('+')) {
+      cleaned = '+225' + cleaned;
+    }
+
+    return cleaned;
+  };
+
+  // Fonction pour lancer un appel téléphonique
+  const makePhoneCall = (member: Member) => {
+    if (!member.phoneNumber) {
+      Alert.alert('Erreur', 'Aucun numéro de téléphone disponible pour ce membre');
+      return;
+    }
+
+    const cleanedNumber = cleanPhoneNumber(member.phoneNumber);
+    console.log('📞 Appel vers:', member.fullName, 'au', cleanedNumber);
+
+    Alert.alert(
+      'Appel téléphonique',
+      `Appeler ${member.fullName} au ${member.phoneNumber} ?`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Appeler',
+          onPress: () => {
+            // Dans une vraie app React Native :
+            // import { Linking } from 'react-native';
+            // Linking.openURL(`tel:${cleanedNumber}`);
+            console.log('📞 Appel lancé vers:', `tel:${cleanedNumber}`);
+            Alert.alert('Info', 'Fonctionnalité d\'appel disponible dans l\'app native');
+          }
+        }
+      ]
+    );
+  };
+
+  // Fonction pour envoyer un SMS
+  const sendSMS = (member: Member) => {
+    if (!member.phoneNumber) {
+      Alert.alert('Erreur', 'Aucun numéro de téléphone disponible pour ce membre');
+      return;
+    }
+
+    const cleanedNumber = cleanPhoneNumber(member.phoneNumber);
+    console.log('💬 SMS vers:', member.fullName, 'au', cleanedNumber);
+
+    Alert.alert(
+      'Message SMS',
+      `Envoyer un SMS à ${member.fullName} au ${member.phoneNumber} ?`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Envoyer',
+          onPress: () => {
+            // Dans une vraie app React Native :
+            // Linking.openURL(`sms:${cleanedNumber}`);
+            console.log('💬 SMS lancé vers:', `sms:${cleanedNumber}`);
+            Alert.alert('Info', 'Fonctionnalité SMS disponible dans l\'app native');
+          }
+        }
+      ]
+    );
+  };
+
+  // Fonction pour ouvrir WhatsApp
+  const openWhatsApp = (member: Member) => {
+    if (!member.phoneNumber) {
+      Alert.alert('Erreur', 'Aucun numéro de téléphone disponible pour ce membre');
+      return;
+    }
+
+    const cleanedNumber = cleanPhoneNumber(member.phoneNumber);
+    console.log('📱 WhatsApp vers:', member.fullName, 'au', cleanedNumber);
+
+    Alert.alert(
+      'WhatsApp',
+      `Ouvrir WhatsApp pour ${member.fullName} au ${member.phoneNumber} ?`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Ouvrir',
+          onPress: () => {
+            // Dans une vraie app React Native :
+            // Linking.openURL(`https://wa.me/${cleanedNumber}`);
+            console.log('📱 WhatsApp lancé vers:', `https://wa.me/${cleanedNumber}`);
+            Alert.alert('Info', 'Fonctionnalité WhatsApp disponible dans l\'app native');
+          }
+        }
+      ]
+    );
+  };
+
   const handleLogin = async () => {
     if (!loginForm.email || !loginForm.password) {
       Alert.alert('Erreur', 'Veuillez remplir votre email et mot de passe');
@@ -2785,10 +2891,6 @@ export default function App() {
                     <Text style={styles.memberName}>
                       {item.fullName || `${item.firstName || item.prenom || ''} ${item.lastName || item.nom || ''}`.trim() || 'Nom non disponible'}
                     </Text>
-                    <Text style={styles.memberRole}>
-                      {item.roles && item.roles.length > 0 ? item.roles.join(', ') :
-                       item.poste || 'Membre'}
-                    </Text>
                     {item.departement && (
                       <Text style={styles.memberDepartment}>{item.departement}</Text>
                     )}
@@ -2802,14 +2904,43 @@ export default function App() {
                 </View>
                 <View style={styles.memberDetails}>
                   <Text style={styles.memberEmail}>{item.email}</Text>
-                  {item.phoneNumber && (
-                    <Text style={styles.memberPhone}>📞 {item.phoneNumber}</Text>
-                  )}
                   <Text style={styles.memberJoinDate}>
                     Membre depuis: {item.clubJoinedDateFormatted || 'Date non disponible'}
                   </Text>
-                  {item.clubName && (
-                    <Text style={styles.memberClub}>🏢 {item.clubName}</Text>
+
+                  {/* Boutons d'action de communication */}
+                  {item.phoneNumber && (
+                    <View style={styles.communicationActions}>
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.callButton]}
+                        onPress={() => makePhoneCall(item)}
+                      >
+                        <Ionicons name="call" size={16} color="white" />
+                        <Text style={styles.actionButtonText}>Appel</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.smsButton]}
+                        onPress={() => sendSMS(item)}
+                      >
+                        <Ionicons name="chatbubble" size={16} color="white" />
+                        <Text style={styles.actionButtonText}>SMS</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.whatsappButton]}
+                        onPress={() => openWhatsApp(item)}
+                      >
+                        <Ionicons name="logo-whatsapp" size={16} color="white" />
+                        <Text style={styles.actionButtonText}>WhatsApp</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+
+                  {!item.phoneNumber && (
+                    <View style={styles.noPhoneContainer}>
+                      <Text style={styles.noPhoneText}>📵 Aucun numéro de téléphone</Text>
+                    </View>
                   )}
                 </View>
               </View>
@@ -3679,11 +3810,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.text,
   },
-  memberRole: {
-    fontSize: 14,
-    color: colors.primary,
-    marginTop: 2,
-  },
+
   memberDetails: {
     paddingLeft: 62,
   },
@@ -3692,14 +3819,11 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 4,
   },
-  memberPhone: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
-  },
+
   memberJoinDate: {
     fontSize: 12,
     color: '#999',
+    marginBottom: 12,
   },
   memberDepartment: {
     fontSize: 12,
@@ -3707,10 +3831,51 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 2,
   },
-  memberClub: {
+  // Styles pour les boutons de communication
+  communicationActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    flex: 1,
+    marginHorizontal: 2,
+    justifyContent: 'center',
+  },
+  callButton: {
+    backgroundColor: '#4CAF50',
+  },
+  smsButton: {
+    backgroundColor: '#2196F3',
+  },
+  whatsappButton: {
+    backgroundColor: '#25D366',
+  },
+  actionButtonText: {
+    color: 'white',
+    fontSize: 11,
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  noPhoneContainer: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    alignItems: 'center',
+  },
+  noPhoneText: {
     fontSize: 12,
-    color: '#666',
-    marginTop: 2,
+    color: '#999',
+    fontStyle: 'italic',
   },
   memberStatus: {
     justifyContent: 'center',
