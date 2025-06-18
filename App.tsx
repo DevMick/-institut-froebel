@@ -287,6 +287,10 @@ class ApiService {
   async logout(): Promise<void> {
     await this.removeToken();
   }
+
+  async saveToken(token: string): Promise<void> {
+    await this.setToken(token);
+  }
 }
 
 const apiService = new ApiService();
@@ -1170,43 +1174,51 @@ export default function App() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalList}>
+            <View style={styles.modalList}>
               {clubs.length === 0 ? (
-                <View style={{ padding: 20, alignItems: 'center' }}>
-                  <Text style={{ color: '#666', textAlign: 'center' }}>
+                <View style={styles.modalEmptyState}>
+                  <Text style={styles.modalEmptyText}>
                     Aucun club disponible.{'\n'}
                     Vérifiez votre connexion API.
                   </Text>
                 </View>
               ) : (
-                clubs.map((club, index) => {
-                  console.log(`🏢 Rendu club ${index + 1}/${clubs.length}:`, club.name);
-                  return (
-                    <TouchableOpacity
-                      key={club.id}
-                      style={[
-                        styles.modalOption,
-                        loginForm.clubId === club.id && styles.modalOptionSelected
-                      ]}
-                      onPress={() => {
-                        setLoginForm(prev => ({ ...prev, clubId: club.id }));
-                        setShowClubPicker(false);
-                      }}
-                    >
-                      <Text style={[
-                        styles.modalOptionText,
-                        loginForm.clubId === club.id && styles.modalOptionTextSelected
-                      ]}>
-                        {club.name}
-                      </Text>
-                      {loginForm.clubId === club.id && (
-                        <Text style={styles.modalCheckmark}>✓</Text>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })
+                <ScrollView showsVerticalScrollIndicator={true}>
+                  {clubs.map((club, index) => {
+                    console.log(`🏢 Rendu club ${index + 1}/${clubs.length}:`, club.name);
+                    return (
+                      <TouchableOpacity
+                        key={club.id}
+                        style={[
+                          styles.modalOption,
+                          loginForm.clubId === club.id && styles.modalOptionSelected
+                        ]}
+                        onPress={() => {
+                          console.log(`🎯 Club sélectionné: ${club.name} (ID: ${club.id})`);
+                          setLoginForm(prev => ({ ...prev, clubId: club.id }));
+                          setShowClubPicker(false);
+                        }}
+                      >
+                        <View style={styles.modalOptionContent}>
+                          <Text style={[
+                            styles.modalOptionText,
+                            loginForm.clubId === club.id && styles.modalOptionTextSelected
+                          ]}>
+                            {club.name}
+                          </Text>
+                          <Text style={styles.modalOptionSubtext}>
+                            {club.city}, {club.country}
+                          </Text>
+                        </View>
+                        {loginForm.clubId === club.id && (
+                          <Text style={styles.modalCheckmark}>✓</Text>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
               )}
-            </ScrollView>
+            </View>
           </View>
         </View>
       </Modal>
@@ -1887,6 +1899,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     width: '90%',
     maxHeight: '70%',
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -1915,7 +1928,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   modalList: {
-    maxHeight: 500,
+    minHeight: 200,
+    maxHeight: 400,
     flex: 1,
   },
   modalOption: {
@@ -1942,6 +1956,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.primary,
     fontWeight: 'bold',
+  },
+  modalEmptyState: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 100,
+  },
+  modalEmptyText: {
+    color: '#666',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  modalOptionContent: {
+    flex: 1,
+  },
+  modalOptionSubtext: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
   },
   reloadClubsButton: {
     backgroundColor: colors.secondary,
