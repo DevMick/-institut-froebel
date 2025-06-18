@@ -295,12 +295,6 @@ class ApiService {
 
 const apiService = new ApiService();
 
-
-
-
-
-
-
 // Couleurs du thème Rotary
 const colors = {
   primary: '#005AA9',
@@ -1276,6 +1270,7 @@ export default function App() {
   );
 }
 
+// Styles
 const styles = StyleSheet.create({
   appContainer: {
     flex: 1,
@@ -1289,17 +1284,20 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     padding: 20,
     paddingTop: 40,
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: 'white',
+    textAlign: 'center',
   },
   headerSubtitle: {
     fontSize: 16,
     color: 'white',
-    opacity: 0.8,
+    opacity: 0.9,
     marginTop: 4,
+    textAlign: 'center',
   },
   welcomeCard: {
     backgroundColor: colors.surface,
@@ -1316,23 +1314,23 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: colors.text,
+    marginBottom: 4,
   },
   roleText: {
     fontSize: 16,
     color: colors.primary,
-    marginTop: 4,
+    fontWeight: '600',
+    marginBottom: 8,
   },
   welcomeSubtext: {
     fontSize: 14,
-    color: colors.text,
-    opacity: 0.7,
-    marginTop: 8,
-    fontStyle: 'italic',
+    color: '#666',
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    margin: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
   },
   statCard: {
     backgroundColor: colors.surface,
@@ -1354,7 +1352,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 14,
-    color: colors.text,
+    color: '#666',
     marginTop: 4,
   },
   nextMeetingCard: {
@@ -1371,75 +1369,73 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: colors.primary,
+    color: colors.text,
     marginBottom: 12,
   },
   meetingTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: colors.text,
     marginBottom: 8,
   },
   meetingDate: {
     fontSize: 14,
-    color: colors.text,
-    opacity: 0.7,
+    color: colors.primary,
     marginBottom: 4,
   },
   meetingLocation: {
     fontSize: 14,
-    color: colors.text,
-    opacity: 0.7,
-  },
-  meetingAttendees: {
-    fontSize: 14,
-    color: colors.primary,
-    fontWeight: '500',
-    marginTop: 8,
+    color: '#666',
   },
   actionsContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-around',
-    backgroundColor: colors.surface,
     margin: 16,
+  },
+  actionButton: {
+    backgroundColor: colors.surface,
     padding: 20,
     borderRadius: 12,
+    alignItems: 'center',
+    width: '30%',
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  actionButton: {
-    alignItems: 'center',
-    padding: 16,
-  },
   actionText: {
-    marginTop: 8,
     fontSize: 12,
     color: colors.text,
-    fontWeight: '500',
+    marginTop: 8,
+    textAlign: 'center',
   },
   listContainer: {
     padding: 16,
-    paddingBottom: 100,
   },
   meetingCard: {
     backgroundColor: colors.surface,
     padding: 16,
-    marginBottom: 12,
     borderRadius: 12,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
+  meetingAttendees: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 8,
+  },
   memberCard: {
     backgroundColor: colors.surface,
     padding: 16,
-    marginBottom: 12,
     borderRadius: 12,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -1452,20 +1448,20 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 12,
   },
   avatarText: {
     color: 'white',
+    fontSize: 18,
     fontWeight: 'bold',
-    fontSize: 16,
   },
   memberInfo: {
-    marginLeft: 12,
     flex: 1,
   },
   memberName: {
@@ -1479,275 +1475,113 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   memberDetails: {
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-    paddingTop: 12,
+    paddingLeft: 62,
   },
   memberEmail: {
     fontSize: 14,
-    color: colors.text,
+    color: '#666',
     marginBottom: 4,
   },
   memberPhone: {
     fontSize: 14,
-    color: colors.text,
-    opacity: 0.7,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  profileHeader: {
-    alignItems: 'center',
-    paddingBottom: 30,
-  },
-  profileAvatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: 16,
-  },
-  profileAvatarText: {
-    fontSize: 24,
-  },
-  profileName: {
-    fontSize: 24,
+    color: '#666',
     marginBottom: 4,
   },
-  profileRole: {
-    fontSize: 16,
-  },
-  profileSection: {
-    backgroundColor: colors.surface,
-    margin: 16,
-    padding: 20,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 16,
-  },
-  profileItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  profileItemText: {
-    marginLeft: 16,
-    flex: 1,
-  },
-  profileItemLabel: {
-    fontSize: 14,
-    color: colors.text,
-    opacity: 0.7,
-  },
-  profileItemValue: {
-    fontSize: 16,
-    color: colors.text,
-    marginTop: 2,
-  },
-  profileAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  profileActionText: {
-    fontSize: 16,
-    color: colors.text,
-    marginLeft: 16,
-  },
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-    paddingBottom: 20,
-    paddingTop: 8,
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  tabItemActive: {
-    // Style pour l'onglet actif
-  },
-  tabText: {
+  memberJoinDate: {
     fontSize: 12,
-    color: '#666',
-    marginTop: 4,
+    color: '#999',
   },
-  tabTextActive: {
-    color: colors.primary,
-    fontWeight: '500',
-  },
-  // Nouveaux styles pour l'API
   refreshButton: {
+    backgroundColor: colors.secondary,
     padding: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    marginLeft: 10,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    backgroundColor: colors.background,
   },
-  loadingText: {
-    marginTop: 12,
+  loadingTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginTop: 16,
+  },
+  loadingSubtitle: {
     fontSize: 16,
-    color: colors.text,
-    textAlign: 'center',
-  },
-  memberJoinDate: {
-    fontSize: 12,
-    color: colors.text,
-    opacity: 0.6,
+    color: '#666',
     marginTop: 4,
   },
-
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 16,
+  },
   loginContainer: {
     flex: 1,
     padding: 16,
   },
   loginForm: {
     backgroundColor: colors.surface,
-    padding: 20,
+    padding: 24,
     borderRadius: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  loginLogo: {
+    alignItems: 'center',
+    marginBottom: 24,
   },
   loginTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 8,
+    color: colors.text,
     textAlign: 'center',
+    marginBottom: 8,
   },
   loginSubtitle: {
-    fontSize: 14,
-    color: colors.text,
-    opacity: 0.7,
-    marginBottom: 24,
+    fontSize: 16,
+    color: '#666',
     textAlign: 'center',
+    marginBottom: 32,
   },
   inputContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   inputLabel: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '600',
     color: colors.text,
     marginBottom: 8,
   },
   textInput: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#ddd',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: 'white',
+    backgroundColor: '#f9f9f9',
   },
-  loginSubmitButton: {
-    backgroundColor: colors.primary,
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  loginSubmitButtonDisabled: {
-    opacity: 0.6,
-  },
-  loginSubmitButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  loginNote: {
-    fontSize: 12,
-    color: colors.text,
-    opacity: 0.7,
-    marginTop: 16,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-
-  debugButton: {
-    backgroundColor: '#f0f0f0',
-    padding: 10,
-    borderRadius: 6,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  debugButtonText: {
-    color: '#666',
-    fontSize: 12,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-
-  // Styles pour l'authentification obligatoire
-  loginLogo: {
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  loadingTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: colors.primary,
-    textAlign: 'center',
-    marginTop: 20,
-  },
-  loadingSubtitle: {
-    fontSize: 16,
-    color: colors.text,
-    textAlign: 'center',
-    marginTop: 5,
-  },
-
-
   selectContainer: {
-    marginTop: 5,
+    position: 'relative',
   },
   selectButton: {
-    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    padding: 15,
+    padding: 12,
+    backgroundColor: '#f9f9f9',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   selectButtonDisabled: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f0f0f0',
     borderColor: '#ccc',
   },
   selectText: {
@@ -1759,13 +1593,48 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   selectTextDisabled: {
-    color: '#ccc',
+    color: '#999',
   },
   selectArrow: {
     fontSize: 12,
     color: '#666',
-    marginLeft: 10,
+    marginLeft: 8,
   },
+  loginSubmitButton: {
+    backgroundColor: colors.primary,
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  loginSubmitButtonDisabled: {
+    backgroundColor: '#ccc',
+  },
+  loginSubmitButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  debugButton: {
+    backgroundColor: colors.secondary,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  debugButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  loginNote: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 16,
+    lineHeight: 20,
+  },
+  // Styles pour la modal de sélection des clubs
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -1825,6 +1694,10 @@ const styles = StyleSheet.create({
   modalOptionSelected: {
     backgroundColor: '#E3F2FD',
   },
+  modalOptionContent: {
+    flex: 1,
+    marginRight: 10,
+  },
   modalOptionText: {
     fontSize: 16,
     color: colors.text,
@@ -1833,6 +1706,11 @@ const styles = StyleSheet.create({
   modalOptionTextSelected: {
     color: colors.primary,
     fontWeight: 'bold',
+  },
+  modalOptionSubtext: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
   },
   modalCheckmark: {
     fontSize: 18,
@@ -1851,16 +1729,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
   },
-  modalOptionContent: {
-    flex: 1,
-    marginRight: 10,
-  },
-  modalOptionSubtext: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 2,
-  },
-
   emptyState: {
     flex: 1,
     justifyContent: 'center',
@@ -1879,5 +1747,116 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'center',
     lineHeight: 20,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: colors.primary,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  profileHeader: {
+    alignItems: 'center',
+    paddingBottom: 30,
+  },
+  profileAvatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 16,
+  },
+  profileAvatarText: {
+    fontSize: 32,
+  },
+  profileName: {
+    fontSize: 28,
+  },
+  profileRole: {
+    fontSize: 18,
+  },
+  profileSection: {
+    backgroundColor: colors.surface,
+    margin: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.text,
+    padding: 16,
+    paddingBottom: 8,
+  },
+  profileItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  profileItemText: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  profileItemLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
+  },
+  profileItemValue: {
+    fontSize: 16,
+    color: colors.text,
+    fontWeight: '500',
+  },
+  profileAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  profileActionText: {
+    fontSize: 16,
+    color: colors.text,
+    marginLeft: 12,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    paddingBottom: 20,
+    paddingTop: 8,
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  tabItemActive: {
+    backgroundColor: 'transparent',
+  },
+  tabText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  tabTextActive: {
+    color: colors.primary,
+    fontWeight: '600',
   },
 });
