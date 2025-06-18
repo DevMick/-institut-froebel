@@ -412,57 +412,13 @@ export default function App() {
   // Charger les données au démarrage
   useEffect(() => {
     const init = async () => {
-      // Charger les clubs de test immédiatement pour que l'utilisateur puisse les voir
-      const testClubs = [
-        {
-          id: "1b435dcd-5f8a-4acf-97b3-10cf66b3b1a2",
-          name: "Rotary Club Abidjan II Plateau",
-          code: "ABJ-PLT-02",
-          city: "Abidjan",
-          country: "Côte d'Ivoire"
-        },
-        {
-          id: "dde25fd8-4e42-4373-87cd-e389c9a308f7",
-          name: "Rotary Club Abidjan Cocody",
-          code: "ABJ-COC-01",
-          city: "Abidjan",
-          country: "Côte d'Ivoire"
-        },
-        {
-          id: "e6b0e316-e3ff-4a1a-a5ab-dd9c56f21aed",
-          name: "Rotary Club Yamoussoukro",
-          code: "YAM-CAP-01",
-          city: "Yamoussoukro",
-          country: "Côte d'Ivoire"
-        },
-        {
-          id: "1cc41b86-d0a8-4f5d-8b51-22fe7a3cb868",
-          name: "Rotary Club Paris International",
-          code: "PAR-INT-07",
-          city: "Paris",
-          country: "France"
-        },
-        {
-          id: "6cd60b18-0d01-41d5-b1f4-a49085ddec7d",
-          name: "Rotary Club Dakar Almadies",
-          code: "DKR-ALM-03",
-          city: "Dakar",
-          country: "Sénégal"
-        },
-        {
-          id: "796f83c9-361a-4953-a7c3-87d4c42be6fc",
-          name: "Club Rotary International",
-          code: "CRI",
-          city: "Rotary City",
-          country: "World"
-        }
-      ];
-
-      console.log('🚀 Chargement immédiat des clubs de test pour l\'interface');
-      setClubs(testClubs);
+      console.log('🚀 === INITIALISATION DE L\'APPLICATION ===');
 
       await initializeApp();
-      await loadClubs(); // Essayer de charger depuis l'API (remplacera les clubs de test si succès)
+
+      // Essayer de charger les clubs depuis l'API en premier
+      console.log('🔄 Tentative de chargement des clubs depuis l\'API...');
+      await loadClubs(); // Chargera les vrais clubs ou les clubs de test en fallback
     };
     init();
   }, []); // Pas de dépendances car on veut que ça s'exécute une seule fois
@@ -587,8 +543,9 @@ export default function App() {
 
         // Mettre à jour l'état
         setClubs(finalClubsData);
-        console.log('✅ === CLUBS CHARGÉS AVEC SUCCÈS ===');
+        console.log('✅ === CLUBS CHARGÉS AVEC SUCCÈS DEPUIS L\'API ===');
         console.log(`📊 ${finalClubsData.length} clubs disponibles pour la sélection`);
+        console.log('🎉 Les vrais clubs de la base de données sont maintenant disponibles !');
 
         if (showAlerts) {
           Alert.alert('Succès', `${finalClubsData.length} clubs chargés depuis la base de données !`);
