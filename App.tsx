@@ -571,67 +571,21 @@ export default function App() {
       console.error('❌ Type d\'erreur:', error.name);
       console.error('❌ Message d\'erreur:', error.message);
 
-      // Utiliser des données de test en cas d'erreur pour permettre les tests
-      const testClubs = [
-        {
-          id: "1b435dcd-5f8a-4acf-97b3-10cf66b3b1a2",
-          name: "Rotary Club Abidjan II Plateau",
-          code: "ABJ-PLT-02",
-          city: "Abidjan",
-          country: "Côte d'Ivoire"
-        },
-        {
-          id: "dde25fd8-4e42-4373-87cd-e389c9a308f7",
-          name: "Rotary Club Abidjan Cocody",
-          code: "ABJ-COC-01",
-          city: "Abidjan",
-          country: "Côte d'Ivoire"
-        },
-        {
-          id: "e6b0e316-e3ff-4a1a-a5ab-dd9c56f21aed",
-          name: "Rotary Club Yamoussoukro",
-          code: "YAM-CAP-01",
-          city: "Yamoussoukro",
-          country: "Côte d'Ivoire"
-        },
-        {
-          id: "1cc41b86-d0a8-4f5d-8b51-22fe7a3cb868",
-          name: "Rotary Club Paris International",
-          code: "PAR-INT-07",
-          city: "Paris",
-          country: "France"
-        },
-        {
-          id: "6cd60b18-0d01-41d5-b1f4-a49085ddec7d",
-          name: "Rotary Club Dakar Almadies",
-          code: "DKR-ALM-03",
-          city: "Dakar",
-          country: "Sénégal"
-        },
-        {
-          id: "796f83c9-361a-4953-a7c3-87d4c42be6fc",
-          name: "Club Rotary International",
-          code: "CRI",
-          city: "Rotary City",
-          country: "World"
-        }
-      ];
-
-      console.log('🔄 Utilisation des clubs de test en fallback');
-      setClubs(testClubs);
+      // Aucun club disponible si l'API échoue
+      setClubs([]);
 
       if (showAlerts) {
         let errorMessage = '';
 
         if (error.name === 'AbortError') {
-          errorMessage = `Timeout de la requête (5s).\n\n⚠️ Vérifiez que :\n• Votre API backend est démarrée (port 5265)\n• Votre URL ngrok est à jour et accessible\n• Votre connexion internet fonctionne\n\nURL actuelle: ${API_CONFIG.BASE_URL}\n\n✅ Clubs de test chargés pour permettre les tests.`;
+          errorMessage = `Timeout de la requête (10s).\n\n⚠️ Vérifiez que :\n• Votre API backend est démarrée (port 5265)\n• Votre URL ngrok est à jour et accessible\n• Votre connexion internet fonctionne\n\nURL actuelle: ${API_CONFIG.BASE_URL}`;
         } else if (error.message.includes('fetch') || error.message.includes('network')) {
-          errorMessage = `Impossible de joindre l'API backend.\n\n⚠️ Vérifiez que :\n• Votre API backend est démarrée (port 5265)\n• Votre URL ngrok est à jour\n• Votre connexion internet fonctionne\n\nURL actuelle: ${API_CONFIG.BASE_URL}\n\n✅ Clubs de test chargés pour permettre les tests.`;
+          errorMessage = `Impossible de joindre l'API backend.\n\n⚠️ Vérifiez que :\n• Votre API backend est démarrée (port 5265)\n• Votre URL ngrok est à jour\n• Votre connexion internet fonctionne\n\nURL actuelle: ${API_CONFIG.BASE_URL}`;
         } else {
-          errorMessage = `Erreur API: ${error.message}\n\nURL: ${API_CONFIG.BASE_URL}\n\n✅ Clubs de test chargés pour permettre les tests.`;
+          errorMessage = `Erreur API: ${error.message}\n\nURL: ${API_CONFIG.BASE_URL}`;
         }
 
-        Alert.alert('API non accessible - Mode test', errorMessage);
+        Alert.alert('Erreur de connexion API', errorMessage);
       }
     } finally {
       setLoading(false);
@@ -687,7 +641,7 @@ export default function App() {
     }
 
     if (clubs.length === 0) {
-      Alert.alert('Erreur', 'Aucun club disponible. Veuillez d\'abord charger les clubs depuis la base de données.');
+      Alert.alert('Erreur', 'Aucun club disponible. Vérifiez que votre API backend est accessible.');
       return;
     }
 
@@ -1052,7 +1006,7 @@ export default function App() {
                 ]}
                 onPress={() => {
                   if (clubs.length === 0) {
-                    Alert.alert('Aucun club', 'Veuillez d\'abord charger les clubs depuis la base de données.');
+                    Alert.alert('Aucun club', 'Aucun club disponible. Vérifiez votre connexion API.');
                     return;
                   }
                   setShowClubPicker(true);
@@ -1065,7 +1019,7 @@ export default function App() {
                   clubs.length === 0 && styles.selectTextDisabled
                 ]}>
                   {clubs.length === 0
-                    ? '⚠️ Chargement des clubs...'
+                    ? '⚠️ Aucun club disponible'
                     : loginForm.clubId
                       ? clubs.find(club => club.id === loginForm.clubId)?.name || 'Sélectionnez votre club'
                       : `Sélectionnez votre club (${clubs.length} disponibles)`
@@ -1075,17 +1029,7 @@ export default function App() {
               </TouchableOpacity>
             </View>
 
-            {clubs.length === 0 && (
-              <TouchableOpacity
-                style={styles.reloadClubsButton}
-                onPress={() => loadClubs(true)}
-                disabled={loading}
-              >
-                <Text style={styles.reloadClubsButtonText}>
-                  {loading ? 'Chargement...' : '🔄 Charger les clubs depuis la base de données'}
-                </Text>
-              </TouchableOpacity>
-            )}
+
           </View>
 
           <TouchableOpacity
@@ -1136,18 +1080,7 @@ export default function App() {
             <Text style={styles.debugButtonText}>🔍 Tester URL ngrok</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.reloadClubsButton}
-            onPress={() => {
-              console.log('🔄 === RECHARGEMENT FORCÉ DES CLUBS ===');
-              loadClubs(true);
-            }}
-            disabled={loading}
-          >
-            <Text style={styles.reloadClubsButtonText}>
-              {loading ? 'Chargement...' : '🔄 Recharger les clubs'}
-            </Text>
-          </TouchableOpacity>
+
 
           <Text style={styles.loginNote}>
             Connectez-vous avec vos identifiants Rotary pour accéder à l'application.
@@ -1976,16 +1909,5 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 2,
   },
-  reloadClubsButton: {
-    backgroundColor: colors.secondary,
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 10,
-    alignItems: 'center',
-  },
-  reloadClubsButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '500',
-  },
+
 });
