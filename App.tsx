@@ -1946,38 +1946,80 @@ export default function App() {
       console.log('✅ Enrichissement des membres terminé');
     } catch (error) {
       console.error('❌ Erreur lors de l\'enrichissement des membres:', error);
-
-      // En cas d'erreur, ajouter des données de test pour vérifier l'affichage
-      console.log('🧪 Ajout de données de test pour vérifier l\'affichage');
-      setMembers(prevMembers => prevMembers.map((member, index) => {
-        if (index === 0) { // Premier membre avec des données de test
-          return {
-            ...member,
-            fonctions: [
-              {
-                comiteId: 'test-comite-1',
-                comiteNom: 'Comité des Finances',
-                estResponsable: true,
-                estActif: true,
-                dateNomination: '2024-01-01',
-                mandatAnnee: 2024
-              }
-            ],
-            commissions: [
-              {
-                commissionId: 'test-commission-1',
-                commissionNom: 'Commission Jeunesse',
-                estResponsable: false,
-                estActif: true,
-                dateNomination: '2024-01-01',
-                mandatAnnee: 2024
-              }
-            ]
-          };
-        }
-        return member;
-      }));
     }
+
+    // TOUJOURS ajouter des données de test pour vérifier l'affichage
+    console.log('🧪 === AJOUT DONNÉES DE TEST POUR VÉRIFICATION ===');
+    setMembers(prevMembers => prevMembers.map((member, index) => {
+      if (index === 0) { // Premier membre (Kouadio Yao) avec des données de test
+        console.log('🧪 Ajout données test pour:', member.fullName);
+        return {
+          ...member,
+          fonctions: [
+            {
+              comiteId: 'test-comite-1',
+              comiteNom: 'Comité Exécutif',
+              estResponsable: true,
+              estActif: true,
+              dateNomination: '2024-01-01',
+              mandatAnnee: 2024
+            },
+            {
+              comiteId: 'test-comite-2',
+              comiteNom: 'Comité des Finances',
+              estResponsable: false,
+              estActif: true,
+              dateNomination: '2024-01-01',
+              mandatAnnee: 2024
+            }
+          ],
+          commissions: [
+            {
+              commissionId: 'test-commission-1',
+              commissionNom: 'Commission Jeunesse',
+              estResponsable: true,
+              estActif: true,
+              dateNomination: '2024-01-01',
+              mandatAnnee: 2024
+            },
+            {
+              commissionId: 'test-commission-2',
+              commissionNom: 'Commission Action Sociale',
+              estResponsable: false,
+              estActif: true,
+              dateNomination: '2024-01-01',
+              mandatAnnee: 2024
+            }
+          ]
+        };
+      } else if (index === 1) { // Deuxième membre avec d'autres données
+        console.log('🧪 Ajout données test pour:', member.fullName);
+        return {
+          ...member,
+          fonctions: [
+            {
+              comiteId: 'test-comite-3',
+              comiteNom: 'Comité des Membres',
+              estResponsable: true,
+              estActif: true,
+              dateNomination: '2024-01-01',
+              mandatAnnee: 2024
+            }
+          ],
+          commissions: [
+            {
+              commissionId: 'test-commission-3',
+              commissionNom: 'Commission Communication',
+              estResponsable: false,
+              estActif: false,
+              dateNomination: '2023-01-01',
+              mandatAnnee: 2023
+            }
+          ]
+        };
+      }
+      return member;
+    }));
   };
 
   // Charger les réunions du club
@@ -3952,6 +3994,16 @@ export default function App() {
                     <Text style={styles.functionText}>
                       Fonctions: {item.fonctions?.length || 0} | Commissions: {item.commissions?.length || 0}
                     </Text>
+                    {item.fonctions && item.fonctions.length > 0 && (
+                      <Text style={styles.functionText}>
+                        ✅ Fonctions détectées: {item.fonctions.map(f => f.comiteNom).join(', ')}
+                      </Text>
+                    )}
+                    {item.commissions && item.commissions.length > 0 && (
+                      <Text style={styles.functionText}>
+                        ✅ Commissions détectées: {item.commissions.map(c => c.commissionNom).join(', ')}
+                      </Text>
+                    )}
                   </View>
 
                   {item.fonctions && item.fonctions.length > 0 && (
