@@ -746,13 +746,37 @@ export default function App() {
       setIsInitializing(true);
       // Vérifier si l'utilisateur est déjà connecté (token stocké)
       const user = await apiService.getCurrentUser();
-      setCurrentUser(user);
+      console.log('🔄 Utilisateur récupéré dans initializeApp:', user);
+
+      // Traiter la structure de réponse
+      let processedUser;
+      if (user.success && user.user) {
+        processedUser = {
+          ...user.user,
+          clubId: user.user.primaryClubId || user.user.clubId,
+          clubName: user.user.primaryClubName || user.user.clubName,
+          fullName: `${user.user.firstName} ${user.user.lastName}`.trim()
+        };
+      } else {
+        processedUser = {
+          ...user,
+          clubId: user.primaryClubId || user.clubId,
+          clubName: user.primaryClubName || user.clubName,
+          fullName: user.fullName || `${user.firstName} ${user.lastName}`.trim()
+        };
+      }
+
+      console.log('🔄 Utilisateur traité:', processedUser);
+      setCurrentUser(processedUser);
       setIsAuthenticated(true);
       setShowLogin(false); // Masquer le login si déjà connecté
 
       // Charger les membres si on a un clubId
-      if (user.clubId) {
-        await loadMembers(user.clubId);
+      if (processedUser.clubId) {
+        console.log('🔄 Chargement des membres pour club:', processedUser.clubId);
+        await loadMembers(processedUser.clubId);
+      } else {
+        console.log('❌ Pas de clubId trouvé dans processedUser');
       }
     } catch (error) {
       console.log('Utilisateur non connecté, affichage de l\'écran de connexion');
@@ -768,9 +792,14 @@ export default function App() {
       setLoading(true);
       console.log('🔄 === DÉBUT CHARGEMENT MEMBRES ===');
       console.log('🏢 Club ID:', clubId);
+      console.log('🏢 Type de Club ID:', typeof clubId);
+      console.log('🏢 Club ID valide:', !!clubId);
 
       const membersData = await apiService.getClubMembers(clubId);
-      console.log('✅ Membres chargés:', membersData.length);
+      console.log('✅ Membres chargés (brut):', membersData);
+      console.log('✅ Nombre de membres:', membersData.length);
+      console.log('✅ Type de données:', typeof membersData);
+      console.log('✅ Est un tableau:', Array.isArray(membersData));
 
       // Traiter les données pour s'assurer qu'elles ont le bon format
       const processedMembers = membersData.map(member => ({
@@ -848,17 +877,39 @@ export default function App() {
       });
 
       const user = await apiService.login(loginForm.email, loginForm.password, loginForm.clubId);
-      console.log('Utilisateur connecté:', user);
+      console.log('Utilisateur connecté (brut):', user);
 
-      setCurrentUser(user);
+      // Traiter la structure de réponse
+      let processedUser;
+      if (user.success && user.user) {
+        processedUser = {
+          ...user.user,
+          clubId: user.user.primaryClubId || user.user.clubId,
+          clubName: user.user.primaryClubName || user.user.clubName,
+          fullName: `${user.user.firstName} ${user.user.lastName}`.trim()
+        };
+      } else {
+        processedUser = {
+          ...user,
+          clubId: user.primaryClubId || user.clubId,
+          clubName: user.primaryClubName || user.clubName,
+          fullName: user.fullName || `${user.firstName} ${user.lastName}`.trim()
+        };
+      }
+
+      console.log('Utilisateur traité:', processedUser);
+      setCurrentUser(processedUser);
       setIsAuthenticated(true);
       setShowLogin(false);
       setLoginForm({ email: '', password: '', clubId: '' });
 
       // Charger les membres du club et les membres de comité
-      if (user.clubId) {
-        await loadMembers(user.clubId);
+      if (processedUser.clubId) {
+        console.log('🔄 Chargement des membres pour club:', processedUser.clubId);
+        await loadMembers(processedUser.clubId);
         await loadMembresComite();
+      } else {
+        console.log('❌ Pas de clubId trouvé après login');
       }
 
       Alert.alert('Succès', `Connexion réussie ! Bienvenue ${user.fullName || user.firstName}`);
@@ -944,10 +995,37 @@ export default function App() {
         // Récupérer le profil utilisateur (comme dans le web)
         console.log('👤 Récupération du profil utilisateur...');
         const profile = await apiService.getCurrentProfile();
-        console.log('👤 Profil récupéré:', { id: profile.id, email: profile.email, clubId: profile.clubId });
+        console.log('👤 Profil brut récupéré:', profile);
+
+        // Traiter la structure de réponse (peut contenir success + user)
+        let processedProfile;
+        if (profile.success && profile.user) {
+          // Structure avec success + user
+          processedProfile = {
+            ...profile.user,
+            clubId: profile.user.primaryClubId || profile.user.clubId,
+            clubName: profile.user.primaryClubName || profile.user.clubName,
+            fullName: `${profile.user.firstName} ${profile.user.lastName}`.trim()
+          };
+        } else {
+          // Structure directe
+          processedProfile = {
+            ...profile,
+            clubId: profile.primaryClubId || profile.clubId,
+            clubName: profile.primaryClubName || profile.clubName,
+            fullName: profile.fullName || `${profile.firstName} ${profile.lastName}`.trim()
+          };
+        }
+
+        console.log('👤 Profil traité:', {
+          id: processedProfile.id,
+          email: processedProfile.email,
+          clubId: processedProfile.clubId,
+          clubName: processedProfile.clubName
+        });
 
         // Mettre à jour l'état de l'application
-        setCurrentUser(profile);
+        setCurrentUser(processedProfile);
         setIsAuthenticated(true);
         setShowLogin(false);
         setLoginForm({ email: '', password: '', clubId: '' });
@@ -1203,6 +1281,25 @@ export default function App() {
               }}
             >
               <Text style={styles.retryButtonText}>🔍 Tester API</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.retryButton, { backgroundColor: '#9C27B0', marginTop: 8 }]}
+              onPress={() => {
+                console.log('🔍 === DEBUG UTILISATEUR ===');
+                console.log('🔍 CurrentUser complet:', currentUser);
+                console.log('🔍 CurrentUser.clubId:', currentUser?.clubId);
+                console.log('🔍 CurrentUser.primaryClubId:', currentUser?.primaryClubId);
+                console.log('🔍 IsAuthenticated:', isAuthenticated);
+                console.log('🔍 Membres actuels:', members);
+
+                Alert.alert(
+                  'Debug Utilisateur',
+                  `Utilisateur: ${currentUser?.fullName || 'Non défini'}\n\nClub ID: ${currentUser?.clubId || 'Non défini'}\n\nPrimary Club ID: ${currentUser?.primaryClubId || 'Non défini'}\n\nClub Name: ${currentUser?.clubName || currentUser?.primaryClubName || 'Non défini'}\n\nNombre de membres: ${members.length}\n\nAuthentifié: ${isAuthenticated ? 'Oui' : 'Non'}`
+                );
+              }}
+            >
+              <Text style={styles.retryButtonText}>🔍 Debug User</Text>
             </TouchableOpacity>
           </View>
         ) : (
