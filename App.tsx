@@ -1605,9 +1605,21 @@ export default function App() {
         return processed;
       }));
 
-      setReunions(processedReunions);
+      // Trier les réunions par date croissante (plus ancienne en haut, plus récente en bas)
+      const sortedReunions = processedReunions.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateA.getTime() - dateB.getTime(); // Tri croissant
+      });
+
+      console.log('📅 === TRI DES RÉUNIONS PAR DATE ===');
+      sortedReunions.forEach((reunion, index) => {
+        console.log(`📅 Réunion ${index + 1}: ${reunion.typeReunionLibelle} - ${reunion.dateFormatted}`);
+      });
+
+      setReunions(sortedReunions);
       // Mettre à jour aussi l'ancien état meetings pour compatibilité
-      setMeetings(processedReunions.map(r => ({
+      setMeetings(sortedReunions.map(r => ({
         id: r.id,
         title: r.typeReunionLibelle || 'Réunion',
         date: r.date,
@@ -1616,7 +1628,8 @@ export default function App() {
       })));
 
       console.log('✅ === RÉUNIONS TRAITÉES ET STOCKÉES ===');
-      console.log('✅ Nombre total:', processedReunions.length);
+      console.log('✅ Nombre total:', sortedReunions.length);
+      console.log('✅ Réunions triées par date croissante');
       console.log('✅ État reunions mis à jour');
       console.log('✅ État meetings mis à jour');
 
@@ -2411,6 +2424,9 @@ export default function App() {
           <Text style={styles.headerTitle}>
             Réunions ({(reunionsFiltrees.length > 0 ? reunionsFiltrees : reunions).length})
           </Text>
+          <Text style={styles.headerSubtitle}>
+            Triées par date croissante
+          </Text>
           <View style={styles.headerActions}>
             {/* Bouton de basculement vue liste/calendrier */}
             <TouchableOpacity
@@ -2559,9 +2575,9 @@ export default function App() {
                     </View>
                     <View style={styles.meetingStatBadge}>
                       <Text style={styles.meetingStatBadgeText}>
-                        👥 {item.presences?.filter(p => p.present).length || 0}
+                        👥 {item.presences?.length || 0}
                       </Text>
-                      <Text style={styles.meetingStatBadgeLabel}>Présent(s)</Text>
+                      <Text style={styles.meetingStatBadgeLabel}>Membre(s)</Text>
                     </View>
                     {item.invites && item.invites.length > 0 && (
                       <View style={styles.meetingStatBadge}>
@@ -2572,16 +2588,7 @@ export default function App() {
                       </View>
                     )}
                   </View>
-                  {item.presences && item.presences.length > 0 && (
-                    <View style={styles.meetingStatSummary}>
-                      <Text style={styles.meetingStatSummaryText}>
-                        {item.presences.filter(p => p.present).length} présents / {item.presences.length} membres
-                        {item.presences.filter(p => p.excuse).length > 0 &&
-                          ` (${item.presences.filter(p => p.excuse).length} excusés)`
-                        }
-                      </Text>
-                    </View>
-                  )}
+
                 </View>
 
                 {item.description && (
@@ -2876,11 +2883,11 @@ export default function App() {
                 )}
               </View>
 
-              {/* Présences */}
+              {/* Membres */}
               <View style={styles.detailSection}>
                 <View style={styles.detailSectionHeader}>
                   <Text style={styles.detailSectionTitle}>
-                    👥 Présences ({selectedReunion.presences?.length || 0})
+                    👥 Membres ({selectedReunion.presences?.length || 0})
                   </Text>
                 </View>
                 {selectedReunion.presences && selectedReunion.presences.length > 0 ? (
@@ -2888,30 +2895,29 @@ export default function App() {
                     {selectedReunion.presences.map((presence, index) => (
                       <View key={index} style={styles.detailListItemContainer}>
                         <View style={styles.detailListItemIcon}>
-                          <Text style={styles.detailListItemIconText}>
-                            {presence.present ? '✅' : presence.excuse ? '⚠️' : '❌'}
-                          </Text>
+                          <Text style={styles.detailListItemIconText}>👤</Text>
                         </View>
                         <View style={styles.detailListItemContent}>
                           <Text style={styles.detailListItemText}>
                             {presence.nomMembre || presence.fullName || 'Membre'}
                           </Text>
-                          <Text style={styles.detailListItemSubtext}>
-                            {presence.present
-                              ? '✅ Présent'
-                              : presence.excuse
-                                ? '⚠️ Excusé'
-                                : '❌ Absent'
-                            }
-                            {presence.commentaire && ` - ${presence.commentaire}`}
-                          </Text>
+                          {presence.email && (
+                            <Text style={styles.detailListItemSubtext}>
+                              📧 {presence.email}
+                            </Text>
+                          )}
+                          {presence.fonction && (
+                            <Text style={styles.detailListItemSubtext}>
+                              💼 {presence.fonction}
+                            </Text>
+                          )}
                         </View>
                       </View>
                     ))}
                   </View>
                 ) : (
                   <View style={styles.emptyStateContainer}>
-                    <Text style={styles.emptyStateText}>👥 Aucune présence enregistrée</Text>
+                    <Text style={styles.emptyStateText}>👥 Aucun membre enregistré</Text>
                   </View>
                 )}
               </View>
@@ -2928,39 +2934,17 @@ export default function App() {
                     {selectedReunion.invites.map((invite, index) => (
                       <View key={index} style={styles.detailListItemContainer}>
                         <View style={styles.detailListItemIcon}>
-                          <Text style={styles.detailListItemIconText}>
-                            {invite.confirme ? '✅' : '❓'}
-                          </Text>
+                          <Text style={styles.detailListItemIconText}>🎯</Text>
                         </View>
                         <View style={styles.detailListItemContent}>
                           <Text style={styles.detailListItemText}>
                             {invite.prenom} {invite.nom}
                           </Text>
-                          <View style={styles.detailListItemSubtextContainer}>
-                            {invite.organisation && (
-                              <Text style={styles.detailListItemSubtext}>
-                                🏢 {invite.organisation}
-                              </Text>
-                            )}
-                            {invite.fonction && (
-                              <Text style={styles.detailListItemSubtext}>
-                                💼 {invite.fonction}
-                              </Text>
-                            )}
-                            {invite.email && (
-                              <Text style={styles.detailListItemSubtext}>
-                                📧 {invite.email}
-                              </Text>
-                            )}
-                            {invite.telephone && (
-                              <Text style={styles.detailListItemSubtext}>
-                                📞 {invite.telephone}
-                              </Text>
-                            )}
+                          {invite.email && (
                             <Text style={styles.detailListItemSubtext}>
-                              {invite.confirme ? '✅ Confirmé' : '❓ En attente de confirmation'}
+                              📧 {invite.email}
                             </Text>
-                          </View>
+                          )}
                         </View>
                       </View>
                     ))}
