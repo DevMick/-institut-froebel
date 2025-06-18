@@ -268,6 +268,11 @@ class ApiService {
     }
   }
 
+  // Méthode publique pour accéder au token (pour les logs)
+  async getTokenForDebug(): Promise<string | null> {
+    return await this.getToken();
+  }
+
   private async makeRequest<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -637,18 +642,24 @@ class ApiService {
 
   // Obtenir les réunions d'un club
   async getReunions(clubId: string): Promise<Reunion[]> {
-    console.log('🔄 === CHARGEMENT RÉUNIONS DU CLUB ===');
+    console.log('🔄 === API CHARGEMENT RÉUNIONS DU CLUB ===');
     console.log('🏢 Club ID:', clubId);
+    console.log('🔧 API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
+    console.log('🔧 API_CONFIG.API_PREFIX:', API_CONFIG.API_PREFIX);
 
     try {
       const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/reunions`;
       console.log('🌐 URL complète:', url);
 
       const token = await this.getToken();
+      console.log('🔑 Token récupéré:', !!token);
+      console.log('🔑 Token (premiers caractères):', token ? token.substring(0, 20) + '...' : 'AUCUN');
+
       if (!token) {
         throw new Error('Token d\'authentification manquant');
       }
 
+      console.log('📤 Envoi de la requête...');
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -661,34 +672,83 @@ class ApiService {
         },
       });
 
-      console.log('📡 Réponse Status:', response.status);
-      console.log('📡 Réponse OK:', response.ok);
+      console.log('📡 === RÉPONSE REÇUE ===');
+      console.log('📡 Status:', response.status);
+      console.log('📡 Status Text:', response.statusText);
+      console.log('📡 OK:', response.ok);
+      console.log('📡 Headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
+        console.log('❌ === ERREUR HTTP ===');
+        console.log('❌ Status:', response.status);
+        console.log('❌ StatusText:', response.statusText);
+
         if (response.status === 401) {
+          console.log('🔑 Session expirée - suppression du token');
           await this.removeToken();
           throw new Error('Session expirée. Veuillez vous reconnecter.');
         }
+
         const errorText = await response.text();
         console.error('❌ Erreur API réunions:', errorText);
         throw new Error(`Erreur ${response.status}: ${errorText}`);
       }
 
-      const data = await response.json();
-      console.log('📊 Données réunions reçues:', data);
+      console.log('📥 Lecture du contenu de la réponse...');
+      const responseText = await response.text();
+      console.log('📄 Réponse brute (premiers 500 caractères):', responseText.substring(0, 500));
+      console.log('📄 Longueur de la réponse:', responseText.length);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log('📊 === PARSING JSON RÉUSSI ===');
+        console.log('📊 Type de données:', typeof data);
+        console.log('📊 Est un tableau:', Array.isArray(data));
+      } catch (parseError) {
+        console.error('❌ Erreur parsing JSON:', parseError);
+        console.error('❌ Contenu qui a causé l\'erreur:', responseText);
+        throw new Error(`Réponse API invalide - pas du JSON valide: ${parseError.message}`);
+      }
+
+      console.log('📊 === DONNÉES RÉUNIONS REÇUES ===');
+      console.log('📊 Structure complète:', data);
 
       // Traiter les données selon le format RotaryManager
       let reunions: Reunion[] = [];
 
       if (Array.isArray(data)) {
         reunions = data;
+        console.log('✅ Format: Tableau direct de réunions');
       } else if (data.reunions && Array.isArray(data.reunions)) {
         reunions = data.reunions;
+        console.log('✅ Format: Objet avec propriété reunions');
       } else if (data.data && Array.isArray(data.data)) {
         reunions = data.data;
+        console.log('✅ Format: Objet avec propriété data');
+      } else if (data && typeof data === 'object') {
+        reunions = [data];
+        console.log('✅ Format: Objet unique converti en tableau');
       }
 
-      console.log('✅ Réunions traitées:', reunions.length);
+      console.log('✅ === RÉUNIONS TRAITÉES ===');
+      console.log('✅ Nombre de réunions:', reunions.length);
+
+      // Log détaillé de chaque réunion trouvée
+      reunions.forEach((reunion, index) => {
+        console.log(`📋 Réunion API ${index + 1}:`, {
+          id: reunion.id,
+          typeReunionLibelle: reunion.typeReunionLibelle,
+          date: reunion.date,
+          heure: reunion.heure,
+          lieu: reunion.lieu,
+          ordresDuJour: reunion.ordresDuJour,
+          presences: reunion.presences,
+          invites: reunion.invites,
+          description: reunion.description
+        });
+      });
+
       return reunions;
 
     } catch (error) {
@@ -1299,25 +1359,56 @@ export default function App() {
       setLoading(true);
       console.log('🔄 === DÉBUT CHARGEMENT RÉUNIONS ===');
       console.log('🏢 Club ID:', clubId);
+      console.log('🔑 Token disponible:', !!(await apiService.getTokenForDebug()));
+      console.log('🌐 URL API:', `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/reunions`);
 
       const reunionsData = await apiService.getReunions(clubId);
       console.log('✅ Réunions chargées (brut):', reunionsData);
       console.log('✅ Nombre de réunions:', reunionsData.length);
 
+      // Log détaillé de chaque réunion
+      reunionsData.forEach((reunion, index) => {
+        console.log(`📋 Réunion ${index + 1}:`, {
+          id: reunion.id,
+          type: reunion.typeReunionLibelle,
+          date: reunion.date,
+          heure: reunion.heure,
+          ordresDuJour: reunion.ordresDuJour?.length || 0,
+          presences: reunion.presences?.length || 0,
+          invites: reunion.invites?.length || 0,
+          lieu: reunion.lieu
+        });
+      });
+
       // Traiter les données pour s'assurer qu'elles ont le bon format
-      const processedReunions = reunionsData.map(reunion => ({
-        ...reunion,
-        dateFormatted: reunion.date ? new Date(reunion.date).toLocaleDateString('fr-FR', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        }) : 'Date non disponible',
-        heureFormatted: reunion.heure || 'Heure non disponible',
-        ordresDuJour: reunion.ordresDuJour || [],
-        presences: reunion.presences || [],
-        invites: reunion.invites || []
-      }));
+      const processedReunions = reunionsData.map((reunion, index) => {
+        console.log(`🔄 Traitement réunion ${index + 1}:`, reunion.id);
+
+        const processed = {
+          ...reunion,
+          dateFormatted: reunion.date ? new Date(reunion.date).toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          }) : 'Date non disponible',
+          heureFormatted: reunion.heure || 'Heure non disponible',
+          ordresDuJour: reunion.ordresDuJour || [],
+          presences: reunion.presences || [],
+          invites: reunion.invites || []
+        };
+
+        console.log(`✅ Réunion ${index + 1} traitée:`, {
+          id: processed.id,
+          dateFormatted: processed.dateFormatted,
+          heureFormatted: processed.heureFormatted,
+          ordresDuJourCount: processed.ordresDuJour.length,
+          presencesCount: processed.presences.length,
+          invitesCount: processed.invites.length
+        });
+
+        return processed;
+      });
 
       setReunions(processedReunions);
       // Mettre à jour aussi l'ancien état meetings pour compatibilité
@@ -1329,7 +1420,10 @@ export default function App() {
         attendees: r.presences || []
       })));
 
-      console.log('✅ Réunions traitées et stockées:', processedReunions.length);
+      console.log('✅ === RÉUNIONS TRAITÉES ET STOCKÉES ===');
+      console.log('✅ Nombre total:', processedReunions.length);
+      console.log('✅ État reunions mis à jour');
+      console.log('✅ État meetings mis à jour');
 
     } catch (error) {
       console.error('❌ Erreur lors du chargement des réunions:', error);
@@ -2092,9 +2186,29 @@ export default function App() {
   // Écran des réunions
   const ReunionsScreen = () => {
     console.log('🖥️ === RENDU REUNIONS SCREEN ===');
-    console.log('🖥️ Nombre de réunions:', reunions.length);
+    console.log('🖥️ Nombre de réunions dans l\'état:', reunions.length);
     console.log('🖥️ Loading:', loading);
-    console.log('🖥️ Réunions détaillées:', reunions);
+    console.log('🖥️ Current User:', currentUser?.id, currentUser?.clubId);
+    console.log('🖥️ Is Authenticated:', isAuthenticated);
+    console.log('🖥️ Réunions filtrées:', reunionsFiltrees.length);
+
+    // Log détaillé des réunions dans l'état
+    if (reunions.length > 0) {
+      console.log('🖥️ === DÉTAIL DES RÉUNIONS DANS L\'ÉTAT ===');
+      reunions.forEach((reunion, index) => {
+        console.log(`🖥️ Réunion ${index + 1}:`, {
+          id: reunion.id,
+          type: reunion.typeReunionLibelle,
+          dateFormatted: reunion.dateFormatted,
+          heureFormatted: reunion.heureFormatted,
+          ordresDuJourCount: reunion.ordresDuJour?.length || 0,
+          presencesCount: reunion.presences?.length || 0,
+          invitesCount: reunion.invites?.length || 0
+        });
+      });
+    } else {
+      console.log('🖥️ ⚠️ Aucune réunion dans l\'état');
+    }
 
     return (
       <View style={styles.container}>
@@ -2199,6 +2313,17 @@ export default function App() {
               <TouchableOpacity
                 style={styles.meetingCard}
                 onPress={() => {
+                  console.log('🎯 === CLIC SUR RÉUNION ===');
+                  console.log('🎯 Réunion cliquée:', item.id, item.typeReunionLibelle);
+                  console.log('🎯 Données de la réunion:', {
+                    id: item.id,
+                    type: item.typeReunionLibelle,
+                    date: item.date,
+                    ordresDuJour: item.ordresDuJour,
+                    presences: item.presences,
+                    invites: item.invites
+                  });
+
                   setSelectedReunion(item);
                   loadReunionDetails(item.id);
                   setShowReunionDetails(true);
