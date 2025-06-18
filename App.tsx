@@ -295,101 +295,11 @@ class ApiService {
 
 const apiService = new ApiService();
 
-// Données de fallback (utilisées si l'API n'est pas disponible)
-const fallbackMembers: Member[] = [
-  {
-    id: '1',
-    email: 'kouame.yao@rotary.org',
-    firstName: 'Kouamé',
-    lastName: 'Yao',
-    fullName: 'Kouamé Yao',
-    phoneNumber: '+225 07 12 34 56 78',
-    isActive: true,
-    roles: ['Président'],
-    clubId: 'club-1',
-    clubName: 'Rotary Club Abidjan II Plateaux',
-    clubJoinedDate: '2020-01-15T00:00:00Z',
-    clubJoinedDateFormatted: '15/01/2020'
-  },
-  {
-    id: '2',
-    email: 'aya.traore@rotary.org',
-    firstName: 'Aya',
-    lastName: 'Traoré',
-    fullName: 'Aya Traoré',
-    phoneNumber: '+225 05 23 45 67 89',
-    isActive: true,
-    roles: ['Secrétaire'],
-    clubId: 'club-1',
-    clubName: 'Rotary Club Abidjan II Plateaux',
-    clubJoinedDate: '2019-06-01T00:00:00Z',
-    clubJoinedDateFormatted: '01/06/2019'
-  },
-  {
-    id: '3',
-    email: 'ibrahim.kone@rotary.org',
-    firstName: 'Ibrahim',
-    lastName: 'Koné',
-    fullName: 'Ibrahim Koné',
-    phoneNumber: '+225 01 34 56 78 90',
-    isActive: true,
-    roles: ['Trésorier'],
-    clubId: 'club-1',
-    clubName: 'Rotary Club Abidjan II Plateaux',
-    clubJoinedDate: '2021-03-10T00:00:00Z',
-    clubJoinedDateFormatted: '10/03/2021'
-  },
-  {
-    id: '4',
-    email: 'fatou.ouattara@rotary.org',
-    firstName: 'Fatou',
-    lastName: 'Ouattara',
-    fullName: 'Fatou Ouattara',
-    phoneNumber: '+225 09 45 67 89 01',
-    isActive: true,
-    roles: ['Vice-Présidente'],
-    clubId: 'club-1',
-    clubName: 'Rotary Club Abidjan II Plateaux',
-    clubJoinedDate: '2018-09-15T00:00:00Z',
-    clubJoinedDateFormatted: '15/09/2018'
-  }
-];
 
-// Données de fallback pour le club
-const fallbackClub: Club = {
-  id: 'club-1',
-  name: 'Rotary Club Abidjan II Plateaux',
-  code: 'RC-ABIDJAN-II-PLATEAUX',
-  description: 'Club Rotary d\'Abidjan II Plateaux, fondé en 1988',
-  address: 'Boulevard Lagunaire, Cocody',
-  city: 'Abidjan',
-  country: 'Côte d\'Ivoire',
-  phoneNumber: '+225 27 22 48 56 78',
-  email: 'contact@rotary-abidjan-plateaux.org',
-  website: 'https://www.rotary-abidjan-plateaux.org',
-  logoUrl: '',
-  foundedDate: '1988-06-20T00:00:00Z',
-  isActive: true
-};
 
-const mockMeetings = [
-  {
-    id: '1',
-    title: 'Réunion Hebdomadaire',
-    date: '2024-12-19T18:30:00Z',
-    location: 'Hôtel Pullman Abidjan',
-    attendees: ['1', '2', '3', '4'],
-    status: 'upcoming'
-  },
-  {
-    id: '2',
-    title: 'Assemblée Générale',
-    date: '2024-12-26T14:00:00Z',
-    location: 'Centre de Conférences de Cocody',
-    attendees: ['1', '2', '3', '4'],
-    status: 'upcoming'
-  }
-];
+
+
+
 
 // Couleurs du thème Rotary
 const colors = {
@@ -403,7 +313,7 @@ const colors = {
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('Home');
-  const [members, setMembers] = useState<Member[]>(fallbackMembers);
+  const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -412,6 +322,7 @@ export default function App() {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [showClubPicker, setShowClubPicker] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [meetings, setMeetings] = useState<any[]>([]);
 
   // Charger les données au démarrage
   useEffect(() => {
@@ -622,8 +533,8 @@ export default function App() {
       setMembers(membersData);
     } catch (error) {
       console.error('Erreur lors du chargement des membres:', error);
-      Alert.alert('Erreur', 'Impossible de charger les membres. Utilisation des données hors ligne.');
-      setMembers(fallbackMembers);
+      Alert.alert('Erreur', 'Impossible de charger les membres depuis l\'API.');
+      setMembers([]);
     } finally {
       setLoading(false);
     }
@@ -680,7 +591,7 @@ export default function App() {
       await apiService.logout();
       setIsAuthenticated(false);
       setCurrentUser(null);
-      setMembers(fallbackMembers);
+      setMembers([]);
       Alert.alert('Déconnexion', 'Vous avez été déconnecté avec succès');
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
@@ -801,26 +712,36 @@ export default function App() {
           <Text style={styles.statLabel}>Membres</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{mockMeetings.length}</Text>
+          <Text style={styles.statNumber}>{meetings.length}</Text>
           <Text style={styles.statLabel}>Réunions</Text>
         </View>
       </View>
 
-      <View style={styles.nextMeetingCard}>
-        <Text style={styles.cardTitle}>Prochaine réunion</Text>
-        <Text style={styles.meetingTitle}>{mockMeetings[0].title}</Text>
-        <Text style={styles.meetingDate}>
-          {new Date(mockMeetings[0].date).toLocaleDateString('fr-FR', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
-        </Text>
-        <Text style={styles.meetingLocation}>{mockMeetings[0].location}</Text>
-      </View>
+      {meetings.length > 0 ? (
+        <View style={styles.nextMeetingCard}>
+          <Text style={styles.cardTitle}>Prochaine réunion</Text>
+          <Text style={styles.meetingTitle}>{meetings[0].title}</Text>
+          <Text style={styles.meetingDate}>
+            {new Date(meetings[0].date).toLocaleDateString('fr-FR', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </Text>
+          <Text style={styles.meetingLocation}>{meetings[0].location}</Text>
+        </View>
+      ) : (
+        <View style={styles.nextMeetingCard}>
+          <Text style={styles.cardTitle}>Réunions</Text>
+          <Text style={styles.meetingTitle}>Aucune réunion programmée</Text>
+          <Text style={styles.meetingDate}>
+            Connectez-vous pour voir les réunions de votre club
+          </Text>
+        </View>
+      )}
 
       <View style={styles.actionsContainer}>
         <TouchableOpacity
@@ -856,30 +777,43 @@ export default function App() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Réunions</Text>
       </View>
-      <FlatList
-        data={mockMeetings}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.meetingCard}>
-            <Text style={styles.meetingTitle}>{item.title}</Text>
-            <Text style={styles.meetingDate}>
-              {new Date(item.date).toLocaleDateString('fr-FR', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </Text>
-            <Text style={styles.meetingLocation}>{item.location}</Text>
-            <Text style={styles.meetingAttendees}>
-              {item.attendees.length} participants
+      {meetings.length > 0 ? (
+        <FlatList
+          data={meetings}
+          keyExtractor={item => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.meetingCard}>
+              <Text style={styles.meetingTitle}>{item.title}</Text>
+              <Text style={styles.meetingDate}>
+                {new Date(item.date).toLocaleDateString('fr-FR', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </Text>
+              <Text style={styles.meetingLocation}>{item.location}</Text>
+              <Text style={styles.meetingAttendees}>
+                {item.attendees?.length || 0} participants
+              </Text>
+            </View>
+          )}
+          contentContainerStyle={styles.listContainer}
+        />
+      ) : (
+        <View style={styles.listContainer}>
+          <View style={styles.emptyState}>
+            <Ionicons name="calendar-outline" size={64} color="#ccc" />
+            <Text style={styles.emptyStateTitle}>Aucune réunion</Text>
+            <Text style={styles.emptyStateText}>
+              Aucune réunion programmée pour le moment.{'\n'}
+              Les réunions s'afficheront ici une fois chargées depuis l'API.
             </Text>
           </View>
-        )}
-        contentContainerStyle={styles.listContainer}
-      />
+        </View>
+      )}
       <TouchableOpacity
         style={styles.fab}
         onPress={() => Alert.alert('Scanner QR', 'Fonctionnalité disponible dans l\'app native')}
@@ -1910,4 +1844,23 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#666',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
 });
