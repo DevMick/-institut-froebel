@@ -874,16 +874,63 @@ class ApiService {
 
   // Obtenir les présences d'une réunion
   async getPresencesReunion(clubId: string, reunionId: string): Promise<PresenceReunion[]> {
-    try {
-      const response = await this.makeRequest<PresenceReunion>(`/clubs/${clubId}/reunions/${reunionId}/presences`);
+    console.log('🔄 === CHARGEMENT PRÉSENCES ===');
+    console.log('🏢 Club ID:', clubId);
+    console.log('👥 Réunion ID:', reunionId);
 
-      if (response.success && response.data) {
-        return Array.isArray(response.data) ? response.data : [response.data];
+    try {
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/reunions/${reunionId}/presences`;
+      console.log('🌐 URL présences:', url);
+
+      const token = await this.getToken();
+      if (!token) {
+        throw new Error('Token d\'authentification manquant');
       }
-      throw new Error(response.message || 'Erreur lors de la récupération des présences');
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true',
+          'User-Agent': 'RotaryClubMobile/1.0',
+          'Origin': 'https://snack.expo.dev',
+        },
+      });
+
+      console.log('📡 Réponse présences Status:', response.status);
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log('👥 Aucune présence trouvée pour cette réunion');
+          return [];
+        }
+        const errorText = await response.text();
+        console.error('❌ Erreur API présences:', errorText);
+        throw new Error(`Erreur ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('📊 Données présences reçues:', data);
+
+      // Traiter les données selon le format RotaryManager
+      let presences: PresenceReunion[] = [];
+
+      if (Array.isArray(data)) {
+        presences = data;
+      } else if (data.presences && Array.isArray(data.presences)) {
+        presences = data.presences;
+      } else if (data.data && Array.isArray(data.data)) {
+        presences = data.data;
+      }
+
+      console.log('✅ Présences traitées:', presences.length);
+      return presences;
+
     } catch (error) {
-      console.error('Erreur lors de la récupération des présences:', error);
-      throw error;
+      console.error('❌ Erreur lors de la récupération des présences:', error);
+      return []; // Retourner un tableau vide en cas d'erreur
     }
   }
 
@@ -913,16 +960,63 @@ class ApiService {
 
   // Obtenir les invités d'une réunion
   async getInvitesReunion(clubId: string, reunionId: string): Promise<InviteReunion[]> {
-    try {
-      const response = await this.makeRequest<InviteReunion>(`/clubs/${clubId}/reunions/${reunionId}/invites`);
+    console.log('🔄 === CHARGEMENT INVITÉS ===');
+    console.log('🏢 Club ID:', clubId);
+    console.log('🎯 Réunion ID:', reunionId);
 
-      if (response.success && response.data) {
-        return Array.isArray(response.data) ? response.data : [response.data];
+    try {
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/reunions/${reunionId}/invites`;
+      console.log('🌐 URL invités:', url);
+
+      const token = await this.getToken();
+      if (!token) {
+        throw new Error('Token d\'authentification manquant');
       }
-      throw new Error(response.message || 'Erreur lors de la récupération des invités');
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true',
+          'User-Agent': 'RotaryClubMobile/1.0',
+          'Origin': 'https://snack.expo.dev',
+        },
+      });
+
+      console.log('📡 Réponse invités Status:', response.status);
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log('🎯 Aucun invité trouvé pour cette réunion');
+          return [];
+        }
+        const errorText = await response.text();
+        console.error('❌ Erreur API invités:', errorText);
+        throw new Error(`Erreur ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('📊 Données invités reçues:', data);
+
+      // Traiter les données selon le format RotaryManager
+      let invites: InviteReunion[] = [];
+
+      if (Array.isArray(data)) {
+        invites = data;
+      } else if (data.invites && Array.isArray(data.invites)) {
+        invites = data.invites;
+      } else if (data.data && Array.isArray(data.data)) {
+        invites = data.data;
+      }
+
+      console.log('✅ Invités traités:', invites.length);
+      return invites;
+
     } catch (error) {
-      console.error('Erreur lors de la récupération des invités:', error);
-      throw error;
+      console.error('❌ Erreur lors de la récupération des invités:', error);
+      return []; // Retourner un tableau vide en cas d'erreur
     }
   }
 
@@ -945,6 +1039,68 @@ class ApiService {
   }
 
   // === GESTION DES ORDRES DU JOUR DÉTAILLÉS ===
+
+  // Obtenir les ordres du jour d'une réunion
+  async getOrdresJourReunion(clubId: string, reunionId: string): Promise<string[]> {
+    console.log('🔄 === CHARGEMENT ORDRES DU JOUR ===');
+    console.log('🏢 Club ID:', clubId);
+    console.log('📋 Réunion ID:', reunionId);
+
+    try {
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/reunions/${reunionId}/ordres-du-jour`;
+      console.log('🌐 URL ordres du jour:', url);
+
+      const token = await this.getToken();
+      if (!token) {
+        throw new Error('Token d\'authentification manquant');
+      }
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true',
+          'User-Agent': 'RotaryClubMobile/1.0',
+          'Origin': 'https://snack.expo.dev',
+        },
+      });
+
+      console.log('📡 Réponse ordres du jour Status:', response.status);
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log('📋 Aucun ordre du jour trouvé pour cette réunion');
+          return [];
+        }
+        const errorText = await response.text();
+        console.error('❌ Erreur API ordres du jour:', errorText);
+        throw new Error(`Erreur ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('📊 Données ordres du jour reçues:', data);
+
+      // Traiter les données selon le format RotaryManager
+      let ordres: string[] = [];
+
+      if (Array.isArray(data)) {
+        ordres = data.map(ordre => typeof ordre === 'string' ? ordre : ordre.description || ordre.titre || 'Ordre du jour');
+      } else if (data.ordresDuJour && Array.isArray(data.ordresDuJour)) {
+        ordres = data.ordresDuJour.map(ordre => typeof ordre === 'string' ? ordre : ordre.description || ordre.titre || 'Ordre du jour');
+      } else if (data.data && Array.isArray(data.data)) {
+        ordres = data.data.map(ordre => typeof ordre === 'string' ? ordre : ordre.description || ordre.titre || 'Ordre du jour');
+      }
+
+      console.log('✅ Ordres du jour traités:', ordres.length);
+      return ordres;
+
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des ordres du jour:', error);
+      return []; // Retourner un tableau vide en cas d'erreur
+    }
+  }
 
   // Obtenir les ordres du jour détaillés
   async getOrdresJourDetailles(clubId: string, reunionId: string): Promise<OrdreJourDetaille[]> {
@@ -1381,8 +1537,47 @@ export default function App() {
       });
 
       // Traiter les données pour s'assurer qu'elles ont le bon format
-      const processedReunions = reunionsData.map((reunion, index) => {
+      const processedReunions = await Promise.all(reunionsData.map(async (reunion, index) => {
         console.log(`🔄 Traitement réunion ${index + 1}:`, reunion.id);
+
+        // Charger les détails de chaque réunion si les données ne sont pas complètes
+        let ordresDuJour = reunion.ordresDuJour || [];
+        let presences = reunion.presences || [];
+        let invites = reunion.invites || [];
+
+        // Si les données détaillées ne sont pas présentes, les charger séparément
+        if (!reunion.ordresDuJour && reunion.nombreOrdresDuJour > 0) {
+          console.log(`📋 Chargement des ordres du jour pour réunion ${reunion.id}`);
+          try {
+            const ordresResponse = await apiService.getOrdresJourReunion(clubId, reunion.id);
+            ordresDuJour = ordresResponse || [];
+            console.log(`✅ ${ordresDuJour.length} ordres du jour chargés`);
+          } catch (error) {
+            console.log(`⚠️ Impossible de charger les ordres du jour:`, error.message);
+          }
+        }
+
+        if (!reunion.presences && reunion.nombrePresences > 0) {
+          console.log(`👥 Chargement des présences pour réunion ${reunion.id}`);
+          try {
+            const presencesResponse = await apiService.getPresencesReunion(clubId, reunion.id);
+            presences = presencesResponse || [];
+            console.log(`✅ ${presences.length} présences chargées`);
+          } catch (error) {
+            console.log(`⚠️ Impossible de charger les présences:`, error.message);
+          }
+        }
+
+        if (!reunion.invites && reunion.nombreInvites > 0) {
+          console.log(`🎯 Chargement des invités pour réunion ${reunion.id}`);
+          try {
+            const invitesResponse = await apiService.getInvitesReunion(clubId, reunion.id);
+            invites = invitesResponse || [];
+            console.log(`✅ ${invites.length} invités chargés`);
+          } catch (error) {
+            console.log(`⚠️ Impossible de charger les invités:`, error.message);
+          }
+        }
 
         const processed = {
           ...reunion,
@@ -1393,9 +1588,9 @@ export default function App() {
             day: 'numeric'
           }) : 'Date non disponible',
           heureFormatted: reunion.heure || 'Heure non disponible',
-          ordresDuJour: reunion.ordresDuJour || [],
-          presences: reunion.presences || [],
-          invites: reunion.invites || []
+          ordresDuJour,
+          presences,
+          invites
         };
 
         console.log(`✅ Réunion ${index + 1} traitée:`, {
@@ -1408,7 +1603,7 @@ export default function App() {
         });
 
         return processed;
-      });
+      }));
 
       setReunions(processedReunions);
       // Mettre à jour aussi l'ancien état meetings pour compatibilité
