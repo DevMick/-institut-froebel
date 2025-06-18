@@ -496,7 +496,10 @@ export default function App() {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
+          'Content-Type': 'application/json',
           'ngrok-skip-browser-warning': 'true',
+          'User-Agent': 'RotaryClubMobile/1.0',
+          'Origin': 'https://snack.expo.dev',
         },
         signal: controller.signal,
       });
@@ -799,6 +802,8 @@ export default function App() {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'ngrok-skip-browser-warning': 'true',
+          'User-Agent': 'RotaryClubMobile/1.0',
+          'Origin': 'https://snack.expo.dev',
         },
         body: JSON.stringify(loginData),
       });
@@ -1143,7 +1148,10 @@ export default function App() {
                   method: 'GET',
                   headers: {
                     'Accept': 'application/json',
+                    'Content-Type': 'application/json',
                     'ngrok-skip-browser-warning': 'true',
+                    'User-Agent': 'RotaryClubMobile/1.0',
+                    'Origin': 'https://snack.expo.dev',
                   },
                 });
 
