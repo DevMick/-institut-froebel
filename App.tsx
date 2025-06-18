@@ -790,6 +790,16 @@ export default function App() {
   const [reunions, setReunions] = useState<Reunion[]>([]);
   const [typesReunion, setTypesReunion] = useState<TypeReunion[]>([]);
   const [selectedReunion, setSelectedReunion] = useState<Reunion | null>(null);
+  const [showCreateReunion, setShowCreateReunion] = useState(false);
+  const [showTypeReunionPicker, setShowTypeReunionPicker] = useState(false);
+  const [reunionForm, setReunionForm] = useState({
+    date: '',
+    heure: '',
+    typeReunionId: '',
+    lieu: '',
+    description: '',
+    ordresDuJour: ['']
+  });
 
   // Charger les données au démarrage
   useEffect(() => {
@@ -1160,6 +1170,91 @@ export default function App() {
       // Ne pas afficher d'erreur car ce n'est pas critique
       setTypesReunion([]);
     }
+  };
+
+  // Créer une nouvelle réunion
+  const handleCreateReunion = async () => {
+    if (!reunionForm.date || !reunionForm.heure || !reunionForm.typeReunionId) {
+      Alert.alert('Erreur', 'Veuillez remplir au moins la date, l\'heure et le type de réunion');
+      return;
+    }
+
+    if (!currentUser?.clubId) {
+      Alert.alert('Erreur', 'Club non identifié. Veuillez vous reconnecter.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log('🔄 === CRÉATION NOUVELLE RÉUNION ===');
+      console.log('📝 Données du formulaire:', reunionForm);
+
+      // Préparer les données selon le format RotaryManager
+      const reunionData = {
+        date: reunionForm.date,
+        heure: reunionForm.heure,
+        typeReunionId: reunionForm.typeReunionId,
+        lieu: reunionForm.lieu,
+        description: reunionForm.description,
+        ordresDuJour: reunionForm.ordresDuJour.filter(ordre => ordre.trim() !== '')
+      };
+
+      console.log('📤 Données envoyées:', reunionData);
+
+      const nouvelleReunion = await apiService.createReunion(currentUser.clubId, reunionData);
+      console.log('✅ Réunion créée:', nouvelleReunion);
+
+      // Recharger la liste des réunions
+      await loadReunions(currentUser.clubId);
+
+      // Réinitialiser le formulaire
+      setReunionForm({
+        date: '',
+        heure: '',
+        typeReunionId: '',
+        lieu: '',
+        description: '',
+        ordresDuJour: ['']
+      });
+
+      setShowCreateReunion(false);
+      Alert.alert('Succès', 'Réunion créée avec succès !');
+
+    } catch (error) {
+      console.error('❌ Erreur lors de la création de la réunion:', error);
+      Alert.alert(
+        'Erreur de création',
+        error.message || 'Une erreur est survenue lors de la création de la réunion'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Ajouter un ordre du jour
+  const addOrdreJour = () => {
+    setReunionForm(prev => ({
+      ...prev,
+      ordresDuJour: [...prev.ordresDuJour, '']
+    }));
+  };
+
+  // Supprimer un ordre du jour
+  const removeOrdreJour = (index: number) => {
+    if (reunionForm.ordresDuJour.length > 1) {
+      setReunionForm(prev => ({
+        ...prev,
+        ordresDuJour: prev.ordresDuJour.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
+  // Mettre à jour un ordre du jour
+  const updateOrdreJour = (index: number, value: string) => {
+    setReunionForm(prev => ({
+      ...prev,
+      ordresDuJour: prev.ordresDuJour.map((ordre, i) => i === index ? value : ordre)
+    }));
   };
 
   const handleLogin = async () => {
@@ -1580,13 +1675,263 @@ export default function App() {
 
         <TouchableOpacity
           style={styles.fab}
-          onPress={() => Alert.alert('Nouvelle réunion', 'Fonctionnalité de création de réunion à venir')}
+          onPress={() => {
+            console.log('🎯 Ouverture du formulaire de création de réunion');
+            if (typesReunion.length === 0 && currentUser?.clubId) {
+              console.log('🔄 Chargement des types de réunion avant création');
+              loadTypesReunion(currentUser.clubId);
+            }
+            setShowCreateReunion(true);
+          }}
         >
           <Ionicons name="add" size={24} color="white" />
         </TouchableOpacity>
       </View>
     );
   };
+
+  // Composant de création de réunion
+  const CreateReunionModal = () => (
+    <Modal
+      visible={showCreateReunion}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setShowCreateReunion(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContent, { maxHeight: '90%' }]}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Nouvelle Réunion</Text>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => {
+                setShowCreateReunion(false);
+                setReunionForm({
+                  date: '',
+                  heure: '',
+                  typeReunionId: '',
+                  lieu: '',
+                  description: '',
+                  ordresDuJour: ['']
+                });
+              }}
+            >
+              <Text style={styles.modalCloseText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={true}>
+            {/* Date */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Date *</Text>
+              <TextInput
+                style={styles.textInput}
+                value={reunionForm.date}
+                onChangeText={(text) => setReunionForm(prev => ({ ...prev, date: text }))}
+                placeholder="YYYY-MM-DD (ex: 2024-12-25)"
+                placeholderTextColor="#999"
+              />
+            </View>
+
+            {/* Heure */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Heure *</Text>
+              <TextInput
+                style={styles.textInput}
+                value={reunionForm.heure}
+                onChangeText={(text) => setReunionForm(prev => ({ ...prev, heure: text }))}
+                placeholder="HH:MM (ex: 18:30)"
+                placeholderTextColor="#999"
+              />
+            </View>
+
+            {/* Type de réunion */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Type de réunion *</Text>
+              <TouchableOpacity
+                style={[
+                  styles.selectButton,
+                  typesReunion.length === 0 && styles.selectButtonDisabled
+                ]}
+                onPress={() => {
+                  if (typesReunion.length === 0) {
+                    Alert.alert('Aucun type', 'Aucun type de réunion disponible.');
+                    return;
+                  }
+                  setShowTypeReunionPicker(true);
+                }}
+                disabled={typesReunion.length === 0}
+              >
+                <Text style={[
+                  styles.selectText,
+                  !reunionForm.typeReunionId && styles.selectPlaceholder,
+                  typesReunion.length === 0 && styles.selectTextDisabled
+                ]}>
+                  {typesReunion.length === 0
+                    ? '⚠️ Aucun type disponible'
+                    : reunionForm.typeReunionId
+                      ? typesReunion.find(type => type.id === reunionForm.typeReunionId)?.libelle || 'Sélectionnez un type'
+                      : `Sélectionnez un type (${typesReunion.length} disponibles)`
+                  }
+                </Text>
+                <Text style={styles.selectArrow}>▼</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Lieu */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Lieu</Text>
+              <TextInput
+                style={styles.textInput}
+                value={reunionForm.lieu}
+                onChangeText={(text) => setReunionForm(prev => ({ ...prev, lieu: text }))}
+                placeholder="Lieu de la réunion"
+                placeholderTextColor="#999"
+              />
+            </View>
+
+            {/* Description */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Description</Text>
+              <TextInput
+                style={[styles.textInput, { height: 80, textAlignVertical: 'top' }]}
+                value={reunionForm.description}
+                onChangeText={(text) => setReunionForm(prev => ({ ...prev, description: text }))}
+                placeholder="Description de la réunion"
+                placeholderTextColor="#999"
+                multiline={true}
+                numberOfLines={3}
+              />
+            </View>
+
+            {/* Ordres du jour */}
+            <View style={styles.inputContainer}>
+              <View style={styles.ordresJourHeader}>
+                <Text style={styles.inputLabel}>Ordres du jour</Text>
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={addOrdreJour}
+                >
+                  <Text style={styles.addButtonText}>+ Ajouter</Text>
+                </TouchableOpacity>
+              </View>
+
+              {reunionForm.ordresDuJour.map((ordre, index) => (
+                <View key={index} style={styles.ordreJourItem}>
+                  <TextInput
+                    style={[styles.textInput, { flex: 1 }]}
+                    value={ordre}
+                    onChangeText={(text) => updateOrdreJour(index, text)}
+                    placeholder={`Ordre du jour ${index + 1}`}
+                    placeholderTextColor="#999"
+                  />
+                  {reunionForm.ordresDuJour.length > 1 && (
+                    <TouchableOpacity
+                      style={styles.removeButton}
+                      onPress={() => removeOrdreJour(index)}
+                    >
+                      <Text style={styles.removeButtonText}>✕</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))}
+            </View>
+
+            {/* Boutons d'action */}
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSecondary]}
+                onPress={() => setShowCreateReunion(false)}
+              >
+                <Text style={styles.modalButtonTextSecondary}>Annuler</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonPrimary, loading && styles.modalButtonDisabled]}
+                onPress={handleCreateReunion}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="white" size="small" />
+                ) : (
+                  <Text style={styles.modalButtonTextPrimary}>Créer</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  // Modal de sélection du type de réunion
+  const TypeReunionPickerModal = () => (
+    <Modal
+      visible={showTypeReunionPicker}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setShowTypeReunionPicker(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>
+              Sélectionnez le type de réunion ({typesReunion.length} disponibles)
+            </Text>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowTypeReunionPicker(false)}
+            >
+              <Text style={styles.modalCloseText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalScrollView}>
+            {typesReunion.length === 0 ? (
+              <View style={styles.modalEmptyState}>
+                <Text style={styles.modalEmptyText}>
+                  Aucun type de réunion disponible.{'\n'}
+                  Vérifiez votre connexion API.
+                </Text>
+              </View>
+            ) : (
+              typesReunion.map((type, index) => (
+                <TouchableOpacity
+                  key={type.id}
+                  style={[
+                    styles.modalOption,
+                    reunionForm.typeReunionId === type.id && styles.modalOptionSelected
+                  ]}
+                  onPress={() => {
+                    console.log(`🎯 Type de réunion sélectionné: ${type.libelle} (ID: ${type.id})`);
+                    setReunionForm(prev => ({ ...prev, typeReunionId: type.id }));
+                    setShowTypeReunionPicker(false);
+                  }}
+                >
+                  <View style={styles.modalOptionContent}>
+                    <Text style={[
+                      styles.modalOptionText,
+                      reunionForm.typeReunionId === type.id && styles.modalOptionTextSelected
+                    ]}>
+                      {type.libelle}
+                    </Text>
+                    {type.description && (
+                      <Text style={styles.modalOptionSubtext}>
+                        {type.description}
+                      </Text>
+                    )}
+                  </View>
+                  {reunionForm.typeReunionId === type.id && (
+                    <Text style={styles.modalCheckmark}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              ))
+            )}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
 
   // Écran des membres
   const MembersScreen = () => {
@@ -2090,6 +2435,10 @@ export default function App() {
       <StatusBar style="light" />
       {renderCurrentScreen()}
 
+      {/* Modals de création de réunion */}
+      <CreateReunionModal />
+      <TypeReunionPickerModal />
+
       {/* Navigation en bas - seulement si authentifié */}
       {isAuthenticated && !showLogin && !isInitializing && (
         <View style={styles.tabBar}>
@@ -2373,6 +2722,79 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontStyle: 'italic',
     lineHeight: 16,
+  },
+  // Styles pour la création de réunion
+  ordresJourHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  addButton: {
+    backgroundColor: colors.secondary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  ordreJourItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  removeButton: {
+    backgroundColor: colors.error,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  removeButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  modalButton: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 4,
+  },
+  modalButtonSecondary: {
+    backgroundColor: '#f0f0f0',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  modalButtonPrimary: {
+    backgroundColor: colors.primary,
+  },
+  modalButtonDisabled: {
+    backgroundColor: '#ccc',
+  },
+  modalButtonTextSecondary: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  modalButtonTextPrimary: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   memberCard: {
     backgroundColor: colors.surface,
