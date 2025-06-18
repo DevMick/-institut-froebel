@@ -146,6 +146,53 @@ interface InviteReunion {
   telephone?: string;
   fonction?: string;
   organisation?: string;
+  confirme?: boolean;
+  commentaire?: string;
+}
+
+// Interface pour les ordres du jour détaillés
+interface OrdreJourDetaille {
+  id: string;
+  reunionId: string;
+  ordre: number;
+  titre: string;
+  description?: string;
+  dureeEstimee?: number; // en minutes
+  responsable?: string;
+  documents?: string[];
+  statut: 'en_attente' | 'en_cours' | 'termine' | 'reporte';
+  notes?: string;
+}
+
+// Interface pour les comptes-rendus
+interface CompteRendu {
+  id: string;
+  reunionId: string;
+  dateGeneration: string;
+  contenu: string;
+  format: 'word' | 'pdf' | 'html';
+  url?: string;
+  genereParId: string;
+  genereParNom: string;
+}
+
+// Interface pour les filtres de réunion
+interface FiltresReunion {
+  dateDebut?: string;
+  dateFin?: string;
+  typeReunionId?: string;
+  statut?: string;
+  recherche?: string;
+  presenceUtilisateur?: boolean;
+}
+
+// Interface pour les statistiques de réunion
+interface StatistiquesReunion {
+  totalReunions: number;
+  reunionsParMois: { [key: string]: number };
+  tauxPresence: number;
+  membresLesPlusActifs: { membreId: string; nomMembre: string; nombrePresences: number }[];
+  typesLesPlusFrequents: { typeId: string; typeLibelle: string; nombre: number }[];
 }
 
 interface ApiResponse<T> {
@@ -760,6 +807,138 @@ class ApiService {
       throw error;
     }
   }
+
+  // === GESTION DES PRÉSENCES ===
+
+  // Obtenir les présences d'une réunion
+  async getPresencesReunion(clubId: string, reunionId: string): Promise<PresenceReunion[]> {
+    try {
+      const response = await this.makeRequest<PresenceReunion>(`/clubs/${clubId}/reunions/${reunionId}/presences`);
+
+      if (response.success && response.data) {
+        return Array.isArray(response.data) ? response.data : [response.data];
+      }
+      throw new Error(response.message || 'Erreur lors de la récupération des présences');
+    } catch (error) {
+      console.error('Erreur lors de la récupération des présences:', error);
+      throw error;
+    }
+  }
+
+  // Marquer la présence d'un membre
+  async marquerPresence(clubId: string, reunionId: string, membreId: string, present: boolean, excuse: boolean = false): Promise<void> {
+    try {
+      const response = await this.makeRequest<void>(`/clubs/${clubId}/reunions/${reunionId}/presences`, {
+        method: 'POST',
+        body: JSON.stringify({
+          membreId,
+          present,
+          excuse,
+          reunionId
+        }),
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Erreur lors de la mise à jour de la présence');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de la présence:', error);
+      throw error;
+    }
+  }
+
+  // === GESTION DES INVITÉS ===
+
+  // Obtenir les invités d'une réunion
+  async getInvitesReunion(clubId: string, reunionId: string): Promise<InviteReunion[]> {
+    try {
+      const response = await this.makeRequest<InviteReunion>(`/clubs/${clubId}/reunions/${reunionId}/invites`);
+
+      if (response.success && response.data) {
+        return Array.isArray(response.data) ? response.data : [response.data];
+      }
+      throw new Error(response.message || 'Erreur lors de la récupération des invités');
+    } catch (error) {
+      console.error('Erreur lors de la récupération des invités:', error);
+      throw error;
+    }
+  }
+
+  // Ajouter un invité à une réunion
+  async ajouterInvite(clubId: string, reunionId: string, inviteData: Partial<InviteReunion>): Promise<InviteReunion> {
+    try {
+      const response = await this.makeRequest<InviteReunion>(`/clubs/${clubId}/reunions/${reunionId}/invites`, {
+        method: 'POST',
+        body: JSON.stringify(inviteData),
+      });
+
+      if (response.success && response.data) {
+        return response.data;
+      }
+      throw new Error(response.message || 'Erreur lors de l\'ajout de l\'invité');
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout de l\'invité:', error);
+      throw error;
+    }
+  }
+
+  // === GESTION DES ORDRES DU JOUR DÉTAILLÉS ===
+
+  // Obtenir les ordres du jour détaillés
+  async getOrdresJourDetailles(clubId: string, reunionId: string): Promise<OrdreJourDetaille[]> {
+    try {
+      const response = await this.makeRequest<OrdreJourDetaille>(`/clubs/${clubId}/reunions/${reunionId}/ordres-jour`);
+
+      if (response.success && response.data) {
+        return Array.isArray(response.data) ? response.data : [response.data];
+      }
+      throw new Error(response.message || 'Erreur lors de la récupération des ordres du jour');
+    } catch (error) {
+      console.error('Erreur lors de la récupération des ordres du jour:', error);
+      throw error;
+    }
+  }
+
+  // Mettre à jour un ordre du jour
+  async updateOrdreJour(clubId: string, reunionId: string, ordreJourId: string, data: Partial<OrdreJourDetaille>): Promise<OrdreJourDetaille> {
+    try {
+      const response = await this.makeRequest<OrdreJourDetaille>(`/clubs/${clubId}/reunions/${reunionId}/ordres-jour/${ordreJourId}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+
+      if (response.success && response.data) {
+        return response.data;
+      }
+      throw new Error(response.message || 'Erreur lors de la mise à jour de l\'ordre du jour');
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de l\'ordre du jour:', error);
+      throw error;
+    }
+  }
+
+  // === STATISTIQUES ET RAPPORTS ===
+
+  // Obtenir les statistiques des réunions
+  async getStatistiquesReunions(clubId: string, dateDebut?: string, dateFin?: string): Promise<StatistiquesReunion> {
+    try {
+      let url = `/clubs/${clubId}/reunions/statistiques`;
+      const params = new URLSearchParams();
+      if (dateDebut) params.append('dateDebut', dateDebut);
+      if (dateFin) params.append('dateFin', dateFin);
+      if (params.toString()) url += `?${params.toString()}`;
+
+      const response = await this.makeRequest<StatistiquesReunion>(url);
+
+      if (response.success && response.data) {
+        return response.data;
+      }
+      throw new Error(response.message || 'Erreur lors de la récupération des statistiques');
+    } catch (error) {
+      console.error('Erreur lors de la récupération des statistiques:', error);
+      throw error;
+    }
+  }
 }
 
 const apiService = new ApiService();
@@ -800,6 +979,23 @@ export default function App() {
     description: '',
     ordresDuJour: ['']
   });
+
+  // États pour les fonctionnalités avancées
+  const [showReunionDetails, setShowReunionDetails] = useState(false);
+  const [showPresenceManager, setShowPresenceManager] = useState(false);
+  const [showInviteManager, setShowInviteManager] = useState(false);
+  const [showOrdreJourManager, setShowOrdreJourManager] = useState(false);
+  const [showCalendarView, setShowCalendarView] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [showStatistics, setShowStatistics] = useState(false);
+
+  // Données pour les fonctionnalités avancées
+  const [ordresJourDetailles, setOrdresJourDetailles] = useState<OrdreJourDetaille[]>([]);
+  const [comptesRendus, setComptesRendus] = useState<CompteRendu[]>([]);
+  const [filtresReunion, setFiltresReunion] = useState<FiltresReunion>({});
+  const [statistiques, setStatistiques] = useState<StatistiquesReunion | null>(null);
+  const [reunionsFiltrees, setReunionsFiltrees] = useState<Reunion[]>([]);
+  const [modeAffichage, setModeAffichage] = useState<'liste' | 'calendrier'>('liste');
 
   // Charger les données au démarrage
   useEffect(() => {
@@ -1257,6 +1453,151 @@ export default function App() {
     }));
   };
 
+  // === FONCTIONS POUR LES FONCTIONNALITÉS AVANCÉES ===
+
+  // Charger les détails complets d'une réunion
+  const loadReunionDetails = async (reunionId: string) => {
+    if (!currentUser?.clubId) return;
+
+    try {
+      setLoading(true);
+      console.log('🔄 Chargement des détails de la réunion:', reunionId);
+
+      // Charger en parallèle toutes les données de la réunion
+      const [reunion, presences, invites, ordresJour] = await Promise.all([
+        apiService.getReunion(currentUser.clubId, reunionId),
+        apiService.getPresencesReunion(currentUser.clubId, reunionId).catch(() => []),
+        apiService.getInvitesReunion(currentUser.clubId, reunionId).catch(() => []),
+        apiService.getOrdresJourDetailles(currentUser.clubId, reunionId).catch(() => [])
+      ]);
+
+      // Mettre à jour la réunion sélectionnée avec toutes les données
+      setSelectedReunion({
+        ...reunion,
+        presences,
+        invites
+      });
+      setOrdresJourDetailles(ordresJour);
+
+      console.log('✅ Détails de la réunion chargés');
+    } catch (error) {
+      console.error('❌ Erreur lors du chargement des détails:', error);
+      Alert.alert('Erreur', 'Impossible de charger les détails de la réunion');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filtrer les réunions
+  const appliquerFiltres = () => {
+    let reunionsFiltrees = [...reunions];
+
+    // Filtre par date
+    if (filtresReunion.dateDebut) {
+      reunionsFiltrees = reunionsFiltrees.filter(r =>
+        new Date(r.date) >= new Date(filtresReunion.dateDebut!)
+      );
+    }
+    if (filtresReunion.dateFin) {
+      reunionsFiltrees = reunionsFiltrees.filter(r =>
+        new Date(r.date) <= new Date(filtresReunion.dateFin!)
+      );
+    }
+
+    // Filtre par type
+    if (filtresReunion.typeReunionId) {
+      reunionsFiltrees = reunionsFiltrees.filter(r =>
+        r.typeReunionId === filtresReunion.typeReunionId
+      );
+    }
+
+    // Filtre par recherche
+    if (filtresReunion.recherche) {
+      const recherche = filtresReunion.recherche.toLowerCase();
+      reunionsFiltrees = reunionsFiltrees.filter(r =>
+        r.typeReunionLibelle.toLowerCase().includes(recherche) ||
+        r.lieu?.toLowerCase().includes(recherche) ||
+        r.description?.toLowerCase().includes(recherche)
+      );
+    }
+
+    setReunionsFiltrees(reunionsFiltrees);
+  };
+
+  // Charger les statistiques
+  const loadStatistiques = async () => {
+    if (!currentUser?.clubId) return;
+
+    try {
+      setLoading(true);
+      const stats = await apiService.getStatistiquesReunions(
+        currentUser.clubId,
+        filtresReunion.dateDebut,
+        filtresReunion.dateFin
+      );
+      setStatistiques(stats);
+    } catch (error) {
+      console.error('❌ Erreur lors du chargement des statistiques:', error);
+      Alert.alert('Erreur', 'Impossible de charger les statistiques');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Marquer la présence d'un membre
+  const togglePresence = async (membreId: string, present: boolean) => {
+    if (!selectedReunion || !currentUser?.clubId) return;
+
+    try {
+      await apiService.marquerPresence(
+        currentUser.clubId,
+        selectedReunion.id,
+        membreId,
+        present
+      );
+
+      // Recharger les présences
+      await loadReunionDetails(selectedReunion.id);
+      Alert.alert('Succès', `Présence ${present ? 'marquée' : 'supprimée'} avec succès`);
+    } catch (error) {
+      console.error('❌ Erreur lors de la mise à jour de la présence:', error);
+      Alert.alert('Erreur', 'Impossible de mettre à jour la présence');
+    }
+  };
+
+  // Générer un compte-rendu
+  const genererCompteRendu = async (reunionId: string) => {
+    try {
+      setLoading(true);
+      console.log('📄 Génération du compte-rendu pour la réunion:', reunionId);
+
+      const compteRendu = await apiService.genererCompteRendu(reunionId);
+
+      Alert.alert(
+        'Compte-rendu généré',
+        'Le compte-rendu a été généré avec succès !',
+        [
+          { text: 'OK', style: 'default' },
+          {
+            text: 'Télécharger',
+            onPress: () => {
+              if (compteRendu.url) {
+                // Dans une vraie app, on ouvrirait le fichier
+                console.log('📥 Téléchargement du compte-rendu:', compteRendu.url);
+                Alert.alert('Info', 'Fonctionnalité de téléchargement disponible dans l\'app native');
+              }
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('❌ Erreur lors de la génération du compte-rendu:', error);
+      Alert.alert('Erreur', 'Impossible de générer le compte-rendu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogin = async () => {
     if (!loginForm.email || !loginForm.password) {
       Alert.alert('Erreur', 'Veuillez remplir votre email et mot de passe');
@@ -1550,24 +1891,64 @@ export default function App() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Réunions ({reunions.length})</Text>
-          {isAuthenticated && (
+          <Text style={styles.headerTitle}>
+            Réunions ({(reunionsFiltrees.length > 0 ? reunionsFiltrees : reunions).length})
+          </Text>
+          <View style={styles.headerActions}>
+            {/* Bouton de basculement vue liste/calendrier */}
             <TouchableOpacity
-              style={styles.refreshButton}
+              style={[styles.headerButton, modeAffichage === 'calendrier' && styles.headerButtonActive]}
+              onPress={() => setModeAffichage(modeAffichage === 'liste' ? 'calendrier' : 'liste')}
+            >
+              <Ionicons
+                name={modeAffichage === 'liste' ? 'calendar' : 'list'}
+                size={20}
+                color={modeAffichage === 'calendrier' ? colors.secondary : 'white'}
+              />
+            </TouchableOpacity>
+
+            {/* Bouton filtres */}
+            <TouchableOpacity
+              style={[styles.headerButton, Object.keys(filtresReunion).length > 0 && styles.headerButtonActive]}
+              onPress={() => setShowFilters(true)}
+            >
+              <Ionicons
+                name="filter"
+                size={20}
+                color={Object.keys(filtresReunion).length > 0 ? colors.secondary : 'white'}
+              />
+            </TouchableOpacity>
+
+            {/* Bouton statistiques */}
+            <TouchableOpacity
+              style={styles.headerButton}
               onPress={() => {
-                console.log('🔄 Bouton refresh réunions cliqué');
-                if (currentUser?.clubId) {
-                  console.log('🔄 Rechargement des réunions pour club:', currentUser.clubId);
-                  loadReunions(currentUser.clubId);
-                } else {
-                  console.log('❌ Pas de clubId disponible');
-                  Alert.alert('Erreur', 'Impossible de recharger : club non identifié');
-                }
+                loadStatistiques();
+                setShowStatistics(true);
               }}
             >
-              <Ionicons name="refresh" size={20} color="white" />
+              <Ionicons name="stats-chart" size={20} color="white" />
             </TouchableOpacity>
-          )}
+
+            {/* Bouton refresh */}
+            {isAuthenticated && (
+              <TouchableOpacity
+                style={styles.refreshButton}
+                onPress={() => {
+                  console.log('🔄 Bouton refresh réunions cliqué');
+                  if (currentUser?.clubId) {
+                    console.log('🔄 Rechargement des réunions pour club:', currentUser.clubId);
+                    loadReunions(currentUser.clubId);
+                  } else {
+                    console.log('❌ Pas de clubId disponible');
+                    Alert.alert('Erreur', 'Impossible de recharger : club non identifié');
+                  }
+                }}
+              >
+                <Ionicons name="refresh" size={20} color="white" />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {loading ? (
@@ -1604,21 +1985,15 @@ export default function App() {
           </View>
         ) : (
           <FlatList
-            data={reunions}
+            data={reunionsFiltrees.length > 0 ? reunionsFiltrees : reunions}
             keyExtractor={item => item.id}
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.meetingCard}
                 onPress={() => {
                   setSelectedReunion(item);
-                  Alert.alert(
-                    item.typeReunionLibelle || 'Réunion',
-                    `Date: ${item.dateFormatted}\nHeure: ${item.heureFormatted}\nLieu: ${item.lieu || 'Non précisé'}\n\nOrdres du jour: ${item.ordresDuJour.length}\nPrésents: ${item.presences.length}\nInvités: ${item.invites.length}`,
-                    [
-                      { text: 'Fermer', style: 'cancel' },
-                      { text: 'Voir détails', onPress: () => console.log('Détails réunion:', item.id) }
-                    ]
-                  );
+                  loadReunionDetails(item.id);
+                  setShowReunionDetails(true);
                 }}
               >
                 <View style={styles.meetingHeader}>
@@ -1859,6 +2234,348 @@ export default function App() {
               </TouchableOpacity>
             </View>
           </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  // Composant de détails de réunion
+  const ReunionDetailsModal = () => (
+    <Modal
+      visible={showReunionDetails}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setShowReunionDetails(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContent, { maxHeight: '95%' }]}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>
+              {selectedReunion?.typeReunionLibelle || 'Détails de la réunion'}
+            </Text>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowReunionDetails(false)}
+            >
+              <Text style={styles.modalCloseText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          {selectedReunion && (
+            <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={true}>
+              {/* Informations générales */}
+              <View style={styles.detailSection}>
+                <Text style={styles.detailSectionTitle}>📅 Informations générales</Text>
+                <Text style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Date: </Text>
+                  {selectedReunion.dateFormatted}
+                </Text>
+                <Text style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Heure: </Text>
+                  {selectedReunion.heureFormatted}
+                </Text>
+                {selectedReunion.lieu && (
+                  <Text style={styles.detailItem}>
+                    <Text style={styles.detailLabel}>Lieu: </Text>
+                    {selectedReunion.lieu}
+                  </Text>
+                )}
+                {selectedReunion.description && (
+                  <Text style={styles.detailItem}>
+                    <Text style={styles.detailLabel}>Description: </Text>
+                    {selectedReunion.description}
+                  </Text>
+                )}
+              </View>
+
+              {/* Ordres du jour */}
+              <View style={styles.detailSection}>
+                <View style={styles.detailSectionHeader}>
+                  <Text style={styles.detailSectionTitle}>
+                    📋 Ordres du jour ({selectedReunion.ordresDuJour.length})
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.detailActionButton}
+                    onPress={() => setShowOrdreJourManager(true)}
+                  >
+                    <Text style={styles.detailActionText}>Gérer</Text>
+                  </TouchableOpacity>
+                </View>
+                {selectedReunion.ordresDuJour.map((ordre, index) => (
+                  <Text key={index} style={styles.detailListItem}>
+                    {index + 1}. {ordre}
+                  </Text>
+                ))}
+              </View>
+
+              {/* Présences */}
+              <View style={styles.detailSection}>
+                <View style={styles.detailSectionHeader}>
+                  <Text style={styles.detailSectionTitle}>
+                    👥 Présences ({selectedReunion.presences.length})
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.detailActionButton}
+                    onPress={() => setShowPresenceManager(true)}
+                  >
+                    <Text style={styles.detailActionText}>Gérer</Text>
+                  </TouchableOpacity>
+                </View>
+                {selectedReunion.presences.slice(0, 3).map((presence, index) => (
+                  <Text key={index} style={styles.detailListItem}>
+                    {presence.present ? '✅' : '❌'} {presence.nomMembre}
+                  </Text>
+                ))}
+                {selectedReunion.presences.length > 3 && (
+                  <Text style={styles.detailMoreText}>
+                    ... et {selectedReunion.presences.length - 3} autres
+                  </Text>
+                )}
+              </View>
+
+              {/* Invités */}
+              <View style={styles.detailSection}>
+                <View style={styles.detailSectionHeader}>
+                  <Text style={styles.detailSectionTitle}>
+                    🎯 Invités ({selectedReunion.invites.length})
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.detailActionButton}
+                    onPress={() => setShowInviteManager(true)}
+                  >
+                    <Text style={styles.detailActionText}>Gérer</Text>
+                  </TouchableOpacity>
+                </View>
+                {selectedReunion.invites.slice(0, 3).map((invite, index) => (
+                  <Text key={index} style={styles.detailListItem}>
+                    👤 {invite.prenom} {invite.nom}
+                    {invite.organisation && ` (${invite.organisation})`}
+                  </Text>
+                ))}
+                {selectedReunion.invites.length > 3 && (
+                  <Text style={styles.detailMoreText}>
+                    ... et {selectedReunion.invites.length - 3} autres
+                  </Text>
+                )}
+              </View>
+
+              {/* Actions */}
+              <View style={styles.detailActions}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.modalButtonSecondary]}
+                  onPress={() => genererCompteRendu(selectedReunion.id)}
+                >
+                  <Text style={styles.modalButtonTextSecondary}>📄 Compte-rendu</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.modalButtonPrimary]}
+                  onPress={() => {
+                    // Ouvrir le formulaire d'édition
+                    Alert.alert('Édition', 'Fonctionnalité d\'édition à venir');
+                  }}
+                >
+                  <Text style={styles.modalButtonTextPrimary}>✏️ Modifier</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
+
+  // Composant de gestion des présences
+  const PresenceManagerModal = () => (
+    <Modal
+      visible={showPresenceManager}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setShowPresenceManager(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContent, { maxHeight: '90%' }]}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>
+              Gestion des présences
+            </Text>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowPresenceManager(false)}
+            >
+              <Text style={styles.modalCloseText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalScrollView}>
+            {/* Liste des membres avec présences */}
+            {members.map((member) => {
+              const presence = selectedReunion?.presences.find(p => p.membreId === member.id);
+              const isPresent = presence?.present || false;
+
+              return (
+                <View key={member.id} style={styles.presenceItem}>
+                  <View style={styles.presenceInfo}>
+                    <View style={styles.avatar}>
+                      <Text style={styles.avatarText}>
+                        {member.fullName ?
+                          member.fullName.split(' ').map((n: string) => n[0]).join('').substring(0, 2) :
+                          'MB'
+                        }
+                      </Text>
+                    </View>
+                    <View style={styles.presenceDetails}>
+                      <Text style={styles.presenceName}>{member.fullName}</Text>
+                      <Text style={styles.presenceRole}>
+                        {member.roles && member.roles.length > 0 ? member.roles.join(', ') : 'Membre'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.presenceActions}>
+                    <TouchableOpacity
+                      style={[
+                        styles.presenceButton,
+                        isPresent ? styles.presenceButtonActive : styles.presenceButtonInactive
+                      ]}
+                      onPress={() => togglePresence(member.id, !isPresent)}
+                    >
+                      <Text style={[
+                        styles.presenceButtonText,
+                        isPresent && styles.presenceButtonTextActive
+                      ]}>
+                        {isPresent ? '✅ Présent' : '❌ Absent'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
+          </ScrollView>
+
+          <View style={styles.modalActions}>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.modalButtonSecondary]}
+              onPress={() => setShowPresenceManager(false)}
+            >
+              <Text style={styles.modalButtonTextSecondary}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  // Composant de filtres
+  const FiltersModal = () => (
+    <Modal
+      visible={showFilters}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setShowFilters(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Filtres des réunions</Text>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowFilters(false)}
+            >
+              <Text style={styles.modalCloseText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalScrollView}>
+            {/* Recherche */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Recherche</Text>
+              <TextInput
+                style={styles.textInput}
+                value={filtresReunion.recherche || ''}
+                onChangeText={(text) => setFiltresReunion(prev => ({ ...prev, recherche: text }))}
+                placeholder="Rechercher dans les réunions..."
+                placeholderTextColor="#999"
+              />
+            </View>
+
+            {/* Date de début */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Date de début</Text>
+              <TextInput
+                style={styles.textInput}
+                value={filtresReunion.dateDebut || ''}
+                onChangeText={(text) => setFiltresReunion(prev => ({ ...prev, dateDebut: text }))}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor="#999"
+              />
+            </View>
+
+            {/* Date de fin */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Date de fin</Text>
+              <TextInput
+                style={styles.textInput}
+                value={filtresReunion.dateFin || ''}
+                onChangeText={(text) => setFiltresReunion(prev => ({ ...prev, dateFin: text }))}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor="#999"
+              />
+            </View>
+
+            {/* Type de réunion */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Type de réunion</Text>
+              <TouchableOpacity
+                style={styles.selectButton}
+                onPress={() => {
+                  Alert.alert(
+                    'Types de réunion',
+                    'Sélectionnez un type',
+                    [
+                      { text: 'Tous', onPress: () => setFiltresReunion(prev => ({ ...prev, typeReunionId: undefined })) },
+                      ...typesReunion.map(type => ({
+                        text: type.libelle,
+                        onPress: () => setFiltresReunion(prev => ({ ...prev, typeReunionId: type.id }))
+                      })),
+                      { text: 'Annuler', style: 'cancel' }
+                    ]
+                  );
+                }}
+              >
+                <Text style={[styles.selectText, !filtresReunion.typeReunionId && styles.selectPlaceholder]}>
+                  {filtresReunion.typeReunionId
+                    ? typesReunion.find(t => t.id === filtresReunion.typeReunionId)?.libelle || 'Type sélectionné'
+                    : 'Tous les types'
+                  }
+                </Text>
+                <Text style={styles.selectArrow}>▼</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+
+          <View style={styles.modalActions}>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.modalButtonSecondary]}
+              onPress={() => {
+                setFiltresReunion({});
+                setReunionsFiltrees([]);
+                setShowFilters(false);
+              }}
+            >
+              <Text style={styles.modalButtonTextSecondary}>Réinitialiser</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.modalButton, styles.modalButtonPrimary]}
+              onPress={() => {
+                appliquerFiltres();
+                setShowFilters(false);
+              }}
+            >
+              <Text style={styles.modalButtonTextPrimary}>Appliquer</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
@@ -2435,9 +3152,12 @@ export default function App() {
       <StatusBar style="light" />
       {renderCurrentScreen()}
 
-      {/* Modals de création de réunion */}
+      {/* Modals de gestion des réunions */}
       <CreateReunionModal />
       <TypeReunionPickerModal />
+      <ReunionDetailsModal />
+      <PresenceManagerModal />
+      <FiltersModal />
 
       {/* Navigation en bas - seulement si authentifié */}
       {isAuthenticated && !showLogin && !isInitializing && (
@@ -2795,6 +3515,131 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  // Styles pour les fonctionnalités avancées
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: 8,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  headerButtonActive: {
+    backgroundColor: colors.secondary,
+  },
+  detailSection: {
+    backgroundColor: '#f9f9f9',
+    padding: 16,
+    marginBottom: 12,
+    borderRadius: 8,
+  },
+  detailSectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  detailSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  detailActionButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  detailActionText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  detailItem: {
+    fontSize: 14,
+    color: colors.text,
+    marginBottom: 4,
+    lineHeight: 20,
+  },
+  detailLabel: {
+    fontWeight: 'bold',
+  },
+  detailListItem: {
+    fontSize: 14,
+    color: colors.text,
+    marginBottom: 4,
+    paddingLeft: 8,
+  },
+  detailMoreText: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+    paddingLeft: 8,
+    marginTop: 4,
+  },
+  detailActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  presenceItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  presenceInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  presenceDetails: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  presenceName: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.text,
+  },
+  presenceRole: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  presenceActions: {
+    marginLeft: 12,
+  },
+  presenceButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  presenceButtonActive: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
+  },
+  presenceButtonInactive: {
+    backgroundColor: '#f0f0f0',
+    borderColor: '#ddd',
+  },
+  presenceButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#666',
+  },
+  presenceButtonTextActive: {
+    color: 'white',
   },
   memberCard: {
     backgroundColor: colors.surface,
