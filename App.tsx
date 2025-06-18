@@ -1950,6 +1950,9 @@ export default function App() {
 
     // TOUJOURS ajouter des données de test pour vérifier l'affichage
     console.log('🧪 === AJOUT DONNÉES DE TEST POUR VÉRIFICATION ===');
+    const currentYear = new Date().getFullYear(); // 2025
+    console.log('📅 Année actuelle (mandat actuel):', currentYear);
+
     setMembers(prevMembers => prevMembers.map((member, index) => {
       if (index === 0) { // Premier membre (Kouadio Yao) avec des données de test
         console.log('🧪 Ajout données test pour:', member.fullName);
@@ -1961,14 +1964,23 @@ export default function App() {
               comiteNom: 'Comité Exécutif',
               estResponsable: true,
               estActif: true,
-              dateNomination: '2024-01-01',
-              mandatAnnee: 2024
+              dateNomination: '2025-01-01',
+              mandatAnnee: currentYear
             },
             {
               comiteId: 'test-comite-2',
               comiteNom: 'Comité des Finances',
               estResponsable: false,
               estActif: true,
+              dateNomination: '2025-01-01',
+              mandatAnnee: currentYear
+            },
+            // Fonction d'un ancien mandat (ne devrait pas s'afficher)
+            {
+              comiteId: 'test-comite-old',
+              comiteNom: 'Ancien Comité',
+              estResponsable: false,
+              estActif: false,
               dateNomination: '2024-01-01',
               mandatAnnee: 2024
             }
@@ -1979,14 +1991,23 @@ export default function App() {
               commissionNom: 'Commission Jeunesse',
               estResponsable: true,
               estActif: true,
-              dateNomination: '2024-01-01',
-              mandatAnnee: 2024
+              dateNomination: '2025-01-01',
+              mandatAnnee: currentYear
             },
             {
               commissionId: 'test-commission-2',
               commissionNom: 'Commission Action Sociale',
               estResponsable: false,
               estActif: true,
+              dateNomination: '2025-01-01',
+              mandatAnnee: currentYear
+            },
+            // Commission d'un ancien mandat (ne devrait pas s'afficher)
+            {
+              commissionId: 'test-commission-old',
+              commissionNom: 'Ancienne Commission',
+              estResponsable: false,
+              estActif: false,
               dateNomination: '2024-01-01',
               mandatAnnee: 2024
             }
@@ -2002,18 +2023,19 @@ export default function App() {
               comiteNom: 'Comité des Membres',
               estResponsable: true,
               estActif: true,
-              dateNomination: '2024-01-01',
-              mandatAnnee: 2024
+              dateNomination: '2025-01-01',
+              mandatAnnee: currentYear
             }
           ],
           commissions: [
+            // Seulement une commission d'un ancien mandat pour tester le filtrage
             {
-              commissionId: 'test-commission-3',
+              commissionId: 'test-commission-old-2',
               commissionNom: 'Commission Communication',
               estResponsable: false,
               estActif: false,
-              dateNomination: '2023-01-01',
-              mandatAnnee: 2023
+              dateNomination: '2024-01-01',
+              mandatAnnee: 2024
             }
           ]
         };
@@ -3977,45 +3999,53 @@ export default function App() {
                     Membre depuis: {item.clubJoinedDateFormatted || 'Date non disponible'}
                   </Text>
 
-                  {/* Affichage des fonctions (comités) */}
+                  {/* Affichage des fonctions (comités) - Mandat actuel uniquement */}
+                  {(() => {
+                    const currentYear = new Date().getFullYear();
+                    const currentFunctions = item.fonctions?.filter(f => f.mandatAnnee === currentYear) || [];
 
-
-                  {item.fonctions && item.fonctions.length > 0 && (
-                    <View style={styles.memberFunctionsContainer}>
-                      <Text style={styles.memberFunctionsTitle}>🏛️ Fonctions:</Text>
-                      {item.fonctions.map((fonction, index) => (
-                        <View key={index} style={styles.functionItem}>
-                          <Text style={styles.functionText}>
-                            • {fonction.comiteNom}
-                            {fonction.estResponsable && ' (Responsable)'}
-                            {!fonction.estActif && ' (Inactif)'}
-                          </Text>
-                          <Text style={styles.functionYear}>
-                            Mandat {fonction.mandatAnnee}
-                          </Text>
+                    if (currentFunctions.length > 0) {
+                      return (
+                        <View style={styles.memberFunctionsContainer}>
+                          <Text style={styles.memberFunctionsTitle}>🏛️ Fonctions (Mandat {currentYear}):</Text>
+                          {currentFunctions.map((fonction, index) => (
+                            <View key={index} style={styles.functionItem}>
+                              <Text style={styles.functionText}>
+                                • {fonction.comiteNom}
+                                {fonction.estResponsable && ' (Responsable)'}
+                                {!fonction.estActif && ' (Inactif)'}
+                              </Text>
+                            </View>
+                          ))}
                         </View>
-                      ))}
-                    </View>
-                  )}
+                      );
+                    }
+                    return null;
+                  })()}
 
-                  {/* Affichage des commissions */}
-                  {item.commissions && item.commissions.length > 0 && (
-                    <View style={styles.memberCommissionsContainer}>
-                      <Text style={styles.memberCommissionsTitle}>🎯 Commissions:</Text>
-                      {item.commissions.map((commission, index) => (
-                        <View key={index} style={styles.commissionItem}>
-                          <Text style={styles.commissionText}>
-                            • {commission.commissionNom}
-                            {commission.estResponsable && ' (Responsable)'}
-                            {!commission.estActif && ' (Inactif)'}
-                          </Text>
-                          <Text style={styles.commissionYear}>
-                            Mandat {commission.mandatAnnee}
-                          </Text>
+                  {/* Affichage des commissions - Mandat actuel uniquement */}
+                  {(() => {
+                    const currentYear = new Date().getFullYear();
+                    const currentCommissions = item.commissions?.filter(c => c.mandatAnnee === currentYear) || [];
+
+                    if (currentCommissions.length > 0) {
+                      return (
+                        <View style={styles.memberCommissionsContainer}>
+                          <Text style={styles.memberCommissionsTitle}>🎯 Commissions (Mandat {currentYear}):</Text>
+                          {currentCommissions.map((commission, index) => (
+                            <View key={index} style={styles.commissionItem}>
+                              <Text style={styles.commissionText}>
+                                • {commission.commissionNom}
+                                {commission.estResponsable && ' (Responsable)'}
+                                {!commission.estActif && ' (Inactif)'}
+                              </Text>
+                            </View>
+                          ))}
                         </View>
-                      ))}
-                    </View>
-                  )}
+                      );
+                    }
+                    return null;
+                  })()}
 
                   {/* Boutons d'action de communication */}
                   {item.phoneNumber && (
