@@ -28,6 +28,7 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [compteRendu, setCompteRendu] = useState<any>(null);
   const [loadingCompteRendu, setLoadingCompteRendu] = useState(false);
+  const [showCompteRendu, setShowCompteRendu] = useState(false);
 
   const apiService = new ApiService();
   const rapportService = new OrdreJourRapportService();
@@ -128,32 +129,20 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
     });
   };
 
-  const getStatusColor = (statut?: string) => {
-    switch (statut) {
-      case 'programmee': return '#007AFF';
-      case 'en_cours': return '#FF9500';
-      case 'terminee': return '#34C759';
-      case 'annulee': return '#FF3B30';
-      default: return '#8E8E93';
-    }
-  };
 
-  const getStatusText = (statut?: string) => {
-    switch (statut) {
-      case 'programmee': return 'Programmée';
-      case 'en_cours': return 'En cours';
-      case 'terminee': return 'Terminée';
-      case 'annulee': return 'Annulée';
-      default: return 'Inconnue';
-    }
-  };
 
-  const handleReunionPress = async (reunion: Reunion) => {
+  const handleReunionPress = (reunion: Reunion) => {
     setSelectedReunion(reunion);
     setShowDetailModal(true);
+    setShowCompteRendu(false);
+    setCompteRendu(null);
+  };
 
-    // Charger le compte-rendu automatiquement
-    await loadCompteRendu(reunion);
+  const handleShowCompteRendu = async () => {
+    if (!selectedReunion) return;
+
+    setShowCompteRendu(true);
+    await loadCompteRendu(selectedReunion);
   };
 
   const loadCompteRendu = async (reunion: Reunion) => {
@@ -233,32 +222,28 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
         <View style={styles.reunionInfo}>
           <Text style={styles.reunionType}>{item.typeReunionLibelle}</Text>
           <Text style={styles.reunionDate}>{formatDate(item.date)}</Text>
-          <Text style={styles.reunionTime}>{item.heure} • {item.lieu || 'Lieu non précisé'}</Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.statut) }]}>
-          <Text style={styles.statusText}>{getStatusText(item.statut)}</Text>
+        <View style={styles.timeBadge}>
+          <Text style={styles.timeText}>{item.heure}</Text>
         </View>
       </View>
 
       <View style={styles.reunionStats}>
         <View style={styles.statItem}>
-          <Ionicons name="list" size={16} color="#666" />
+          <Ionicons name="list" size={16} color="#005AA9" />
           <Text style={styles.statText}>{(item.ordresDuJour || []).length} points</Text>
         </View>
         <View style={styles.statItem}>
-          <Ionicons name="people" size={16} color="#666" />
+          <Ionicons name="people" size={16} color="#005AA9" />
           <Text style={styles.statText}>{(item.presences || []).length} présences</Text>
         </View>
         <View style={styles.statItem}>
-          <Ionicons name="person-add" size={16} color="#666" />
+          <Ionicons name="person-add" size={16} color="#005AA9" />
           <Text style={styles.statText}>{(item.invites || []).length} invités</Text>
         </View>
       </View>
 
       <View style={styles.reunionFooter}>
-        <Text style={styles.reunionDescription} numberOfLines={2}>
-          {item.description || 'Aucune description'}
-        </Text>
         <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
       </View>
     </TouchableOpacity>
@@ -276,131 +261,164 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
       >
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Réunion & Compte-Rendu</Text>
+            <Text style={styles.modalTitle}>
+              {showCompteRendu ? 'Compte-Rendu' : 'Détails de la réunion'}
+            </Text>
             <TouchableOpacity onPress={() => {
               setShowDetailModal(false);
               setCompteRendu(null);
+              setShowCompteRendu(false);
             }}>
               <Ionicons name="close" size={24} color="#666" />
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.modalContent}>
-            {/* Info générale */}
-            <View style={styles.detailSection}>
-              <Text style={styles.sectionTitle}>📅 Informations générales</Text>
-              <Text style={styles.detailText}>Type: {selectedReunion.typeReunionLibelle}</Text>
-              <Text style={styles.detailText}>Date: {formatDate(selectedReunion.date)}</Text>
-              <Text style={styles.detailText}>Heure: {selectedReunion.heure}</Text>
-              <Text style={styles.detailText}>Lieu: {selectedReunion.lieu}</Text>
-              <Text style={styles.detailText}>Statut: {getStatusText(selectedReunion.statut)}</Text>
-            </View>
+            {!showCompteRendu ? (
+              // Affichage des informations générales et statistiques
+              <>
+                {/* Informations générales */}
+                <View style={styles.detailSection}>
+                  <Text style={styles.sectionTitle}>📅 Informations générales</Text>
+                  <Text style={styles.detailText}>Type: {selectedReunion.typeReunionLibelle}</Text>
+                  <Text style={styles.detailText}>Date: {formatDate(selectedReunion.date)}</Text>
+                  <Text style={styles.detailText}>Heure: {selectedReunion.heure}</Text>
+                </View>
 
-            {/* Chargement du compte-rendu */}
-            {loadingCompteRendu && (
-              <View style={styles.loadingSection}>
-                <ActivityIndicator size="large" color="#005AA9" />
-                <Text style={styles.loadingText}>Chargement du compte-rendu...</Text>
-              </View>
-            )}
-
-            {/* Statistiques du compte-rendu */}
-            {compteRendu && !loadingCompteRendu && (
-              <View style={styles.detailSection}>
-                <Text style={styles.sectionTitle}>📊 Statistiques</Text>
-                <View style={styles.statsRow}>
-                  <View style={styles.statItem}>
-                    <Text style={styles.statNumber}>{compteRendu.statistiques.totalPresences}</Text>
-                    <Text style={styles.statLabel}>Présents</Text>
-                  </View>
-                  <View style={styles.statItem}>
-                    <Text style={styles.statNumber}>{compteRendu.statistiques.totalInvites}</Text>
-                    <Text style={styles.statLabel}>Invités</Text>
-                  </View>
-                  <View style={styles.statItem}>
-                    <Text style={styles.statNumber}>{compteRendu.statistiques.ordresAvecContenu}</Text>
-                    <Text style={styles.statLabel}>Ordres traités</Text>
+                {/* Statistiques de base */}
+                <View style={styles.detailSection}>
+                  <Text style={styles.sectionTitle}>📊 Statistiques</Text>
+                  <View style={styles.statsRow}>
+                    <View style={styles.statItem}>
+                      <Text style={styles.statNumber}>{(selectedReunion.ordresDuJour || []).length}</Text>
+                      <Text style={styles.statLabel}>Points à l'ordre</Text>
+                    </View>
+                    <View style={styles.statItem}>
+                      <Text style={styles.statNumber}>{(selectedReunion.presences || []).length}</Text>
+                      <Text style={styles.statLabel}>Présences</Text>
+                    </View>
+                    <View style={styles.statItem}>
+                      <Text style={styles.statNumber}>{(selectedReunion.invites || []).length}</Text>
+                      <Text style={styles.statLabel}>Invités</Text>
+                    </View>
                   </View>
                 </View>
-              </View>
-            )}
 
-            {/* Présences du compte-rendu */}
-            {compteRendu && !loadingCompteRendu && (
-              <View style={styles.detailSection}>
-                <Text style={styles.sectionTitle}>👥 Présences ({compteRendu.statistiques.totalPresences})</Text>
-                {compteRendu.presences.map((presence: any, index: number) => (
-                  <View key={presence.membreId || index} style={styles.presenceItem}>
-                    <Ionicons name="checkmark-circle" size={20} color="#34C759" />
-                    <Text style={styles.presenceText}>{presence.nomComplet}</Text>
+                {/* Bouton Compte-Rendu */}
+                <TouchableOpacity
+                  style={styles.compteRenduButton}
+                  onPress={handleShowCompteRendu}
+                >
+                  <Ionicons name="document-text" size={24} color="white" />
+                  <Text style={styles.compteRenduButtonText}>Voir le Compte-Rendu</Text>
+                  <Ionicons name="chevron-forward" size={20} color="white" />
+                </TouchableOpacity>
+              </>
+            ) : (
+              // Affichage du compte-rendu
+              <>
+                {/* Bouton retour */}
+                <TouchableOpacity
+                  style={styles.backToInfoButton}
+                  onPress={() => setShowCompteRendu(false)}
+                >
+                  <Ionicons name="arrow-back" size={20} color="#005AA9" />
+                  <Text style={styles.backToInfoText}>Retour aux informations</Text>
+                </TouchableOpacity>
+
+                {/* Chargement du compte-rendu */}
+                {loadingCompteRendu && (
+                  <View style={styles.loadingSection}>
+                    <ActivityIndicator size="large" color="#005AA9" />
+                    <Text style={styles.loadingText}>Chargement du compte-rendu...</Text>
                   </View>
-                ))}
-              </View>
-            )}
+                )}
 
-            {/* Invités du compte-rendu */}
-            {compteRendu && !loadingCompteRendu && compteRendu.invites.length > 0 && (
-              <View style={styles.detailSection}>
-                <Text style={styles.sectionTitle}>🎯 Invités ({compteRendu.statistiques.totalInvites})</Text>
-                {compteRendu.invites.map((invite: any) => (
-                  <View key={invite.id} style={styles.inviteItem}>
-                    <Text style={styles.inviteName}>{invite.prenom} {invite.nom}</Text>
-                    {invite.organisation && (
-                      <Text style={styles.inviteOrg}>{invite.organisation}</Text>
-                    )}
-                    {invite.email && (
-                      <Text style={styles.inviteEmail}>{invite.email}</Text>
-                    )}
-                  </View>
-                ))}
-              </View>
-            )}
+                {/* Contenu du compte-rendu */}
+                {compteRendu && !loadingCompteRendu && (
+                  <>
+                    {/* Statistiques détaillées */}
+                    <View style={styles.detailSection}>
+                      <Text style={styles.sectionTitle}>📊 Statistiques détaillées</Text>
+                      <View style={styles.statsRow}>
+                        <View style={styles.statItem}>
+                          <Text style={styles.statNumber}>{compteRendu.statistiques.totalPresences}</Text>
+                          <Text style={styles.statLabel}>Présents</Text>
+                        </View>
+                        <View style={styles.statItem}>
+                          <Text style={styles.statNumber}>{compteRendu.statistiques.totalInvites}</Text>
+                          <Text style={styles.statLabel}>Invités</Text>
+                        </View>
+                        <View style={styles.statItem}>
+                          <Text style={styles.statNumber}>{compteRendu.statistiques.ordresAvecContenu}</Text>
+                          <Text style={styles.statLabel}>Ordres traités</Text>
+                        </View>
+                      </View>
+                    </View>
 
-            {/* Ordres du jour avec contenu du compte-rendu */}
-            {compteRendu && !loadingCompteRendu ? (
-              <View style={styles.detailSection}>
-                <Text style={styles.sectionTitle}>📋 Ordres du jour avec contenu ({compteRendu.statistiques.totalOrdresDuJour})</Text>
-                {compteRendu.ordresDuJour.map((ordre: any) => (
-                  <View key={ordre.id} style={styles.ordreCard}>
-                    <View style={styles.ordreHeader}>
-                      <Text style={styles.ordreTitle}>{ordre.numero}. {ordre.description}</Text>
-                      {ordre.hasContent ? (
-                        <Ionicons name="checkmark-circle" size={20} color="#34C759" />
+                    {/* Présences du compte-rendu */}
+                    <View style={styles.detailSection}>
+                      <Text style={styles.sectionTitle}>👥 Présences ({compteRendu.statistiques.totalPresences})</Text>
+                      {compteRendu.presences.map((presence: any, index: number) => (
+                        <View key={presence.membreId || index} style={styles.presenceItem}>
+                          <Ionicons name="checkmark-circle" size={20} color="#34C759" />
+                          <Text style={styles.presenceText}>{presence.nomComplet}</Text>
+                        </View>
+                      ))}
+                    </View>
+
+                    {/* Invités du compte-rendu */}
+                    {compteRendu.invites.length > 0 && (
+                      <View style={styles.detailSection}>
+                        <Text style={styles.sectionTitle}>🎯 Invités ({compteRendu.statistiques.totalInvites})</Text>
+                        {compteRendu.invites.map((invite: any) => (
+                          <View key={invite.id} style={styles.inviteItem}>
+                            <Text style={styles.inviteName}>{invite.prenom} {invite.nom}</Text>
+                            {invite.organisation && (
+                              <Text style={styles.inviteOrg}>{invite.organisation}</Text>
+                            )}
+                            {invite.email && (
+                              <Text style={styles.inviteEmail}>{invite.email}</Text>
+                            )}
+                          </View>
+                        ))}
+                      </View>
+                    )}
+
+                    {/* Ordres du jour avec contenu */}
+                    <View style={styles.detailSection}>
+                      <Text style={styles.sectionTitle}>📋 Ordres du jour avec contenu ({compteRendu.statistiques.totalOrdresDuJour})</Text>
+                      {compteRendu.ordresDuJour.map((ordre: any) => (
+                        <View key={ordre.id} style={styles.ordreCard}>
+                          <View style={styles.ordreHeader}>
+                            <Text style={styles.ordreTitle}>{ordre.numero}. {ordre.description}</Text>
+                            {ordre.hasContent ? (
+                              <Ionicons name="checkmark-circle" size={20} color="#34C759" />
+                            ) : (
+                              <Ionicons name="alert-circle" size={20} color="#FF9500" />
+                            )}
+                          </View>
+                          {ordre.contenu ? (
+                            <Text style={styles.ordreContent}>{ordre.contenu}</Text>
+                          ) : (
+                            <Text style={styles.ordreNoContent}>📝 Aucun contenu enregistré</Text>
+                          )}
+                        </View>
+                      ))}
+                    </View>
+
+                    {/* Points divers */}
+                    <View style={styles.detailSection}>
+                      <Text style={styles.sectionTitle}>📝 Points divers</Text>
+                      {compteRendu.divers ? (
+                        <Text style={styles.diversContent}>{compteRendu.divers}</Text>
                       ) : (
-                        <Ionicons name="alert-circle" size={20} color="#FF9500" />
+                        <Text style={styles.diversNoContent}>Aucun point divers enregistré.</Text>
                       )}
                     </View>
-                    {ordre.contenu ? (
-                      <Text style={styles.ordreContent}>{ordre.contenu}</Text>
-                    ) : (
-                      <Text style={styles.ordreNoContent}>📝 Aucun contenu enregistré</Text>
-                    )}
-                  </View>
-                ))}
-              </View>
-            ) : (
-              /* Ordre du jour basique si pas de compte-rendu */
-              <View style={styles.detailSection}>
-                <Text style={styles.sectionTitle}>📋 Ordre du jour ({(selectedReunion.ordresDuJour || []).length} points)</Text>
-                {(selectedReunion.ordresDuJour || []).map((point, index) => (
-                  <View key={index} style={styles.agendaItem}>
-                    <Text style={styles.agendaNumber}>{index + 1}.</Text>
-                    <Text style={styles.agendaText}>{point}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {/* Points divers du compte-rendu */}
-            {compteRendu && !loadingCompteRendu && (
-              <View style={styles.detailSection}>
-                <Text style={styles.sectionTitle}>📝 Points divers</Text>
-                {compteRendu.divers ? (
-                  <Text style={styles.diversContent}>{compteRendu.divers}</Text>
-                ) : (
-                  <Text style={styles.diversNoContent}>Aucun point divers enregistré.</Text>
+                  </>
                 )}
-              </View>
+              </>
             )}
           </ScrollView>
         </SafeAreaView>
@@ -437,7 +455,7 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
         </View>
       ) : (
         <FlatList
-          data={reunions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())}
+          data={reunions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())}
           renderItem={renderReunion}
           keyExtractor={(item) => item.id}
           style={styles.reunionsList}
@@ -594,13 +612,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+  timeBadge: {
+    backgroundColor: '#005AA9',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
   },
-  statusText: {
-    fontSize: 12,
+  timeText: {
+    fontSize: 14,
     color: 'white',
     fontWeight: 'bold',
   },
@@ -624,15 +643,36 @@ const styles = StyleSheet.create({
   },
   reunionFooter: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     marginTop: 10,
   },
-  reunionDescription: {
-    flex: 1,
-    fontSize: 14,
-    color: '#666',
-    marginRight: 10,
+  compteRenduButton: {
+    backgroundColor: '#005AA9',
+    borderRadius: 12,
+    padding: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 20,
+  },
+  compteRenduButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginHorizontal: 10,
+  },
+  backToInfoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    marginBottom: 15,
+  },
+  backToInfoText: {
+    color: '#005AA9',
+    fontSize: 16,
+    marginLeft: 8,
+    fontWeight: '500',
   },
   loadingContainer: {
     flex: 1,
