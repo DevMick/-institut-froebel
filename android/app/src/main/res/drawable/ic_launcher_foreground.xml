@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Rotary wheel icon -->
+    <group android:scaleX="0.8"
+           android:scaleY="0.8"
+           android:pivotX="54"
+           android:pivotY="54">
+        
+        <!-- Outer ring -->
+        <path
+            android:fillColor="#F7A81B"
+            android:pathData="M54,24 A30,30 0 1,1 54,84 A30,30 0 1,1 54,24 Z M54,30 A24,24 0 1,0 54,78 A24,24 0 1,0 54,30 Z" />
+        
+        <!-- Inner circle -->
+        <circle
+            android:cx="54"
+            android:cy="54"
+            android:r="12"
+            android:fillColor="#FFFFFF" />
+            
+        <!-- Rotary spokes -->
+        <path
+            android:fillColor="#F7A81B"
+            android:pathData="M54,42 L54,30 M54,66 L54,78 M42,54 L30,54 M66,54 L78,54"
+            android:strokeWidth="3"
+            android:strokeColor="#F7A81B" />
+            
+        <!-- Center dot -->
+        <circle
+            android:cx="54"
+            android:cy="54"
+            android:r="4"
+            android:fillColor="#005AA9" />
+            
+    </group>
+    
+</vector>
