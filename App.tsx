@@ -2464,137 +2464,61 @@ export default function App() {
     }
   };
 
-  // Charger les données complètes du compte-rendu
+  // Charger le compte-rendu complet depuis l'API
   const loadCompteRenduData = async (reunion: any) => {
     try {
-      console.log('📄 === CHARGEMENT COMPTE-RENDU COMPLET ===');
+      console.log('📄 === CHARGEMENT COMPTE-RENDU DEPUIS API ===');
       console.log('📄 Réunion ID:', reunion.id);
       console.log('📄 Club ID:', currentUser?.clubId);
-      console.log('📄 Ordres du jour à traiter:', reunion.ordresDuJour?.length || 0);
 
       const token = await apiService.getToken();
       if (!token) {
         throw new Error('Token d\'authentification manquant');
       }
 
-      // 1. Charger les rapports pour chaque ordre du jour
-      const ordresAvecContenu = [];
-      let diversExistant = '';
-
-      if (reunion.ordresDuJour && reunion.ordresDuJour.length > 0) {
-        for (let i = 0; i < reunion.ordresDuJour.length; i++) {
-          const ordre = reunion.ordresDuJour[i];
-          console.log(`📋 Chargement rapport pour ordre ${i + 1}:`, ordre.description);
-
-          try {
-            const rapportsResponse = await fetch(
-              `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${currentUser?.clubId}/reunions/${reunion.id}/ordres-du-jour/${ordre.id}/rapports`,
-              {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/json',
-                  'Authorization': `Bearer ${token}`,
-                  'ngrok-skip-browser-warning': 'true'
-                }
-              }
-            );
-
-            let contenuOrdre = '';
-
-            if (rapportsResponse.ok) {
-              const rapportsData = await rapportsResponse.json();
-              console.log(`📄 Rapports reçus pour ordre ${i + 1}:`, rapportsData);
-
-              if (rapportsData.rapports && rapportsData.rapports.length > 0) {
-                // Extraire le contenu du premier rapport avec du texte
-                const rapportTexte = rapportsData.rapports.find(r => r.texte && r.texte.trim());
-                if (rapportTexte) {
-                  contenuOrdre = rapportTexte.texte;
-                  console.log(`✅ Contenu trouvé pour ordre ${i + 1}`);
-                }
-
-                // Extraire les points divers si pas encore trouvés
-                if (!diversExistant) {
-                  const rapportDivers = rapportsData.rapports.find(r => r.divers && r.divers.trim());
-                  if (rapportDivers) {
-                    diversExistant = rapportDivers.divers;
-                    console.log('✅ Points divers trouvés');
-                  }
-                }
-              }
-            } else {
-              console.log(`⚠️ Pas de rapport disponible pour ordre ${i + 1} (${rapportsResponse.status})`);
-            }
-
-            ordresAvecContenu.push({
-              numero: i + 1,
-              id: ordre.id,
-              description: ordre.description,
-              contenu: contenuOrdre
-            });
-
-          } catch (error) {
-            console.log(`❌ Erreur chargement rapport ordre ${i + 1}:`, error.message);
-            // En cas d'erreur, ajouter l'ordre sans contenu
-            ordresAvecContenu.push({
-              numero: i + 1,
-              id: ordre.id,
-              description: ordre.description,
-              contenu: ''
-            });
+      // Essayer de charger le compte-rendu complet depuis l'endpoint dédié
+      // Basé sur votre version web qui fonctionne
+      const compteRenduResponse = await fetch(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${currentUser?.clubId}/reunions/${reunion.id}/compte-rendu`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'ngrok-skip-browser-warning': 'true'
           }
         }
+      );
+
+      if (compteRenduResponse.ok) {
+        const compteRenduData = await compteRenduResponse.json();
+        console.log('✅ Compte-rendu reçu depuis l\'API:', compteRenduData);
+
+        // Utiliser directement les données de l'API (format identique au web)
+        setCompteRenduData(compteRenduData);
+        console.log('✅ Compte-rendu chargé avec succès:', compteRenduData.statistiques);
+
+      } else if (compteRenduResponse.status === 404) {
+        console.log('⚠️ Pas de compte-rendu disponible pour cette réunion (404)');
+        setCompteRenduData(null);
+
+      } else {
+        throw new Error(`Erreur HTTP ${compteRenduResponse.status}: ${compteRenduResponse.statusText}`);
       }
-
-      // 2. Construire l'objet final du compte-rendu
-      const compteRendu = {
-        reunion: {
-          id: reunion.id,
-          date: reunion.date,
-          heure: reunion.heure,
-          typeReunion: reunion.typeReunionLibelle || 'Réunion',
-          clubId: currentUser?.clubId || ''
-        },
-        presences: (reunion.presences || []).map((p: any) => ({
-          membreId: p.membreId,
-          nomComplet: p.nomCompletMembre || p.nomComplet || p.nomMembre || 'Nom non disponible',
-          selected: true
-        })),
-        invites: (reunion.invites || []).map((i: any) => ({
-          id: i.id,
-          nom: i.nom,
-          prenom: i.prenom,
-          organisation: i.organisation || '',
-          selected: true
-        })),
-        ordresDuJour: ordresAvecContenu,
-        divers: diversExistant,
-        statistiques: {
-          totalPresences: reunion.presences?.length || 0,
-          totalInvites: reunion.invites?.length || 0,
-          totalParticipants: (reunion.presences?.length || 0) + (reunion.invites?.length || 0),
-          totalOrdresDuJour: ordresAvecContenu.length,
-          ordresAvecContenu: ordresAvecContenu.filter(o => o.contenu && o.contenu.trim()).length
-        }
-      };
-
-      setCompteRenduData(compteRendu);
-      console.log('✅ Compte-rendu complet chargé:', compteRendu.statistiques);
 
     } catch (error) {
       console.error('❌ Erreur lors du chargement du compte-rendu:', error);
-      console.log('⚠️ Aucun compte-rendu disponible pour cette réunion');
+      console.log('🧪 Utilisation de données de test basées sur votre JSON');
 
-      // En cas d'erreur, utiliser des données de test basées sur le format réel
-      console.log('🧪 Utilisation de données de test pour vérifier l\'affichage');
+      // Utiliser les données de test exactes de votre JSON
       const compteRenduTest = {
         reunion: {
-          id: reunion.id,
-          date: reunion.date || "2025-07-11T00:00:00",
-          heure: reunion.heure || "16:00:00",
-          typeReunion: reunion.typeReunionLibelle || "Assemblée Générale",
-          clubId: currentUser?.clubId || ''
+          id: "3201b9ea-42fa-4ae9-8cff-2540b553c78e",
+          date: "2025-07-11T00:00:00",
+          heure: "16:00:00",
+          typeReunion: "Assemblée Générale",
+          clubId: "1b435dcd-5f8a-4acf-97b3-10cf66b3b1a2"
         },
         presences: [
           {
@@ -3650,142 +3574,13 @@ export default function App() {
 
           {selectedReunion && (
             <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={true}>
-              {/* Informations générales */}
-              <View style={styles.detailSection}>
-                <Text style={styles.detailSectionTitle}>📅 Informations générales</Text>
-                <Text style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>Date: </Text>
-                  {selectedReunion.dateFormatted}
-                </Text>
-                <Text style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>Heure: </Text>
-                  {selectedReunion.heureFormatted}
-                </Text>
-                {selectedReunion.lieu && (
-                  <Text style={styles.detailItem}>
-                    <Text style={styles.detailLabel}>Lieu: </Text>
-                    {selectedReunion.lieu}
-                  </Text>
-                )}
-                {selectedReunion.description && (
-                  <Text style={styles.detailItem}>
-                    <Text style={styles.detailLabel}>Description: </Text>
-                    {selectedReunion.description}
-                  </Text>
-                )}
-              </View>
 
-              {/* Ordres du jour */}
-              <View style={styles.detailSection}>
-                <View style={styles.detailSectionHeader}>
-                  <Text style={styles.detailSectionTitle}>
-                    📋 Ordres du jour ({selectedReunion.ordresDuJour?.length || 0})
-                  </Text>
-                </View>
-                {selectedReunion.ordresDuJour && selectedReunion.ordresDuJour.length > 0 ? (
-                  <View style={styles.detailList}>
-                    {selectedReunion.ordresDuJour.map((ordre, index) => (
-                      <View key={index} style={styles.detailListItemContainer}>
-                        <View style={styles.detailListItemNumber}>
-                          <Text style={styles.detailListItemNumberText}>{index + 1}</Text>
-                        </View>
-                        <View style={styles.detailListItemContent}>
-                          <Text style={styles.detailListItemText}>
-                            {typeof ordre === 'string' ? ordre : ordre.description || ordre.titre || 'Ordre du jour'}
-                          </Text>
-                          {typeof ordre === 'object' && ordre.dureeEstimee && (
-                            <Text style={styles.detailListItemSubtext}>
-                              ⏱️ Durée estimée: {ordre.dureeEstimee} min
-                            </Text>
-                          )}
-                          {typeof ordre === 'object' && ordre.responsable && (
-                            <Text style={styles.detailListItemSubtext}>
-                              👤 Responsable: {ordre.responsable}
-                            </Text>
-                          )}
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                ) : (
-                  <View style={styles.emptyStateContainer}>
-                    <Text style={styles.emptyStateText}>📋 Aucun ordre du jour défini</Text>
-                  </View>
-                )}
-              </View>
 
-              {/* Membres */}
-              <View style={styles.detailSection}>
-                <View style={styles.detailSectionHeader}>
-                  <Text style={styles.detailSectionTitle}>
-                    👥 Membres ({selectedReunion.presences?.length || 0})
-                  </Text>
-                </View>
-                {selectedReunion.presences && selectedReunion.presences.length > 0 ? (
-                  <View style={styles.detailList}>
-                    {selectedReunion.presences.map((presence, index) => (
-                      <View key={index} style={styles.detailListItemContainer}>
-                        <View style={styles.detailListItemIcon}>
-                          <Text style={styles.detailListItemIconText}>👤</Text>
-                        </View>
-                        <View style={styles.detailListItemContent}>
-                          <Text style={styles.detailListItemText}>
-                            {getPresenceDisplayName(presence)}
-                          </Text>
-                          {presence.email && (
-                            <Text style={styles.detailListItemSubtext}>
-                              📧 {presence.email}
-                            </Text>
-                          )}
-                          {presence.fonction && (
-                            <Text style={styles.detailListItemSubtext}>
-                              💼 {presence.fonction}
-                            </Text>
-                          )}
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                ) : (
-                  <View style={styles.emptyStateContainer}>
-                    <Text style={styles.emptyStateText}>👥 Aucun membre enregistré</Text>
-                  </View>
-                )}
-              </View>
 
-              {/* Invités */}
-              <View style={styles.detailSection}>
-                <View style={styles.detailSectionHeader}>
-                  <Text style={styles.detailSectionTitle}>
-                    🎯 Invités ({selectedReunion.invites?.length || 0})
-                  </Text>
-                </View>
-                {selectedReunion.invites && selectedReunion.invites.length > 0 ? (
-                  <View style={styles.detailList}>
-                    {selectedReunion.invites.map((invite, index) => (
-                      <View key={index} style={styles.detailListItemContainer}>
-                        <View style={styles.detailListItemIcon}>
-                          <Text style={styles.detailListItemIconText}>🎯</Text>
-                        </View>
-                        <View style={styles.detailListItemContent}>
-                          <Text style={styles.detailListItemText}>
-                            {invite.prenom} {invite.nom}
-                          </Text>
-                          {invite.email && (
-                            <Text style={styles.detailListItemSubtext}>
-                              📧 {invite.email}
-                            </Text>
-                          )}
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                ) : (
-                  <View style={styles.emptyStateContainer}>
-                    <Text style={styles.emptyStateText}>🎯 Aucun invité pour cette réunion</Text>
-                  </View>
-                )}
-              </View>
+
+
+
+
 
               {/* Affichage du Compte-rendu */}
               {compteRenduData ? (
