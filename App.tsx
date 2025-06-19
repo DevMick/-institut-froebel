@@ -2501,6 +2501,9 @@ export default function App() {
             // Construire l'URL pour les rapports de cet ordre
             const rapportsUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${currentUser?.clubId}/reunions/${reunion.id}/ordres-du-jour/${ordre.id}/rapports`;
             console.log(`🌐 URL rapports ordre ${i + 1}:`, rapportsUrl);
+            console.log(`🔍 Ordre ID: ${ordre.id}`);
+            console.log(`🔍 Réunion ID: ${reunion.id}`);
+            console.log(`🔍 Club ID: ${currentUser?.clubId}`);
 
             const rapportsResponse = await fetch(rapportsUrl, {
               method: 'GET',
@@ -2512,18 +2515,41 @@ export default function App() {
               }
             });
 
+            console.log(`📡 Réponse API rapports ordre ${i + 1}:`, {
+              status: rapportsResponse.status,
+              statusText: rapportsResponse.statusText,
+              ok: rapportsResponse.ok,
+              url: rapportsUrl
+            });
+
             let contenuOrdre = '';
 
             if (rapportsResponse.ok) {
               const rapportsData = await rapportsResponse.json();
-              console.log(`📄 Rapports reçus pour ordre ${i + 1}:`, rapportsData);
+              console.log(`📄 === RAPPORTS REÇUS POUR ORDRE ${i + 1} ===`);
+              console.log('📄 Données complètes:', JSON.stringify(rapportsData, null, 2));
 
-              if (rapportsData.rapports && rapportsData.rapports.length > 0) {
+              if (rapportsData && rapportsData.rapports && rapportsData.rapports.length > 0) {
+                console.log(`📋 Nombre de rapports trouvés: ${rapportsData.rapports.length}`);
+
                 // Extraire le contenu du premier rapport avec du texte
                 const rapportTexte = rapportsData.rapports.find(r => r.texte && r.texte.trim());
                 if (rapportTexte) {
                   contenuOrdre = rapportTexte.texte;
-                  console.log(`✅ Contenu trouvé pour ordre ${i + 1} (${contenuOrdre.length} caractères)`);
+                  console.log(`✅ Contenu trouvé pour ordre ${i + 1}:`);
+                  console.log(`📝 Longueur: ${contenuOrdre.length} caractères`);
+                  console.log(`📝 Aperçu: ${contenuOrdre.substring(0, 200)}...`);
+                } else {
+                  console.log(`⚠️ Aucun rapport avec texte trouvé pour ordre ${i + 1}`);
+                  rapportsData.rapports.forEach((r, idx) => {
+                    console.log(`📋 Rapport ${idx + 1}:`, {
+                      id: r.id,
+                      hasTexte: !!r.texte,
+                      texteLength: r.texte?.length || 0,
+                      hasDivers: !!r.divers,
+                      diversLength: r.divers?.length || 0
+                    });
+                  });
                 }
 
                 // Extraire les points divers (une seule fois)
@@ -2531,12 +2557,22 @@ export default function App() {
                   const rapportDivers = rapportsData.rapports.find(r => r.divers && r.divers.trim());
                   if (rapportDivers) {
                     diversExistant = rapportDivers.divers;
-                    console.log('✅ Points divers trouvés:', diversExistant.substring(0, 100) + '...');
+                    console.log('✅ Points divers trouvés:');
+                    console.log(`📝 Longueur: ${diversExistant.length} caractères`);
+                    console.log(`📝 Aperçu: ${diversExistant.substring(0, 200)}...`);
                   }
                 }
+              } else {
+                console.log(`⚠️ Structure de réponse inattendue pour ordre ${i + 1}:`, rapportsData);
               }
             } else {
-              console.log(`⚠️ Pas de rapport disponible pour ordre ${i + 1} (${rapportsResponse.status})`);
+              const errorText = await rapportsResponse.text();
+              console.log(`❌ Erreur API pour ordre ${i + 1}:`, {
+                status: rapportsResponse.status,
+                statusText: rapportsResponse.statusText,
+                body: errorText,
+                url: rapportsUrl
+              });
             }
 
             ordresAvecContenu.push({
