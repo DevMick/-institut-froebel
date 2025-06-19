@@ -86,6 +86,25 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
           description: 'Réunion avec présentation nouveau membre',
           statut: 'terminee',
         },
+        {
+          id: '3',
+          clubId: club.id,
+          date: '2024-06-11',
+          heure: '19:00',
+          typeReunionId: '1',
+          typeReunionLibelle: 'Réunion hebdomadaire',
+          ordresDuJour: ['Ouverture', 'Rapport financier', 'Projets communautaires', 'Clôture'],
+          presences: [
+            { id: '5', reunionId: '3', membreId: '1', nomMembre: 'Jean Dupont', present: true, excuse: false },
+            { id: '6', reunionId: '3', membreId: '3', nomMembre: 'Paul Kouame', present: true, excuse: false },
+          ],
+          invites: [
+            { id: '2', reunionId: '3', nom: 'Traore', prenom: 'Aminata', email: 'aminata.traore@ong.ci', organisation: 'ONG Espoir' },
+          ],
+          lieu: 'Hôtel Ivoire',
+          description: 'Réunion avec focus sur les projets communautaires',
+          statut: 'terminee',
+        },
       ];
 
         setReunions(mockReunions);
@@ -143,14 +162,28 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
       console.log('🔄 Chargement compte-rendu pour réunion:', reunion.id);
 
       // Récupérer les détails de la réunion
-      const reunionData = await apiService.getReunionDetails(club.id, reunion.id);
+      let reunionData;
+      try {
+        reunionData = await apiService.getReunionDetails(club.id, reunion.id);
+      } catch (error) {
+        console.log('⚠️ Impossible de charger les détails, utilisation des données de base');
+        reunionData = reunion;
+      }
 
       // Charger le contenu pour chaque ordre du jour
-      const { ordresAvecContenu, diversExistant } = await rapportService.getAllRapportsForReunion(
-        club.id,
-        reunion.id,
-        reunionData.ordresDuJour || reunion.ordresDuJour || []
-      );
+      const ordresDuJour = reunionData.ordresDuJour || reunion.ordresDuJour || [];
+      let ordresAvecContenu = [];
+      let diversExistant = '';
+
+      if (ordresDuJour.length > 0) {
+        const rapportResult = await rapportService.getAllRapportsForReunion(
+          club.id,
+          reunion.id,
+          ordresDuJour
+        );
+        ordresAvecContenu = rapportResult.ordresAvecContenu || [];
+        diversExistant = rapportResult.diversExistant || '';
+      }
 
       const compteRenduData = {
         reunion: {
@@ -200,7 +233,7 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
         <View style={styles.reunionInfo}>
           <Text style={styles.reunionType}>{item.typeReunionLibelle}</Text>
           <Text style={styles.reunionDate}>{formatDate(item.date)}</Text>
-          <Text style={styles.reunionTime}>{item.heure} • {item.lieu}</Text>
+          <Text style={styles.reunionTime}>{item.heure} • {item.lieu || 'Lieu non précisé'}</Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.statut) }]}>
           <Text style={styles.statusText}>{getStatusText(item.statut)}</Text>
@@ -210,21 +243,21 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
       <View style={styles.reunionStats}>
         <View style={styles.statItem}>
           <Ionicons name="list" size={16} color="#666" />
-          <Text style={styles.statText}>{item.ordresDuJour.length} points</Text>
+          <Text style={styles.statText}>{(item.ordresDuJour || []).length} points</Text>
         </View>
         <View style={styles.statItem}>
           <Ionicons name="people" size={16} color="#666" />
-          <Text style={styles.statText}>{item.presences.length} présences</Text>
+          <Text style={styles.statText}>{(item.presences || []).length} présences</Text>
         </View>
         <View style={styles.statItem}>
           <Ionicons name="person-add" size={16} color="#666" />
-          <Text style={styles.statText}>{item.invites.length} invités</Text>
+          <Text style={styles.statText}>{(item.invites || []).length} invités</Text>
         </View>
       </View>
 
       <View style={styles.reunionFooter}>
         <Text style={styles.reunionDescription} numberOfLines={2}>
-          {item.description}
+          {item.description || 'Aucune description'}
         </Text>
         <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
       </View>
@@ -348,8 +381,8 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
             ) : (
               /* Ordre du jour basique si pas de compte-rendu */
               <View style={styles.detailSection}>
-                <Text style={styles.sectionTitle}>📋 Ordre du jour ({selectedReunion.ordresDuJour.length} points)</Text>
-                {selectedReunion.ordresDuJour.map((point, index) => (
+                <Text style={styles.sectionTitle}>📋 Ordre du jour ({(selectedReunion.ordresDuJour || []).length} points)</Text>
+                {(selectedReunion.ordresDuJour || []).map((point, index) => (
                   <View key={index} style={styles.agendaItem}>
                     <Text style={styles.agendaNumber}>{index + 1}.</Text>
                     <Text style={styles.agendaText}>{point}</Text>

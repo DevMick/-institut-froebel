@@ -135,6 +135,9 @@ export class OrdreJourRapportService {
       }
     }
 
-    return { ordresAvecContenu, diversExistant };
+    return {
+      ordresAvecContenu: ordresAvecContenu,
+      diversExistant: diversExistant
+    };
   }
 }
