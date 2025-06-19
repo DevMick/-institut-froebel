@@ -90,10 +90,14 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
       setLoadingCompteRendu(true);
       console.log('🔄 Chargement compte-rendu pour réunion:', reunion.id);
 
-      // Récupérer les détails de la réunion
+      // Récupérer les détails de la réunion avec présences et invités
       let reunionData;
       try {
         reunionData = await apiService.getReunionDetails(club.id, reunion.id);
+        console.log('📊 Détails réunion chargés:', {
+          presences: reunionData.presences?.length || 0,
+          invites: reunionData.invites?.length || 0
+        });
       } catch (error) {
         console.log('⚠️ Impossible de charger les détails, utilisation des données de base');
         reunionData = reunion;
@@ -102,14 +106,11 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
       // Charger le contenu pour chaque ordre du jour
       const ordresDuJour = reunionData.ordresDuJour || reunion.ordresDuJour || [];
       console.log('📋 Ordres du jour trouvés:', ordresDuJour.length);
-      console.log('📋 Premier ordre du jour:', JSON.stringify(ordresDuJour[0], null, 2));
 
       let ordresAvecContenu = [];
       let diversExistant = '';
 
       if (ordresDuJour.length > 0) {
-        // Les ordres du jour ont déjà la bonne structure selon l'API backend
-        // Structure attendue: { id: "uuid", description: "texte" }
         const rapportResult = await rapportService.getAllRapportsForReunion(
           club.id,
           reunion.id,
@@ -119,6 +120,18 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
         diversExistant = rapportResult.diversExistant || '';
       }
 
+      // Mettre à jour la réunion avec les vraies données pour l'affichage des cartes
+      const updatedReunion = {
+        ...reunion,
+        presences: reunionData.presences || [],
+        invites: reunionData.invites || []
+      };
+
+      // Mettre à jour la liste des réunions avec les vraies données
+      setReunions(prevReunions =>
+        prevReunions.map(r => r.id === reunion.id ? updatedReunion : r)
+      );
+
       const compteRenduData = {
         reunion: {
           id: reunion.id,
@@ -127,22 +140,21 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
           typeReunion: reunion.typeReunionLibelle,
           lieu: reunion.lieu
         },
-        presences: (reunionData.presences || reunion.presences || []).map((p: any) => ({
+        presences: (reunionData.presences || []).map((p: any) => ({
           membreId: p.membreId,
           nomComplet: p.nomMembre || p.nomCompletMembre || p.nomComplet
         })),
-        invites: (reunionData.invites || reunion.invites || []).map((i: any) => ({
+        invites: (reunionData.invites || []).map((i: any) => ({
           id: i.id,
           nom: i.nom,
           prenom: i.prenom,
-          organisation: i.organisation,
           email: i.email
         })),
         ordresDuJour: ordresAvecContenu,
         divers: diversExistant,
         statistiques: {
-          totalPresences: (reunionData.presences || reunion.presences || []).length,
-          totalInvites: (reunionData.invites || reunion.invites || []).length,
+          totalPresences: (reunionData.presences || []).length,
+          totalInvites: (reunionData.invites || []).length,
           totalOrdresDuJour: ordresAvecContenu.length,
           ordresAvecContenu: ordresAvecContenu.filter(o => o.hasContent).length
         }
@@ -242,7 +254,6 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
                 {/* Header du compte-rendu */}
                 <View style={styles.compteRenduHeader}>
                   <Text style={styles.clubNameHeader}>{club.name}</Text>
-                  <Text style={styles.compteRenduTitle}>COMPTE-RENDU DE RÉUNION</Text>
                   <Text style={styles.reunionInfoHeader}>
                     {selectedReunion?.typeReunionLibelle} du {formatDate(selectedReunion?.date || '')} à {selectedReunion?.heure}
                   </Text>
@@ -266,9 +277,6 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
                     {compteRendu.invites.map((invite: any) => (
                       <View key={invite.id} style={styles.inviteItem}>
                         <Text style={styles.inviteName}>{invite.prenom} {invite.nom}</Text>
-                        {invite.organisation && (
-                          <Text style={styles.inviteOrg}>{invite.organisation}</Text>
-                        )}
                         {invite.email && (
                           <Text style={styles.inviteEmail}>{invite.email}</Text>
                         )}
