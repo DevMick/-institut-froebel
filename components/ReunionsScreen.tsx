@@ -44,11 +44,11 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
 
       // Charger les vraies réunions depuis l'API
       const reunionsData = await apiService.getClubReunions(club.id);
-      setReunions(reunionsData);
       console.log('✅ Réunions chargées:', reunionsData.length);
+      console.log('🔍 Première réunion API:', JSON.stringify(reunionsData[0], null, 2));
 
-      // Données de démonstration en cas d'échec ou si pas de données
-      if (reunionsData.length === 0) {
+      // TEMPORAIRE: Forcer l'utilisation des données de démonstration pour debug
+      if (true || reunionsData.length === 0) {
         console.log('📝 Utilisation des données de démonstration');
         const mockReunions: Reunion[] = [
         {
@@ -228,13 +228,24 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
       <View style={styles.reunionStats}>
         <View style={styles.statItem}>
           <Ionicons name="people" size={16} color="#005AA9" />
-          <Text style={styles.statText}>{(item.presences || []).length} présences</Text>
+          <Text style={styles.statText}>
+            {(item.presences || []).length} présences
+          </Text>
         </View>
         <View style={styles.statItem}>
           <Ionicons name="person-add" size={16} color="#005AA9" />
-          <Text style={styles.statText}>{(item.invites || []).length} invités</Text>
+          <Text style={styles.statText}>
+            {(item.invites || []).length} invités
+          </Text>
         </View>
       </View>
+
+      {/* Debug - à supprimer plus tard */}
+      {__DEV__ && (
+        <Text style={{ fontSize: 10, color: 'red' }}>
+          Debug: presences={JSON.stringify(item.presences?.length || 0)}, invites={JSON.stringify(item.invites?.length || 0)}
+        </Text>
+      )}
 
       {/* Bouton pour voir le compte-rendu */}
       <View style={styles.reunionFooter}>
