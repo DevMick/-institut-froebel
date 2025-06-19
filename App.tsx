@@ -285,10 +285,6 @@ export default function App() {
     };
   } | null>(null);
   const [compteRenduLoading, setCompteRenduLoading] = useState(false);
-  const [selectedReunion, setSelectedReunion] = useState<any>(null);
-  const [showReunionModal, setShowReunionModal] = useState(false);
-  const [compteRenduData, setCompteRenduData] = useState<any>(null);
-  const [compteRenduLoading, setCompteRenduLoading] = useState(false);
 
   useEffect(() => {
     loadClubs();
