@@ -110,11 +110,23 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
       setLoadingCompteRendu(true);
       console.log('🔄 Chargement compte-rendu pour réunion:', reunion.id);
 
-      // Utiliser les données déjà chargées de la réunion (présences/invités)
-      const reunionData = reunion;
+      // Récupérer les détails complets de la réunion (avec ordres du jour détaillés)
+      let reunionData;
+      try {
+        reunionData = await apiService.getReunionDetails(club.id, reunion.id);
+        console.log('📊 Détails réunion chargés pour compte-rendu:', {
+          presences: reunionData.presences?.length || 0,
+          invites: reunionData.invites?.length || 0,
+          ordresDuJour: reunionData.ordresDuJour?.length || 0
+        });
+        console.log('📋 Ordres du jour détaillés:', JSON.stringify(reunionData.ordresDuJour, null, 2));
+      } catch (error) {
+        console.log('⚠️ Impossible de charger les détails, utilisation des données de base');
+        reunionData = reunion;
+      }
 
       // Charger le contenu pour chaque ordre du jour
-      const ordresDuJour = reunionData.ordresDuJour || [];
+      const ordresDuJour = reunionData.ordresDuJour || reunion.ordresDuJour || [];
       console.log('📋 Ordres du jour trouvés:', ordresDuJour.length);
 
       let ordresAvecContenu = [];
@@ -138,11 +150,11 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
           typeReunion: reunion.typeReunionLibelle,
           lieu: reunion.lieu
         },
-        presences: (reunionData.presences || []).map((p: any) => ({
+        presences: (reunionData.presences || reunion.presences || []).map((p: any) => ({
           membreId: p.membreId,
           nomComplet: p.nomMembre || p.nomCompletMembre || p.nomComplet
         })),
-        invites: (reunionData.invites || []).map((i: any) => ({
+        invites: (reunionData.invites || reunion.invites || []).map((i: any) => ({
           id: i.id,
           nom: i.nom,
           prenom: i.prenom
@@ -150,8 +162,8 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
         ordresDuJour: ordresAvecContenu,
         divers: diversExistant,
         statistiques: {
-          totalPresences: (reunionData.presences || []).length,
-          totalInvites: (reunionData.invites || []).length,
+          totalPresences: (reunionData.presences || reunion.presences || []).length,
+          totalInvites: (reunionData.invites || reunion.invites || []).length,
           totalOrdresDuJour: ordresAvecContenu.length,
           ordresAvecContenu: ordresAvecContenu.filter(o => o.hasContent).length
         }
