@@ -1435,6 +1435,7 @@ export default function App() {
       ordresAvecContenu: number;
     };
   } | null>(null);
+  const [compteRenduLoading, setCompteRenduLoading] = useState(false);
   const [typesReunion, setTypesReunion] = useState<TypeReunion[]>([]);
   const [selectedReunion, setSelectedReunion] = useState<Reunion | null>(null);
   const [showCreateReunion, setShowCreateReunion] = useState(false);
@@ -2467,6 +2468,9 @@ export default function App() {
   // Charger le compte-rendu complet depuis l'API
   const loadCompteRenduData = async (reunion: any) => {
     try {
+      setCompteRenduLoading(true);
+      setCompteRenduData(null); // Reset des données précédentes
+
       console.log('📄 === CHARGEMENT COMPTE-RENDU DEPUIS API ===');
       console.log('📄 Réunion ID:', reunion.id);
       console.log('📄 Club ID:', currentUser?.clubId);
@@ -2476,96 +2480,72 @@ export default function App() {
         throw new Error('Token d\'authentification manquant');
       }
 
-      // Essayer de charger le compte-rendu complet depuis l'endpoint dédié
-      // Basé sur votre version web qui fonctionne
-      const compteRenduResponse = await fetch(
-        `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${currentUser?.clubId}/reunions/${reunion.id}/compte-rendu`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'ngrok-skip-browser-warning': 'true'
-          }
+      // Construire l'URL pour le compte-rendu
+      const compteRenduUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${currentUser?.clubId}/reunions/${reunion.id}/compte-rendu`;
+      console.log('🌐 URL compte-rendu:', compteRenduUrl);
+      console.log('🔑 Token présent:', !!token);
+
+      const compteRenduResponse = await fetch(compteRenduUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true'
         }
-      );
+      });
+
+      console.log('📡 Réponse API compte-rendu:', {
+        status: compteRenduResponse.status,
+        statusText: compteRenduResponse.statusText,
+        ok: compteRenduResponse.ok
+      });
 
       if (compteRenduResponse.ok) {
         const compteRenduData = await compteRenduResponse.json();
-        console.log('✅ Compte-rendu reçu depuis l\'API:', compteRenduData);
+        console.log('✅ === COMPTE-RENDU REÇU DEPUIS API ===');
+        console.log('📄 Données complètes:', JSON.stringify(compteRenduData, null, 2));
 
-        // Utiliser directement les données de l'API (format identique au web)
-        setCompteRenduData(compteRenduData);
-        console.log('✅ Compte-rendu chargé avec succès:', compteRenduData.statistiques);
+        // Vérifier la structure des données
+        if (compteRenduData && typeof compteRenduData === 'object') {
+          console.log('📊 Structure validée:', {
+            hasReunion: !!compteRenduData.reunion,
+            hasPresences: !!compteRenduData.presences,
+            hasInvites: !!compteRenduData.invites,
+            hasOrdres: !!compteRenduData.ordresDuJour,
+            hasDivers: !!compteRenduData.divers,
+            hasStats: !!compteRenduData.statistiques
+          });
+
+          setCompteRenduData(compteRenduData);
+          console.log('✅ Compte-rendu chargé avec succès pour réunion:', reunion.id);
+        } else {
+          console.error('❌ Structure de données invalide:', compteRenduData);
+          setCompteRenduData(null);
+        }
 
       } else if (compteRenduResponse.status === 404) {
         console.log('⚠️ Pas de compte-rendu disponible pour cette réunion (404)');
         setCompteRenduData(null);
 
       } else {
+        const errorText = await compteRenduResponse.text();
+        console.error('❌ Erreur API:', {
+          status: compteRenduResponse.status,
+          statusText: compteRenduResponse.statusText,
+          body: errorText
+        });
         throw new Error(`Erreur HTTP ${compteRenduResponse.status}: ${compteRenduResponse.statusText}`);
       }
 
     } catch (error) {
       console.error('❌ Erreur lors du chargement du compte-rendu:', error);
-      console.log('🧪 Utilisation de données de test basées sur votre JSON');
+      console.log('⚠️ Aucun compte-rendu disponible pour cette réunion');
 
-      // Utiliser les données de test exactes de votre JSON
-      const compteRenduTest = {
-        reunion: {
-          id: "3201b9ea-42fa-4ae9-8cff-2540b553c78e",
-          date: "2025-07-11T00:00:00",
-          heure: "16:00:00",
-          typeReunion: "Assemblée Générale",
-          clubId: "1b435dcd-5f8a-4acf-97b3-10cf66b3b1a2"
-        },
-        presences: [
-          {
-            membreId: "eaf935d4-6ac1-40a4-8bc4-fb153d53bd07",
-            nomComplet: "Fatou Camara",
-            selected: true
-          },
-          {
-            membreId: "fd503d4e-f59a-42b1-b9ea-703bf82faeb3",
-            nomComplet: "Paul Gnangnan",
-            selected: true
-          }
-        ],
-        invites: [
-          {
-            id: "a9b4afda-a341-46f2-8b7d-225596c94386",
-            nom: "Kacou",
-            prenom: "Célestin",
-            organisation: "ALLIANCE",
-            selected: true
-          }
-        ],
-        ordresDuJour: [
-          {
-            numero: 1,
-            id: "a7042340-eb98-42f4-aa4d-9c2fb14bf211",
-            description: "Résumé des améliorations apportées",
-            contenu: "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id q"
-          },
-          {
-            numero: 2,
-            id: "c6330389-67d7-48e3-a574-e6f2d1bc5900",
-            description: "Commission Actions Communautaires - Bilan du projet bibliothèque communautaire, préparation de la campagne de vaccination dans les écoles, discussion sur le partenariat avec l'ONG Enfants d'Afrique.",
-            contenu: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"
-          }
-        ],
-        divers: "ound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful. Nor again is there anyone who loves or pursues or desires to obtain pain of itself, because it is pain, but because occasionally circumstances occur in which toil and pain can procure him some great pleasure. To take a trivial example, which of us ever undertakes la",
-        statistiques: {
-          totalPresences: 2,
-          totalInvites: 1,
-          totalParticipants: 3,
-          totalOrdresDuJour: 2,
-          ordresAvecContenu: 2
-        }
-      };
-
-      setCompteRenduData(compteRenduTest);
+      // Ne pas utiliser de données de test - afficher l'état vide
+      setCompteRenduData(null);
+    } finally {
+      setCompteRenduLoading(false);
     }
   };
 
@@ -3583,7 +3563,14 @@ export default function App() {
 
 
               {/* Affichage du Compte-rendu */}
-              {compteRenduData ? (
+              {compteRenduLoading ? (
+                <View style={styles.compteRenduContainer}>
+                  <View style={styles.compteRenduLoadingState}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                    <Text style={styles.compteRenduLoadingText}>Chargement du compte-rendu...</Text>
+                  </View>
+                </View>
+              ) : compteRenduData ? (
                 <View style={styles.compteRenduContainer}>
                   <Text style={styles.compteRenduTitle}>📄 Compte-rendu de la réunion</Text>
 
@@ -5335,6 +5322,16 @@ const styles = StyleSheet.create({
     color: '#333',
     lineHeight: 20,
     textAlign: 'justify',
+  },
+  compteRenduLoadingState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  compteRenduLoadingText: {
+    fontSize: 16,
+    color: colors.text,
+    marginTop: 12,
+    textAlign: 'center',
   },
   memberStatus: {
     justifyContent: 'center',
