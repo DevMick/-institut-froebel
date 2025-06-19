@@ -2465,84 +2465,68 @@ export default function App() {
     }
   };
 
-  // Charger le compte-rendu complet depuis l'API
+  // Construire le compte-rendu à partir des données de la réunion
   const loadCompteRenduData = async (reunion: any) => {
     try {
       setCompteRenduLoading(true);
       setCompteRenduData(null); // Reset des données précédentes
 
-      console.log('📄 === CHARGEMENT COMPTE-RENDU DEPUIS API ===');
+      console.log('📄 === CONSTRUCTION COMPTE-RENDU DEPUIS DONNÉES RÉUNION ===');
       console.log('📄 Réunion ID:', reunion.id);
-      console.log('📄 Club ID:', currentUser?.clubId);
-
-      const token = await apiService.getToken();
-      if (!token) {
-        throw new Error('Token d\'authentification manquant');
-      }
-
-      // Construire l'URL pour le compte-rendu
-      const compteRenduUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${currentUser?.clubId}/reunions/${reunion.id}/compte-rendu`;
-      console.log('🌐 URL compte-rendu:', compteRenduUrl);
-      console.log('🔑 Token présent:', !!token);
-
-      const compteRenduResponse = await fetch(compteRenduUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'ngrok-skip-browser-warning': 'true'
-        }
+      console.log('📄 Données réunion disponibles:', {
+        presences: reunion.presences?.length || 0,
+        invites: reunion.invites?.length || 0,
+        ordresDuJour: reunion.ordresDuJour?.length || 0
       });
 
-      console.log('📡 Réponse API compte-rendu:', {
-        status: compteRenduResponse.status,
-        statusText: compteRenduResponse.statusText,
-        ok: compteRenduResponse.ok
-      });
-
-      if (compteRenduResponse.ok) {
-        const compteRenduData = await compteRenduResponse.json();
-        console.log('✅ === COMPTE-RENDU REÇU DEPUIS API ===');
-        console.log('📄 Données complètes:', JSON.stringify(compteRenduData, null, 2));
-
-        // Vérifier la structure des données
-        if (compteRenduData && typeof compteRenduData === 'object') {
-          console.log('📊 Structure validée:', {
-            hasReunion: !!compteRenduData.reunion,
-            hasPresences: !!compteRenduData.presences,
-            hasInvites: !!compteRenduData.invites,
-            hasOrdres: !!compteRenduData.ordresDuJour,
-            hasDivers: !!compteRenduData.divers,
-            hasStats: !!compteRenduData.statistiques
-          });
-
-          setCompteRenduData(compteRenduData);
-          console.log('✅ Compte-rendu chargé avec succès pour réunion:', reunion.id);
-        } else {
-          console.error('❌ Structure de données invalide:', compteRenduData);
-          setCompteRenduData(null);
+      // Construire le compte-rendu à partir des données déjà disponibles
+      const compteRendu = {
+        reunion: {
+          id: reunion.id,
+          date: reunion.date,
+          heure: reunion.heure || "16:00:00",
+          typeReunion: reunion.type || reunion.typeReunionLibelle || "Réunion",
+          clubId: currentUser?.clubId || ''
+        },
+        presences: (reunion.presences || []).map((p: any) => ({
+          membreId: p.membreId,
+          nomComplet: p.nomCompletMembre || p.nomComplet || 'Nom non disponible',
+          selected: true
+        })),
+        invites: (reunion.invites || []).map((i: any) => ({
+          id: i.id,
+          nom: i.nom,
+          prenom: i.prenom,
+          organisation: i.organisation || '',
+          selected: true
+        })),
+        ordresDuJour: (reunion.ordresDuJour || []).map((ordre: any, index: number) => ({
+          numero: index + 1,
+          id: `ordre-${index + 1}`,
+          description: typeof ordre === 'string' ? ordre : ordre.description || ordre.titre || `Ordre du jour ${index + 1}`,
+          contenu: '' // Pas de contenu détaillé disponible pour le moment
+        })),
+        divers: '', // Pas de points divers disponibles pour le moment
+        statistiques: {
+          totalPresences: reunion.presences?.length || 0,
+          totalInvites: reunion.invites?.length || 0,
+          totalParticipants: (reunion.presences?.length || 0) + (reunion.invites?.length || 0),
+          totalOrdresDuJour: reunion.ordresDuJour?.length || 0,
+          ordresAvecContenu: 0 // Aucun contenu détaillé pour le moment
         }
+      };
 
-      } else if (compteRenduResponse.status === 404) {
-        console.log('⚠️ Pas de compte-rendu disponible pour cette réunion (404)');
-        setCompteRenduData(null);
+      console.log('✅ === COMPTE-RENDU CONSTRUIT ===');
+      console.log('📊 Statistiques:', compteRendu.statistiques);
+      console.log('👥 Présences:', compteRendu.presences.map(p => p.nomComplet));
+      console.log('🎯 Invités:', compteRendu.invites.map(i => `${i.prenom} ${i.nom}`));
+      console.log('📋 Ordres du jour:', compteRendu.ordresDuJour.map(o => o.description));
 
-      } else {
-        const errorText = await compteRenduResponse.text();
-        console.error('❌ Erreur API:', {
-          status: compteRenduResponse.status,
-          statusText: compteRenduResponse.statusText,
-          body: errorText
-        });
-        throw new Error(`Erreur HTTP ${compteRenduResponse.status}: ${compteRenduResponse.statusText}`);
-      }
+      setCompteRenduData(compteRendu);
+      console.log('✅ Compte-rendu construit avec succès pour réunion:', reunion.id);
 
     } catch (error) {
-      console.error('❌ Erreur lors du chargement du compte-rendu:', error);
-      console.log('⚠️ Aucun compte-rendu disponible pour cette réunion');
-
-      // Ne pas utiliser de données de test - afficher l'état vide
+      console.error('❌ Erreur lors de la construction du compte-rendu:', error);
       setCompteRenduData(null);
     } finally {
       setCompteRenduLoading(false);
@@ -3646,17 +3630,18 @@ export default function App() {
                           <Text style={styles.compteRenduOrdreTitle}>
                             {ordre.numero || (index + 1)}. {ordre.description}
                           </Text>
-                          {ordre.contenu && ordre.contenu.trim() && (
+                          {ordre.contenu && ordre.contenu.trim() ? (
                             <View style={styles.compteRenduOrdreContenuContainer}>
                               <Text style={styles.compteRenduOrdreContenu}>
                                 {ordre.contenu}
                               </Text>
                             </View>
-                          )}
-                          {(!ordre.contenu || !ordre.contenu.trim()) && (
-                            <Text style={styles.compteRenduOrdreVide}>
-                              Aucun contenu disponible pour cet ordre du jour.
-                            </Text>
+                          ) : (
+                            <View style={styles.compteRenduOrdreVideContainer}>
+                              <Text style={styles.compteRenduOrdreVide}>
+                                📝 Ordre du jour défini - Contenu détaillé à venir
+                              </Text>
+                            </View>
                           )}
                         </View>
                       ))}
@@ -5259,11 +5244,21 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     textAlign: 'justify',
   },
+  compteRenduOrdreVideContainer: {
+    marginTop: 8,
+    padding: 10,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderStyle: 'dashed',
+  },
   compteRenduOrdreVide: {
     fontSize: 13,
-    color: '#999',
+    color: '#666',
     lineHeight: 18,
     fontStyle: 'italic',
+    textAlign: 'center',
   },
   compteRenduStatsContainer: {
     flexDirection: 'row',
