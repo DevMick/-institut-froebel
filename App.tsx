@@ -7,23 +7,18 @@ import {
   TouchableOpacity,
   Alert,
   TextInput,
-  Modal,
   ActivityIndicator,
   SafeAreaView,
-  StatusBar,
-  Linking,
-  Platform
+  StatusBar
 } from 'react-native';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 import * as SecureStore from 'expo-secure-store';
 
-// Configuration de l'API
 const API_CONFIG = {
   BASE_URL: 'https://fc4f-102-212-189-1.ngrok-free.app',
   API_PREFIX: '/api'
 };
 
-// Types de base
 interface User {
   id: string;
   email: string;
@@ -39,20 +34,6 @@ interface Club {
   id: string;
   name: string;
   description?: string;
-}
-
-interface Member {
-  id: string;
-  firstName: string;
-  lastName: string;
-  fullName: string;
-  email: string;
-  phoneNumber?: string;
-  isActive: boolean;
-  clubId: string;
-  fonction?: string;
-  fonctions?: string[];
-  commissions?: string[];
 }
 
 interface Reunion {
@@ -73,13 +54,6 @@ interface Reunion {
   invitesCount: number;
 }
 
-interface TypeReunion {
-  id: string;
-  libelle: string;
-  description?: string;
-}
-
-// Service API simplifié
 class ApiService {
   private baseUrl = API_CONFIG.BASE_URL;
   private apiPrefix = API_CONFIG.API_PREFIX;
@@ -166,8 +140,7 @@ class ApiService {
 
       const data = await response.json();
       const reunions = Array.isArray(data) ? data : (data.data || []);
-
-      // Formater les données
+      
       return reunions.map(reunion => ({
         ...reunion,
         dateFormatted: new Date(reunion.date).toLocaleDateString('fr-FR', {
@@ -186,50 +159,10 @@ class ApiService {
       return [];
     }
   }
-
-  async getReunionDetails(clubId: string, reunionId: string): Promise<Reunion | null> {
-    try {
-      const token = await this.getToken();
-      if (!token) {
-        throw new Error('Token d\'authentification manquant');
-      }
-
-      const response = await fetch(`${this.baseUrl}${this.apiPrefix}/clubs/${clubId}/reunions/${reunionId}`, {
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'ngrok-skip-browser-warning': 'true'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Erreur ${response.status}`);
-      }
-
-      const reunion = await response.json();
-      return {
-        ...reunion,
-        dateFormatted: new Date(reunion.date).toLocaleDateString('fr-FR', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        }),
-        heureFormatted: reunion.heure || '18:00:00',
-        ordresDuJourCount: reunion.ordresDuJour?.length || 0,
-        presencesCount: reunion.presences?.length || 0,
-        invitesCount: reunion.invites?.length || 0
-      };
-    } catch (error) {
-      console.error('Erreur lors du chargement des détails de la réunion:', error);
-      return null;
-    }
-  }
 }
 
 const apiService = new ApiService();
 
-// Couleurs du thème Rotary
 const colors = {
   primary: '#005AA9',
   secondary: '#F7A81B',
@@ -247,15 +180,7 @@ export default function App() {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentScreen, setCurrentScreen] = useState('Home');
-
-  // États pour les réunions
   const [reunions, setReunions] = useState<Reunion[]>([]);
-  const [selectedReunion, setSelectedReunion] = useState<Reunion | null>(null);
-  const [showReunionDetails, setShowReunionDetails] = useState(false);
-
-  // États pour le compte-rendu
-  const [compteRenduData, setCompteRenduData] = useState<any>(null);
-  const [compteRenduLoading, setCompteRenduLoading] = useState(false);
 
   useEffect(() => {
     loadClubs();
@@ -272,7 +197,7 @@ export default function App() {
 
   const loadReunions = async () => {
     if (!currentUser?.clubId) return;
-
+    
     try {
       setLoading(true);
       const reunionsData = await apiService.getReunions(currentUser.clubId);
@@ -282,70 +207,6 @@ export default function App() {
       Alert.alert('Erreur', 'Impossible de charger les réunions');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadReunionDetails = async (reunionId: string) => {
-    if (!currentUser?.clubId) return;
-
-    try {
-      setCompteRenduLoading(true);
-      const reunion = await apiService.getReunionDetails(currentUser.clubId, reunionId);
-      if (reunion) {
-        setSelectedReunion(reunion);
-        await loadCompteRenduData(reunion);
-      }
-    } catch (error) {
-      console.error('Erreur chargement détails réunion:', error);
-      Alert.alert('Erreur', 'Impossible de charger les détails de la réunion');
-    } finally {
-      setCompteRenduLoading(false);
-    }
-  };
-
-  const loadCompteRenduData = async (reunion: Reunion) => {
-    try {
-      // Construction du compte-rendu à partir des données de la réunion
-      const compteRendu = {
-        reunion: {
-          id: reunion.id,
-          date: reunion.date,
-          heure: reunion.heure || "16:00:00",
-          typeReunion: reunion.type || reunion.typeReunionLibelle || "Réunion",
-          clubId: currentUser?.clubId || ''
-        },
-        presences: (reunion.presences || []).map((p: any) => ({
-          membreId: p.membreId,
-          nomComplet: p.nomCompletMembre || p.nomComplet || 'Nom non disponible',
-          selected: true
-        })),
-        invites: (reunion.invites || []).map((i: any) => ({
-          id: i.id,
-          nom: i.nom,
-          prenom: i.prenom,
-          organisation: i.organisation || '',
-          selected: true
-        })),
-        ordresDuJour: (reunion.ordresDuJour || []).map((ordre: any, index: number) => ({
-          numero: index + 1,
-          id: `ordre-${index + 1}`,
-          description: typeof ordre === 'string' ? ordre : ordre.description || ordre.titre || `Ordre du jour ${index + 1}`,
-          contenu: '' // Pas de contenu détaillé pour le moment
-        })),
-        divers: '', // Pas de points divers pour le moment
-        statistiques: {
-          totalPresences: reunion.presences?.length || 0,
-          totalInvites: reunion.invites?.length || 0,
-          totalParticipants: (reunion.presences?.length || 0) + (reunion.invites?.length || 0),
-          totalOrdresDuJour: reunion.ordresDuJour?.length || 0,
-          ordresAvecContenu: 0
-        }
-      };
-
-      setCompteRenduData(compteRendu);
-    } catch (error) {
-      console.error('Erreur construction compte-rendu:', error);
-      setCompteRenduData(null);
     }
   };
 
@@ -368,14 +229,13 @@ export default function App() {
         clubId: loginForm.clubId,
         clubName: clubs.find(c => c.id === loginForm.clubId)?.name || ''
       };
-
+      
       setCurrentUser(user);
       setIsAuthenticated(true);
       setShowLogin(false);
-
-      // Charger les données du club
+      
       await loadReunions();
-
+      
       Alert.alert('Succès', 'Connexion réussie !');
     } catch (error) {
       Alert.alert('Erreur', error.message || 'Erreur de connexion');
@@ -470,7 +330,7 @@ export default function App() {
             </Text>
           </>
         )}
-
+        
         {currentScreen === 'Reunions' && (
           <ScrollView style={styles.reunionsContainer}>
             <Text style={styles.sectionTitle}>Réunions ({reunions.length})</Text>
@@ -481,10 +341,7 @@ export default function App() {
                 <TouchableOpacity
                   key={reunion.id}
                   style={styles.reunionCard}
-                  onPress={() => {
-                    loadReunionDetails(reunion.id);
-                    setShowReunionDetails(true);
-                  }}
+                  onPress={() => Alert.alert('Réunion', reunion.typeReunionLibelle)}
                 >
                   <View style={styles.reunionHeader}>
                     <Text style={styles.reunionType}>{reunion.typeReunionLibelle}</Text>
