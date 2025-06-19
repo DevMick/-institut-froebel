@@ -1401,10 +1401,39 @@ export default function App() {
 
   // États pour le compte-rendu
   const [compteRenduData, setCompteRenduData] = useState<{
-    presences: any[];
-    invites: any[];
-    ordresDuJour: any[];
+    reunion: {
+      id: string;
+      date: string;
+      heure: string;
+      typeReunion: string;
+      clubId: string;
+    };
+    presences: Array<{
+      membreId: string;
+      nomComplet: string;
+      selected: boolean;
+    }>;
+    invites: Array<{
+      id: string;
+      nom: string;
+      prenom: string;
+      organisation: string;
+      selected: boolean;
+    }>;
+    ordresDuJour: Array<{
+      numero: number;
+      id: string;
+      description: string;
+      contenu: string;
+    }>;
     divers: string;
+    statistiques: {
+      totalPresences: number;
+      totalInvites: number;
+      totalParticipants: number;
+      totalOrdresDuJour: number;
+      ordresAvecContenu: number;
+    };
   } | null>(null);
   const [typesReunion, setTypesReunion] = useState<TypeReunion[]>([]);
   const [selectedReunion, setSelectedReunion] = useState<Reunion | null>(null);
@@ -2435,126 +2464,78 @@ export default function App() {
     }
   };
 
-  // Charger les données du compte-rendu avec les rapports existants
+  // Charger les données du compte-rendu depuis l'API
   const loadCompteRenduData = async (reunion: any) => {
     try {
-      console.log('📄 === CHARGEMENT DONNÉES COMPTE-RENDU ===');
+      console.log('📄 === CHARGEMENT COMPTE-RENDU DEPUIS API ===');
+      console.log('📄 Réunion ID:', reunion.id);
+      console.log('📄 Club ID:', currentUser?.clubId);
 
-      // Charger les rapports existants pour les ordres du jour
-      const ordresAvecRapports = await loadExistingReports(reunion.ordresDuJour || [], reunion.id);
-
-      // Préparer les données du compte-rendu
-      const compteRendu = {
-        presences: reunion.presences || [],
-        invites: reunion.invites || [],
-        ordresDuJour: ordresAvecRapports,
-        divers: 'Aucun point divers à signaler pour cette réunion.' // À charger depuis l'API si disponible
-      };
-
-      // Ajouter des données de test si les listes sont vides
-      if (compteRendu.presences.length === 0) {
-        compteRendu.presences = [
-          { membreId: '1', nomCompletMembre: 'Kouadio Yao', nomMembre: 'Kouadio Yao' },
-          { membreId: '2', nomCompletMembre: 'Jean-Baptiste Kouamé', nomMembre: 'Jean-Baptiste Kouamé' },
-          { membreId: '3', nomCompletMembre: 'Marie-Claire Diabaté', nomMembre: 'Marie-Claire Diabaté' }
-        ];
+      // Essayer de charger le compte-rendu depuis l'API
+      const token = await apiService.getToken();
+      if (!token) {
+        throw new Error('Token d\'authentification manquant');
       }
 
-      if (compteRendu.invites.length === 0) {
-        compteRendu.invites = [
-          {
-            id: '1',
-            nom: 'Dupont',
-            prenom: 'Pierre',
-            organisation: 'Entreprise ABC',
-            email: 'pierre.dupont@abc.com'
-          },
-          {
-            id: '2',
-            nom: 'Martin',
-            prenom: 'Sophie',
-            organisation: 'Association XYZ',
-            email: 'sophie.martin@xyz.org'
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${currentUser?.clubId}/reunions/${reunion.id}/compte-rendu`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'ngrok-skip-browser-warning': 'true'
           }
-        ];
-      }
+        }
+      );
 
-      if (compteRendu.ordresDuJour.length === 0) {
-        compteRendu.ordresDuJour = [
-          {
-            id: '1',
-            description: 'Approbation du procès-verbal de la réunion précédente',
-            contenu: 'Le procès-verbal de la réunion du mois dernier a été approuvé à l\'unanimité après lecture et vérification des points abordés.'
+      if (response.ok) {
+        const compteRenduResponse = await response.json();
+        console.log('✅ Compte-rendu chargé depuis l\'API:', compteRenduResponse);
+
+        // Adapter le format de l'API au format attendu
+        const compteRendu = {
+          reunion: compteRenduResponse.reunion || {
+            id: reunion.id,
+            date: reunion.date,
+            heure: reunion.heure,
+            typeReunion: reunion.typeReunionLibelle,
+            clubId: currentUser?.clubId
           },
-          {
-            id: '2',
-            description: 'Rapport financier du trésorier',
-            contenu: 'Présentation du bilan financier du trimestre. Les comptes sont équilibrés avec un excédent de 2 500€. Plusieurs projets sont en cours de financement.'
-          },
-          {
-            id: '3',
-            description: 'Organisation de l\'événement caritatif annuel',
-            contenu: 'Discussion sur la préparation de l\'événement caritatif prévu pour le mois prochain. Formation des équipes et répartition des tâches entre les membres.'
+          presences: compteRenduResponse.presences || [],
+          invites: compteRenduResponse.invites || [],
+          ordresDuJour: compteRenduResponse.ordresDuJour || [],
+          divers: compteRenduResponse.divers || '',
+          statistiques: compteRenduResponse.statistiques || {
+            totalPresences: compteRenduResponse.presences?.length || 0,
+            totalInvites: compteRenduResponse.invites?.length || 0,
+            totalParticipants: (compteRenduResponse.presences?.length || 0) + (compteRenduResponse.invites?.length || 0),
+            totalOrdresDuJour: compteRenduResponse.ordresDuJour?.length || 0,
+            ordresAvecContenu: compteRenduResponse.ordresDuJour?.filter(o => o.contenu && o.contenu.trim()).length || 0
           }
-        ];
-      }
+        };
 
-      setCompteRenduData(compteRendu);
-      console.log('✅ Données compte-rendu chargées:', {
-        presences: compteRendu.presences.length,
-        invites: compteRendu.invites.length,
-        ordresDuJour: compteRendu.ordresDuJour.length
-      });
+        setCompteRenduData(compteRendu);
+        console.log('✅ Compte-rendu structuré:', compteRendu.statistiques);
+
+      } else if (response.status === 404) {
+        // Pas de compte-rendu disponible pour cette réunion
+        console.log('⚠️ Aucun compte-rendu disponible pour cette réunion');
+        setCompteRenduData(null);
+
+      } else {
+        throw new Error(`Erreur HTTP ${response.status}: ${response.statusText}`);
+      }
 
     } catch (error) {
       console.error('❌ Erreur lors du chargement du compte-rendu:', error);
+      console.log('⚠️ Aucun compte-rendu disponible pour cette réunion');
       setCompteRenduData(null);
     }
   };
 
-  // Charger les rapports existants pour les ordres du jour
-  const loadExistingReports = async (ordresDuJour: any[], reunionId: string) => {
-    if (!ordresDuJour || ordresDuJour.length === 0) return [];
 
-    console.log('📋 Chargement des rapports pour', ordresDuJour.length, 'ordres du jour');
-
-    const ordresAvecRapports = ordresDuJour.map(ordre => ({ ...ordre, contenu: '' }));
-
-    for (let i = 0; i < ordresAvecRapports.length; i++) {
-      try {
-        // Essayer de charger le rapport via l'API
-        // Note: Adapter l'URL selon votre API
-        const rapportsResponse = await fetch(
-          `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${currentUser?.clubId}/reunions/${reunionId}/ordres/${ordresAvecRapports[i].id}/rapports`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'Authorization': `Bearer ${await apiService.getToken()}`,
-              'ngrok-skip-browser-warning': 'true'
-            }
-          }
-        );
-
-        if (rapportsResponse.ok) {
-          const rapportsData = await rapportsResponse.json();
-          if (rapportsData.rapports && rapportsData.rapports.length > 0) {
-            const rapportTexte = rapportsData.rapports.find(r => r.texte && r.texte.trim());
-            if (rapportTexte) {
-              ordresAvecRapports[i].contenu = rapportTexte.texte;
-              console.log(`✅ Rapport chargé pour ordre ${i + 1}`);
-            }
-          }
-        }
-      } catch (error) {
-        console.log(`⚠️ Impossible de charger le rapport pour l'ordre ${i + 1}:`, error.message);
-        // Continuer avec le contenu vide
-      }
-    }
-
-    return ordresAvecRapports;
-  };
 
   // Filtrer les réunions
   const appliquerFiltres = () => {
@@ -3697,21 +3678,39 @@ export default function App() {
               </View>
 
               {/* Affichage du Compte-rendu */}
-              {compteRenduData && (
+              {compteRenduData ? (
                 <View style={styles.compteRenduContainer}>
                   <Text style={styles.compteRenduTitle}>📄 Compte-rendu de la réunion</Text>
+
+                  {/* Statistiques rapides */}
+                  {compteRenduData.statistiques && (
+                    <View style={styles.compteRenduStatsContainer}>
+                      <View style={styles.compteRenduStat}>
+                        <Text style={styles.compteRenduStatNumber}>{compteRenduData.statistiques.totalPresences}</Text>
+                        <Text style={styles.compteRenduStatLabel}>Présents</Text>
+                      </View>
+                      <View style={styles.compteRenduStat}>
+                        <Text style={styles.compteRenduStatNumber}>{compteRenduData.statistiques.totalInvites}</Text>
+                        <Text style={styles.compteRenduStatLabel}>Invités</Text>
+                      </View>
+                      <View style={styles.compteRenduStat}>
+                        <Text style={styles.compteRenduStatNumber}>{compteRenduData.statistiques.totalOrdresDuJour}</Text>
+                        <Text style={styles.compteRenduStatLabel}>Ordres</Text>
+                      </View>
+                    </View>
+                  )}
 
                   {/* Informations de la réunion */}
                   <View style={styles.compteRenduSection}>
                     <Text style={styles.compteRenduSectionTitle}>📅 Informations</Text>
                     <Text style={styles.compteRenduText}>
-                      Date: {selectedReunion.dateFormatted || selectedReunion.date}
+                      Date: {compteRenduData.reunion?.date ? new Date(compteRenduData.reunion.date).toLocaleDateString('fr-FR') : selectedReunion.dateFormatted || selectedReunion.date}
                     </Text>
                     <Text style={styles.compteRenduText}>
-                      Heure: {selectedReunion.heure || 'Non spécifiée'}
+                      Heure: {compteRenduData.reunion?.heure || selectedReunion.heure || 'Non spécifiée'}
                     </Text>
                     <Text style={styles.compteRenduText}>
-                      Type: {selectedReunion.typeReunionLibelle || 'Réunion'}
+                      Type: {compteRenduData.reunion?.typeReunion || selectedReunion.typeReunionLibelle || 'Réunion'}
                     </Text>
                   </View>
 
@@ -3723,7 +3722,7 @@ export default function App() {
                       </Text>
                       {compteRenduData.presences.map((presence, index) => (
                         <Text key={index} style={styles.compteRenduListItem}>
-                          • {getPresenceDisplayName(presence)}
+                          • {presence.nomComplet || presence.nomCompletMembre || presence.nomMembre || 'Nom non disponible'}
                         </Text>
                       ))}
                     </View>
@@ -3737,9 +3736,8 @@ export default function App() {
                       </Text>
                       {compteRenduData.invites.map((invite, index) => (
                         <Text key={index} style={styles.compteRenduListItem}>
-                          • {invite.nom} {invite.prenom}
+                          • {invite.prenom} {invite.nom}
                           {invite.organisation && ` (${invite.organisation})`}
-                          {invite.email && ` - ${invite.email}`}
                         </Text>
                       ))}
                     </View>
@@ -3752,13 +3750,18 @@ export default function App() {
                         📋 Ordres du jour ({compteRenduData.ordresDuJour.length})
                       </Text>
                       {compteRenduData.ordresDuJour.map((ordre, index) => (
-                        <View key={index} style={styles.compteRenduOrdreItem}>
+                        <View key={ordre.id || index} style={styles.compteRenduOrdreItem}>
                           <Text style={styles.compteRenduOrdreTitle}>
-                            {index + 1}. {ordre.description}
+                            {ordre.numero || (index + 1)}. {ordre.description}
                           </Text>
                           {ordre.contenu && ordre.contenu.trim() && (
                             <Text style={styles.compteRenduOrdreContenu}>
                               {ordre.contenu}
+                            </Text>
+                          )}
+                          {(!ordre.contenu || !ordre.contenu.trim()) && (
+                            <Text style={styles.compteRenduOrdreVide}>
+                              Aucun contenu disponible pour cet ordre du jour.
                             </Text>
                           )}
                         </View>
@@ -3773,6 +3776,16 @@ export default function App() {
                       <Text style={styles.compteRenduText}>{compteRenduData.divers}</Text>
                     </View>
                   )}
+                </View>
+              ) : (
+                <View style={styles.compteRenduContainer}>
+                  <View style={styles.compteRenduEmptyState}>
+                    <Text style={styles.compteRenduEmptyIcon}>📄</Text>
+                    <Text style={styles.compteRenduEmptyTitle}>Compte-rendu non disponible</Text>
+                    <Text style={styles.compteRenduEmptyText}>
+                      Le compte-rendu de cette réunion n'a pas encore été rédigé ou n'est pas disponible.
+                    </Text>
+                  </View>
                 </View>
               )}
             </ScrollView>
@@ -5341,6 +5354,57 @@ const styles = StyleSheet.create({
     color: '#555',
     lineHeight: 20,
     fontStyle: 'italic',
+  },
+  compteRenduOrdreVide: {
+    fontSize: 13,
+    color: '#999',
+    lineHeight: 18,
+    fontStyle: 'italic',
+  },
+  compteRenduStatsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 16,
+    paddingVertical: 12,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  compteRenduStat: {
+    alignItems: 'center',
+  },
+  compteRenduStatNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.primary,
+  },
+  compteRenduStatLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  compteRenduEmptyState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  compteRenduEmptyIcon: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  compteRenduEmptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  compteRenduEmptyText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 20,
   },
   memberStatus: {
     justifyContent: 'center',
