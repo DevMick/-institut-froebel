@@ -14,24 +14,23 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Reunion, Club, PresenceReunion, InviteReunion } from '../types';
 import { ApiService } from '../services/ApiService';
+import { OrdreJourRapportService } from '../services/OrdreJourRapportService';
 
 interface ReunionsScreenProps {
   club: Club;
   onBack: () => void;
-  onNavigateToCompteRendu?: () => void;
 }
 
-export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({
-  club,
-  onBack,
-  onNavigateToCompteRendu
-}) => {
+export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) => {
   const [reunions, setReunions] = useState<Reunion[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedReunion, setSelectedReunion] = useState<Reunion | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [compteRendu, setCompteRendu] = useState<any>(null);
+  const [loadingCompteRendu, setLoadingCompteRendu] = useState(false);
 
   const apiService = new ApiService();
+  const rapportService = new OrdreJourRapportService();
 
   useEffect(() => {
     loadReunions();
@@ -130,9 +129,66 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({
     }
   };
 
-  const handleReunionPress = (reunion: Reunion) => {
+  const handleReunionPress = async (reunion: Reunion) => {
     setSelectedReunion(reunion);
     setShowDetailModal(true);
+
+    // Charger le compte-rendu automatiquement
+    await loadCompteRendu(reunion);
+  };
+
+  const loadCompteRendu = async (reunion: Reunion) => {
+    try {
+      setLoadingCompteRendu(true);
+      console.log('🔄 Chargement compte-rendu pour réunion:', reunion.id);
+
+      // Récupérer les détails de la réunion
+      const reunionData = await apiService.getReunionDetails(club.id, reunion.id);
+
+      // Charger le contenu pour chaque ordre du jour
+      const { ordresAvecContenu, diversExistant } = await rapportService.getAllRapportsForReunion(
+        club.id,
+        reunion.id,
+        reunionData.ordresDuJour || reunion.ordresDuJour || []
+      );
+
+      const compteRenduData = {
+        reunion: {
+          id: reunion.id,
+          date: reunion.date,
+          heure: reunion.heure,
+          typeReunion: reunion.typeReunionLibelle,
+          lieu: reunion.lieu
+        },
+        presences: (reunionData.presences || reunion.presences || []).map((p: any) => ({
+          membreId: p.membreId,
+          nomComplet: p.nomMembre || p.nomCompletMembre || p.nomComplet
+        })),
+        invites: (reunionData.invites || reunion.invites || []).map((i: any) => ({
+          id: i.id,
+          nom: i.nom,
+          prenom: i.prenom,
+          organisation: i.organisation,
+          email: i.email
+        })),
+        ordresDuJour: ordresAvecContenu,
+        divers: diversExistant,
+        statistiques: {
+          totalPresences: (reunionData.presences || reunion.presences || []).length,
+          totalInvites: (reunionData.invites || reunion.invites || []).length,
+          totalOrdresDuJour: ordresAvecContenu.length,
+          ordresAvecContenu: ordresAvecContenu.filter(o => o.hasContent).length
+        }
+      };
+
+      setCompteRendu(compteRenduData);
+      console.log('✅ Compte-rendu chargé:', compteRenduData.statistiques);
+    } catch (error: any) {
+      console.error('❌ Erreur chargement compte-rendu:', error);
+      setCompteRendu(null);
+    } finally {
+      setLoadingCompteRendu(false);
+    }
   };
 
   const renderReunion = ({ item }: { item: Reunion }) => (
@@ -187,8 +243,11 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({
       >
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Détails de la réunion</Text>
-            <TouchableOpacity onPress={() => setShowDetailModal(false)}>
+            <Text style={styles.modalTitle}>Réunion & Compte-Rendu</Text>
+            <TouchableOpacity onPress={() => {
+              setShowDetailModal(false);
+              setCompteRendu(null);
+            }}>
               <Ionicons name="close" size={24} color="#666" />
             </TouchableOpacity>
           </View>
@@ -196,7 +255,7 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({
           <ScrollView style={styles.modalContent}>
             {/* Info générale */}
             <View style={styles.detailSection}>
-              <Text style={styles.sectionTitle}>Informations générales</Text>
+              <Text style={styles.sectionTitle}>📅 Informations générales</Text>
               <Text style={styles.detailText}>Type: {selectedReunion.typeReunionLibelle}</Text>
               <Text style={styles.detailText}>Date: {formatDate(selectedReunion.date)}</Text>
               <Text style={styles.detailText}>Heure: {selectedReunion.heure}</Text>
@@ -204,40 +263,53 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({
               <Text style={styles.detailText}>Statut: {getStatusText(selectedReunion.statut)}</Text>
             </View>
 
-            {/* Ordre du jour */}
-            <View style={styles.detailSection}>
-              <Text style={styles.sectionTitle}>Ordre du jour ({selectedReunion.ordresDuJour.length} points)</Text>
-              {selectedReunion.ordresDuJour.map((point, index) => (
-                <View key={index} style={styles.agendaItem}>
-                  <Text style={styles.agendaNumber}>{index + 1}.</Text>
-                  <Text style={styles.agendaText}>{point}</Text>
-                </View>
-              ))}
-            </View>
+            {/* Chargement du compte-rendu */}
+            {loadingCompteRendu && (
+              <View style={styles.loadingSection}>
+                <ActivityIndicator size="large" color="#005AA9" />
+                <Text style={styles.loadingText}>Chargement du compte-rendu...</Text>
+              </View>
+            )}
 
-            {/* Présences */}
-            <View style={styles.detailSection}>
-              <Text style={styles.sectionTitle}>Présences ({selectedReunion.presences.length})</Text>
-              {selectedReunion.presences.map((presence) => (
-                <View key={presence.id} style={styles.presenceItem}>
-                  <Ionicons 
-                    name={presence.present ? "checkmark-circle" : presence.excuse ? "time" : "close-circle"} 
-                    size={20} 
-                    color={presence.present ? "#34C759" : presence.excuse ? "#FF9500" : "#FF3B30"} 
-                  />
-                  <Text style={styles.presenceText}>{presence.nomMembre}</Text>
-                  {presence.commentaire && (
-                    <Text style={styles.presenceComment}>({presence.commentaire})</Text>
-                  )}
-                </View>
-              ))}
-            </View>
-
-            {/* Invités */}
-            {selectedReunion.invites.length > 0 && (
+            {/* Statistiques du compte-rendu */}
+            {compteRendu && !loadingCompteRendu && (
               <View style={styles.detailSection}>
-                <Text style={styles.sectionTitle}>Invités ({selectedReunion.invites.length})</Text>
-                {selectedReunion.invites.map((invite) => (
+                <Text style={styles.sectionTitle}>📊 Statistiques</Text>
+                <View style={styles.statsRow}>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statNumber}>{compteRendu.statistiques.totalPresences}</Text>
+                    <Text style={styles.statLabel}>Présents</Text>
+                  </View>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statNumber}>{compteRendu.statistiques.totalInvites}</Text>
+                    <Text style={styles.statLabel}>Invités</Text>
+                  </View>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statNumber}>{compteRendu.statistiques.ordresAvecContenu}</Text>
+                    <Text style={styles.statLabel}>Ordres traités</Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* Présences du compte-rendu */}
+            {compteRendu && !loadingCompteRendu && (
+              <View style={styles.detailSection}>
+                <Text style={styles.sectionTitle}>👥 Présences ({compteRendu.statistiques.totalPresences})</Text>
+                {compteRendu.presences.map((presence: any, index: number) => (
+                  <View key={presence.membreId || index} style={styles.presenceItem}>
+                    <Ionicons name="checkmark-circle" size={20} color="#34C759" />
+                    <Text style={styles.presenceText}>{presence.nomComplet}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Invités du compte-rendu */}
+            {compteRendu && !loadingCompteRendu && compteRendu.invites.length > 0 && (
+              <View style={styles.detailSection}>
+                <Text style={styles.sectionTitle}>🎯 Invités ({compteRendu.statistiques.totalInvites})</Text>
+                {compteRendu.invites.map((invite: any) => (
                   <View key={invite.id} style={styles.inviteItem}>
                     <Text style={styles.inviteName}>{invite.prenom} {invite.nom}</Text>
                     {invite.organisation && (
@@ -248,6 +320,53 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({
                     )}
                   </View>
                 ))}
+              </View>
+            )}
+
+            {/* Ordres du jour avec contenu du compte-rendu */}
+            {compteRendu && !loadingCompteRendu ? (
+              <View style={styles.detailSection}>
+                <Text style={styles.sectionTitle}>📋 Ordres du jour avec contenu ({compteRendu.statistiques.totalOrdresDuJour})</Text>
+                {compteRendu.ordresDuJour.map((ordre: any) => (
+                  <View key={ordre.id} style={styles.ordreCard}>
+                    <View style={styles.ordreHeader}>
+                      <Text style={styles.ordreTitle}>{ordre.numero}. {ordre.description}</Text>
+                      {ordre.hasContent ? (
+                        <Ionicons name="checkmark-circle" size={20} color="#34C759" />
+                      ) : (
+                        <Ionicons name="alert-circle" size={20} color="#FF9500" />
+                      )}
+                    </View>
+                    {ordre.contenu ? (
+                      <Text style={styles.ordreContent}>{ordre.contenu}</Text>
+                    ) : (
+                      <Text style={styles.ordreNoContent}>📝 Aucun contenu enregistré</Text>
+                    )}
+                  </View>
+                ))}
+              </View>
+            ) : (
+              /* Ordre du jour basique si pas de compte-rendu */
+              <View style={styles.detailSection}>
+                <Text style={styles.sectionTitle}>📋 Ordre du jour ({selectedReunion.ordresDuJour.length} points)</Text>
+                {selectedReunion.ordresDuJour.map((point, index) => (
+                  <View key={index} style={styles.agendaItem}>
+                    <Text style={styles.agendaNumber}>{index + 1}.</Text>
+                    <Text style={styles.agendaText}>{point}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Points divers du compte-rendu */}
+            {compteRendu && !loadingCompteRendu && (
+              <View style={styles.detailSection}>
+                <Text style={styles.sectionTitle}>📝 Points divers</Text>
+                {compteRendu.divers ? (
+                  <Text style={styles.diversContent}>{compteRendu.divers}</Text>
+                ) : (
+                  <Text style={styles.diversNoContent}>Aucun point divers enregistré.</Text>
+                )}
               </View>
             )}
           </ScrollView>
@@ -264,17 +383,9 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={styles.title}>Réunions</Text>
+          <Text style={styles.title}>Réunions & Comptes-Rendus</Text>
           <Text style={styles.subtitle}>{club.name}</Text>
         </View>
-        {onNavigateToCompteRendu && (
-          <TouchableOpacity
-            style={styles.compteRenduButton}
-            onPress={onNavigateToCompteRendu}
-          >
-            <Ionicons name="document-text" size={24} color="white" />
-          </TouchableOpacity>
-        )}
       </View>
 
       {/* Stats */}
@@ -322,9 +433,72 @@ const styles = StyleSheet.create({
   backButton: {
     marginRight: 15,
   },
-  compteRenduButton: {
-    marginLeft: 15,
-    padding: 8,
+  loadingSection: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 15,
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#666',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#005AA9',
+    marginBottom: 5,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#666',
+  },
+  ordreCard: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 10,
+  },
+  ordreHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  ordreTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1,
+  },
+  ordreContent: {
+    fontSize: 13,
+    color: '#333',
+    lineHeight: 18,
+  },
+  ordreNoContent: {
+    fontSize: 13,
+    color: '#999',
+    fontStyle: 'italic',
+  },
+  diversContent: {
+    fontSize: 14,
+    color: '#333',
+    lineHeight: 20,
+  },
+  diversNoContent: {
+    fontSize: 14,
+    color: '#999',
+    fontStyle: 'italic',
   },
   headerContent: {
     flex: 1,

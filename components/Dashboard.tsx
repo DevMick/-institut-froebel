@@ -82,18 +82,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
     {
       id: 'reunions',
       title: 'Réunions',
-      subtitle: 'Gérer les réunions',
+      subtitle: 'Gérer les réunions et comptes-rendus',
       icon: 'calendar',
       color: '#34C759',
       screen: 'reunions' as NavigationScreen,
-    },
-    {
-      id: 'comptes-rendus',
-      title: 'Comptes-Rendus',
-      subtitle: 'Consulter les rapports',
-      icon: 'document-text',
-      color: '#FF6B35',
-      screen: 'comptes-rendus' as NavigationScreen,
     },
     {
       id: 'profile',
