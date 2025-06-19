@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Rotary Club Mobile",
+    "slug": "rotary-club-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#005AA9"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#005AA9"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
