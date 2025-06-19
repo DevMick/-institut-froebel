@@ -224,30 +224,15 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
       {/* Date */}
       <Text style={styles.reunionDate}>{formatDate(item.date)}</Text>
 
-      {/* Informations générales */}
-      <View style={styles.infoSection}>
-        <Text style={styles.infoTitle}>📅 Informations générales</Text>
-        <Text style={styles.infoText}>Type: {item.typeReunionLibelle}</Text>
-        <Text style={styles.infoText}>Date: {formatDate(item.date)}</Text>
-        <Text style={styles.infoText}>Heure: {item.heure}</Text>
-      </View>
-
-      {/* Statistiques */}
-      <View style={styles.statsSection}>
-        <Text style={styles.statsTitle}>📊 Statistiques</Text>
-        <View style={styles.reunionStats}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{(item.ordresDuJour || []).length}</Text>
-            <Text style={styles.statLabel}>Points à l'ordre</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{(item.presences || []).length}</Text>
-            <Text style={styles.statLabel}>Présences</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{(item.invites || []).length}</Text>
-            <Text style={styles.statLabel}>Invités</Text>
-          </View>
+      {/* Statistiques simples */}
+      <View style={styles.reunionStats}>
+        <View style={styles.statItem}>
+          <Ionicons name="people" size={16} color="#005AA9" />
+          <Text style={styles.statText}>{(item.presences || []).length} présences</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Ionicons name="person-add" size={16} color="#005AA9" />
+          <Text style={styles.statText}>{(item.invites || []).length} invités</Text>
         </View>
       </View>
 
@@ -293,23 +278,13 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
             {/* Contenu du compte-rendu */}
             {compteRendu && !loadingCompteRendu && (
               <>
-                {/* Statistiques détaillées */}
-                <View style={styles.detailSection}>
-                  <Text style={styles.sectionTitle}>📊 Statistiques détaillées</Text>
-                  <View style={styles.statsRow}>
-                    <View style={styles.statItem}>
-                      <Text style={styles.statNumber}>{compteRendu.statistiques.totalPresences}</Text>
-                      <Text style={styles.statLabel}>Présents</Text>
-                    </View>
-                    <View style={styles.statItem}>
-                      <Text style={styles.statNumber}>{compteRendu.statistiques.totalInvites}</Text>
-                      <Text style={styles.statLabel}>Invités</Text>
-                    </View>
-                    <View style={styles.statItem}>
-                      <Text style={styles.statNumber}>{compteRendu.statistiques.ordresAvecContenu}</Text>
-                      <Text style={styles.statLabel}>Ordres traités</Text>
-                    </View>
-                  </View>
+                {/* Header du compte-rendu */}
+                <View style={styles.compteRenduHeader}>
+                  <Text style={styles.clubNameHeader}>{club.name}</Text>
+                  <Text style={styles.compteRenduTitle}>COMPTE-RENDU DE RÉUNION</Text>
+                  <Text style={styles.reunionInfoHeader}>
+                    {selectedReunion?.typeReunionLibelle} du {formatDate(selectedReunion?.date || '')} à {selectedReunion?.heure}
+                  </Text>
                 </View>
 
                 {/* Présences du compte-rendu */}
@@ -454,9 +429,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
   },
-  statItem: {
-    alignItems: 'center',
-  },
   statNumber: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -466,6 +438,7 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 12,
     color: '#666',
+    textAlign: 'center',
   },
   ordreCard: {
     backgroundColor: '#f8f9fa',
@@ -534,8 +507,8 @@ const styles = StyleSheet.create({
   reunionCard: {
     backgroundColor: 'white',
     borderRadius: 12,
-    padding: 20,
-    marginBottom: 15,
+    padding: 15,
+    marginBottom: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -546,10 +519,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   reunionType: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
     flex: 1,
@@ -557,33 +530,7 @@ const styles = StyleSheet.create({
   reunionDate: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 15,
-  },
-  infoSection: {
-    marginBottom: 15,
-    paddingBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  infoTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#005AA9',
-    marginBottom: 8,
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#333',
-    marginBottom: 3,
-  },
-  statsSection: {
-    marginBottom: 15,
-  },
-  statsTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#005AA9',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   timeBadge: {
     backgroundColor: '#005AA9',
@@ -598,41 +545,56 @@ const styles = StyleSheet.create({
   },
   reunionStats: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'flex-start',
+    marginBottom: 12,
   },
   statItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
-  },
-  statNumber: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#005AA9',
-    marginBottom: 5,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
+    marginRight: 20,
   },
   statText: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#666',
-    marginLeft: 4,
+    marginLeft: 6,
   },
   reunionFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 15,
-    paddingTop: 15,
+    marginTop: 8,
+    paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
   },
   compteRenduText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#005AA9',
     fontWeight: '600',
+  },
+  compteRenduHeader: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 20,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  clubNameHeader: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+  },
+  compteRenduTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#005AA9',
+    marginBottom: 8,
+  },
+  reunionInfoHeader: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
   },
 
   loadingContainer: {
