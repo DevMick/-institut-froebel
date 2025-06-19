@@ -50,8 +50,28 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
         console.log('🔍 Première réunion API:', JSON.stringify(reunionsData[0], null, 2));
       }
 
-      // Utiliser uniquement les données de la base de données
-      setReunions(reunionsData);
+      // Charger les détails (présences/invités) pour chaque réunion
+      const reunionsAvecDetails = await Promise.all(
+        reunionsData.map(async (reunion) => {
+          try {
+            const details = await apiService.getReunionDetails(club.id, reunion.id);
+            console.log(`📊 Détails chargés pour réunion ${reunion.id}:`, {
+              presences: details.presences?.length || 0,
+              invites: details.invites?.length || 0
+            });
+            return {
+              ...reunion,
+              presences: details.presences || [],
+              invites: details.invites || []
+            };
+          } catch (error) {
+            console.log(`⚠️ Erreur détails réunion ${reunion.id}:`, error);
+            return reunion; // Garder la réunion sans détails en cas d'erreur
+          }
+        })
+      );
+
+      setReunions(reunionsAvecDetails);
 
       if (reunionsData.length === 0) {
         console.log('ℹ️ Aucune réunion trouvée dans la base de données');
@@ -90,21 +110,11 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
       setLoadingCompteRendu(true);
       console.log('🔄 Chargement compte-rendu pour réunion:', reunion.id);
 
-      // Récupérer les détails de la réunion avec présences et invités
-      let reunionData;
-      try {
-        reunionData = await apiService.getReunionDetails(club.id, reunion.id);
-        console.log('📊 Détails réunion chargés:', {
-          presences: reunionData.presences?.length || 0,
-          invites: reunionData.invites?.length || 0
-        });
-      } catch (error) {
-        console.log('⚠️ Impossible de charger les détails, utilisation des données de base');
-        reunionData = reunion;
-      }
+      // Utiliser les données déjà chargées de la réunion (présences/invités)
+      const reunionData = reunion;
 
       // Charger le contenu pour chaque ordre du jour
-      const ordresDuJour = reunionData.ordresDuJour || reunion.ordresDuJour || [];
+      const ordresDuJour = reunionData.ordresDuJour || [];
       console.log('📋 Ordres du jour trouvés:', ordresDuJour.length);
 
       let ordresAvecContenu = [];
@@ -119,18 +129,6 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
         ordresAvecContenu = rapportResult.ordresAvecContenu || [];
         diversExistant = rapportResult.diversExistant || '';
       }
-
-      // Mettre à jour la réunion avec les vraies données pour l'affichage des cartes
-      const updatedReunion = {
-        ...reunion,
-        presences: reunionData.presences || [],
-        invites: reunionData.invites || []
-      };
-
-      // Mettre à jour la liste des réunions avec les vraies données
-      setReunions(prevReunions =>
-        prevReunions.map(r => r.id === reunion.id ? updatedReunion : r)
-      );
 
       const compteRenduData = {
         reunion: {
@@ -147,8 +145,7 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
         invites: (reunionData.invites || []).map((i: any) => ({
           id: i.id,
           nom: i.nom,
-          prenom: i.prenom,
-          email: i.email
+          prenom: i.prenom
         })),
         ordresDuJour: ordresAvecContenu,
         divers: diversExistant,
@@ -277,9 +274,6 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
                     {compteRendu.invites.map((invite: any) => (
                       <View key={invite.id} style={styles.inviteItem}>
                         <Text style={styles.inviteName}>{invite.prenom} {invite.nom}</Text>
-                        {invite.email && (
-                          <Text style={styles.inviteEmail}>{invite.email}</Text>
-                        )}
                       </View>
                     ))}
                   </View>
