@@ -128,12 +128,13 @@ export interface AppState {
   error: string | null;
 }
 
-export type NavigationScreen = 
-  | 'login' 
-  | 'dashboard' 
-  | 'members' 
-  | 'reunions' 
-  | 'profile' 
+export type NavigationScreen =
+  | 'login'
+  | 'dashboard'
+  | 'members'
+  | 'reunions'
+  | 'comptes-rendus'
+  | 'profile'
   | 'settings';
 
 export interface NavigationState {

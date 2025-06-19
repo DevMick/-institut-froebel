@@ -18,9 +18,14 @@ import { ApiService } from '../services/ApiService';
 interface ReunionsScreenProps {
   club: Club;
   onBack: () => void;
+  onNavigateToCompteRendu?: () => void;
 }
 
-export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) => {
+export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({
+  club,
+  onBack,
+  onNavigateToCompteRendu
+}) => {
   const [reunions, setReunions] = useState<Reunion[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedReunion, setSelectedReunion] = useState<Reunion | null>(null);
@@ -36,10 +41,16 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
     try {
       setLoading(true);
       console.log('🔄 Chargement des réunions...');
-      
-      // Pour l'instant, on utilise des données de démonstration
-      // car l'endpoint des réunions n'est pas encore implémenté
-      const mockReunions: Reunion[] = [
+
+      // Charger les vraies réunions depuis l'API
+      const reunionsData = await apiService.getClubReunions(club.id);
+      setReunions(reunionsData);
+      console.log('✅ Réunions chargées:', reunionsData.length);
+
+      // Données de démonstration en cas d'échec ou si pas de données
+      if (reunionsData.length === 0) {
+        console.log('📝 Utilisation des données de démonstration');
+        const mockReunions: Reunion[] = [
         {
           id: '1',
           clubId: club.id,
@@ -77,9 +88,10 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
           statut: 'terminee',
         },
       ];
-      
-      setReunions(mockReunions);
-      console.log('✅ Réunions chargées:', mockReunions.length);
+
+        setReunions(mockReunions);
+        console.log('✅ Données de démonstration chargées:', mockReunions.length);
+      }
     } catch (error: any) {
       console.error('❌ Erreur chargement réunions:', error);
       Alert.alert('Erreur', 'Impossible de charger les réunions');
@@ -255,6 +267,14 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
           <Text style={styles.title}>Réunions</Text>
           <Text style={styles.subtitle}>{club.name}</Text>
         </View>
+        {onNavigateToCompteRendu && (
+          <TouchableOpacity
+            style={styles.compteRenduButton}
+            onPress={onNavigateToCompteRendu}
+          >
+            <Ionicons name="document-text" size={24} color="white" />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Stats */}
@@ -301,6 +321,10 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginRight: 15,
+  },
+  compteRenduButton: {
+    marginLeft: 15,
+    padding: 8,
   },
   headerContent: {
     flex: 1,

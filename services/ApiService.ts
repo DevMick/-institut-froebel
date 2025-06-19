@@ -221,10 +221,78 @@ export class ApiService {
 
   async getClubReunions(clubId: string): Promise<Reunion[]> {
     try {
-      const response = await this.makeRequest<Reunion[]>(`/clubs/${clubId}/reunions`);
-      return response.data || [];
+      console.log('🔄 Chargement réunions pour club:', clubId);
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/reunions`;
+      const token = await this.getToken();
+
+      if (!token) {
+        throw new Error('Token d\'authentification manquant');
+      }
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true',
+          'User-Agent': 'RotaryClubMobile/1.0',
+          'Origin': 'https://snack.expo.dev',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          await this.removeToken();
+          throw new Error('Session expirée. Veuillez vous reconnecter.');
+        }
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Réunions chargées:', Array.isArray(data) ? data.length : 'Format inattendu');
+      return Array.isArray(data) ? data : data.data || [];
     } catch (error) {
-      console.error('Erreur chargement réunions:', error);
+      console.error('❌ Erreur chargement réunions:', error);
+      throw error;
+    }
+  }
+
+  async getReunionDetails(clubId: string, reunionId: string): Promise<Reunion> {
+    try {
+      console.log('🔄 Chargement détails réunion:', reunionId);
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/reunions/${reunionId}`;
+      const token = await this.getToken();
+
+      if (!token) {
+        throw new Error('Token d\'authentification manquant');
+      }
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true',
+          'User-Agent': 'RotaryClubMobile/1.0',
+          'Origin': 'https://snack.expo.dev',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          await this.removeToken();
+          throw new Error('Session expirée. Veuillez vous reconnecter.');
+        }
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Détails réunion chargés:', data);
+      return data;
+    } catch (error) {
+      console.error('❌ Erreur chargement détails réunion:', error);
       throw error;
     }
   }
