@@ -10,6 +10,10 @@ import { StatusBar } from 'expo-status-bar';
 // Imports des composants modulaires
 import { LoginScreen } from './components/LoginScreen';
 import { Dashboard } from './components/Dashboard';
+import { MembersScreen } from './components/MembersScreen';
+import { ReunionsScreen } from './components/ReunionsScreen';
+import { ProfileScreen } from './components/ProfileScreen';
+import { SettingsScreen } from './components/SettingsScreen';
 import { ApiService } from './services/ApiService';
 import { User, Club, NavigationScreen } from './types';
 
@@ -80,18 +84,6 @@ export default function App() {
   const handleNavigation = (screen: NavigationScreen) => {
     console.log('🧭 Navigation vers:', screen);
     setCurrentScreen(screen);
-    
-    // Pour l'instant, on affiche juste une alerte
-    // Plus tard, on ajoutera les écrans correspondants
-    if (screen !== 'dashboard') {
-      Alert.alert(
-        'Fonctionnalité en développement',
-        `L'écran "${screen}" sera disponible dans une prochaine version.`,
-        [
-          { text: 'OK', onPress: () => setCurrentScreen('dashboard') }
-        ]
-      );
-    }
   };
 
   // Écran de chargement initial
@@ -120,19 +112,84 @@ export default function App() {
     );
   }
 
-  // Tableau de bord principal
-  if (currentScreen === 'dashboard' && user && selectedClub) {
-    return (
-      <>
-        <StatusBar style="light" backgroundColor="#005AA9" />
-        <Dashboard
-          user={user}
-          club={selectedClub}
-          onLogout={handleLogout}
-          onNavigate={handleNavigation}
-        />
-      </>
-    );
+  // Navigation vers les différents écrans
+  if (user && selectedClub) {
+    const handleBackToDashboard = () => setCurrentScreen('dashboard');
+
+    switch (currentScreen) {
+      case 'dashboard':
+        return (
+          <>
+            <StatusBar style="light" backgroundColor="#005AA9" />
+            <Dashboard
+              user={user}
+              club={selectedClub}
+              onLogout={handleLogout}
+              onNavigate={handleNavigation}
+            />
+          </>
+        );
+
+      case 'members':
+        return (
+          <>
+            <StatusBar style="light" backgroundColor="#005AA9" />
+            <MembersScreen
+              club={selectedClub}
+              onBack={handleBackToDashboard}
+            />
+          </>
+        );
+
+      case 'reunions':
+        return (
+          <>
+            <StatusBar style="light" backgroundColor="#005AA9" />
+            <ReunionsScreen
+              club={selectedClub}
+              onBack={handleBackToDashboard}
+            />
+          </>
+        );
+
+      case 'profile':
+        return (
+          <>
+            <StatusBar style="light" backgroundColor="#005AA9" />
+            <ProfileScreen
+              user={user}
+              club={selectedClub}
+              onBack={handleBackToDashboard}
+            />
+          </>
+        );
+
+      case 'settings':
+        return (
+          <>
+            <StatusBar style="light" backgroundColor="#005AA9" />
+            <SettingsScreen
+              user={user}
+              club={selectedClub}
+              onBack={handleBackToDashboard}
+              onLogout={handleLogout}
+            />
+          </>
+        );
+
+      default:
+        return (
+          <>
+            <StatusBar style="light" backgroundColor="#005AA9" />
+            <Dashboard
+              user={user}
+              club={selectedClub}
+              onLogout={handleLogout}
+              onNavigate={handleNavigation}
+            />
+          </>
+        );
+    }
   }
 
   // Écran par défaut (ne devrait pas arriver)
