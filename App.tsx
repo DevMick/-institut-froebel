@@ -2465,21 +2465,102 @@ export default function App() {
     }
   };
 
-  // Construire le compte-rendu à partir des données de la réunion
+  // Charger le compte-rendu complet selon le flux détaillé
   const loadCompteRenduData = async (reunion: any) => {
     try {
       setCompteRenduLoading(true);
       setCompteRenduData(null); // Reset des données précédentes
 
-      console.log('📄 === CONSTRUCTION COMPTE-RENDU DEPUIS DONNÉES RÉUNION ===');
+      console.log('📄 === CHARGEMENT COMPTE-RENDU COMPLET ===');
       console.log('📄 Réunion ID:', reunion.id);
-      console.log('📄 Données réunion disponibles:', {
-        presences: reunion.presences?.length || 0,
-        invites: reunion.invites?.length || 0,
-        ordresDuJour: reunion.ordresDuJour?.length || 0
-      });
+      console.log('📄 Club ID:', currentUser?.clubId);
 
-      // Construire le compte-rendu à partir des données déjà disponibles
+      const token = await apiService.getToken();
+      if (!token) {
+        throw new Error('Token d\'authentification manquant');
+      }
+
+      // ÉTAPE 1 : Récupérer les données de base de la réunion (déjà disponibles)
+      console.log('📋 === ÉTAPE 1: DONNÉES DE BASE ===');
+      console.log('📋 Ordres du jour à traiter:', reunion.ordresDuJour?.length || 0);
+
+      // ÉTAPE 2 : Charger le contenu pour chaque ordre du jour
+      console.log('📋 === ÉTAPE 2: CHARGEMENT CONTENU ORDRES DU JOUR ===');
+      const ordresAvecContenu = [];
+      let diversExistant = '';
+
+      if (reunion.ordresDuJour && reunion.ordresDuJour.length > 0) {
+        for (let i = 0; i < reunion.ordresDuJour.length; i++) {
+          const ordre = reunion.ordresDuJour[i];
+          console.log(`📋 Traitement ordre ${i + 1}:`, {
+            id: ordre.id,
+            description: ordre.description || ordre
+          });
+
+          try {
+            // Construire l'URL pour les rapports de cet ordre
+            const rapportsUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${currentUser?.clubId}/reunions/${reunion.id}/ordres-du-jour/${ordre.id}/rapports`;
+            console.log(`🌐 URL rapports ordre ${i + 1}:`, rapportsUrl);
+
+            const rapportsResponse = await fetch(rapportsUrl, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true'
+              }
+            });
+
+            let contenuOrdre = '';
+
+            if (rapportsResponse.ok) {
+              const rapportsData = await rapportsResponse.json();
+              console.log(`📄 Rapports reçus pour ordre ${i + 1}:`, rapportsData);
+
+              if (rapportsData.rapports && rapportsData.rapports.length > 0) {
+                // Extraire le contenu du premier rapport avec du texte
+                const rapportTexte = rapportsData.rapports.find(r => r.texte && r.texte.trim());
+                if (rapportTexte) {
+                  contenuOrdre = rapportTexte.texte;
+                  console.log(`✅ Contenu trouvé pour ordre ${i + 1} (${contenuOrdre.length} caractères)`);
+                }
+
+                // Extraire les points divers (une seule fois)
+                if (!diversExistant) {
+                  const rapportDivers = rapportsData.rapports.find(r => r.divers && r.divers.trim());
+                  if (rapportDivers) {
+                    diversExistant = rapportDivers.divers;
+                    console.log('✅ Points divers trouvés:', diversExistant.substring(0, 100) + '...');
+                  }
+                }
+              }
+            } else {
+              console.log(`⚠️ Pas de rapport disponible pour ordre ${i + 1} (${rapportsResponse.status})`);
+            }
+
+            ordresAvecContenu.push({
+              numero: i + 1,
+              id: ordre.id,
+              description: ordre.description || ordre,
+              contenu: contenuOrdre
+            });
+
+          } catch (error) {
+            console.log(`❌ Erreur chargement rapport ordre ${i + 1}:`, error.message);
+            // En cas d'erreur, ajouter l'ordre sans contenu
+            ordresAvecContenu.push({
+              numero: i + 1,
+              id: ordre.id || `ordre-${i + 1}`,
+              description: ordre.description || ordre,
+              contenu: ''
+            });
+          }
+        }
+      }
+
+      // ÉTAPE 3 : Construction de l'objet final
+      console.log('📋 === ÉTAPE 3: CONSTRUCTION OBJET FINAL ===');
       const compteRendu = {
         reunion: {
           id: reunion.id,
@@ -2500,33 +2581,29 @@ export default function App() {
           organisation: i.organisation || '',
           selected: true
         })),
-        ordresDuJour: (reunion.ordresDuJour || []).map((ordre: any, index: number) => ({
-          numero: index + 1,
-          id: `ordre-${index + 1}`,
-          description: typeof ordre === 'string' ? ordre : ordre.description || ordre.titre || `Ordre du jour ${index + 1}`,
-          contenu: '' // Pas de contenu détaillé disponible pour le moment
-        })),
-        divers: '', // Pas de points divers disponibles pour le moment
+        ordresDuJour: ordresAvecContenu,
+        divers: diversExistant,
         statistiques: {
           totalPresences: reunion.presences?.length || 0,
           totalInvites: reunion.invites?.length || 0,
           totalParticipants: (reunion.presences?.length || 0) + (reunion.invites?.length || 0),
-          totalOrdresDuJour: reunion.ordresDuJour?.length || 0,
-          ordresAvecContenu: 0 // Aucun contenu détaillé pour le moment
+          totalOrdresDuJour: ordresAvecContenu.length,
+          ordresAvecContenu: ordresAvecContenu.filter(o => o.contenu && o.contenu.trim()).length
         }
       };
 
-      console.log('✅ === COMPTE-RENDU CONSTRUIT ===');
-      console.log('📊 Statistiques:', compteRendu.statistiques);
+      console.log('✅ === COMPTE-RENDU COMPLET CHARGÉ ===');
+      console.log('📊 Statistiques finales:', compteRendu.statistiques);
       console.log('👥 Présences:', compteRendu.presences.map(p => p.nomComplet));
       console.log('🎯 Invités:', compteRendu.invites.map(i => `${i.prenom} ${i.nom}`));
-      console.log('📋 Ordres du jour:', compteRendu.ordresDuJour.map(o => o.description));
+      console.log('📋 Ordres avec contenu:', compteRendu.ordresDuJour.filter(o => o.contenu).length);
+      console.log('📝 Points divers:', diversExistant ? 'Présents' : 'Absents');
 
       setCompteRenduData(compteRendu);
-      console.log('✅ Compte-rendu construit avec succès pour réunion:', reunion.id);
+      console.log('✅ Compte-rendu complet chargé avec succès pour réunion:', reunion.id);
 
     } catch (error) {
-      console.error('❌ Erreur lors de la construction du compte-rendu:', error);
+      console.error('❌ Erreur lors du chargement du compte-rendu complet:', error);
       setCompteRenduData(null);
     } finally {
       setCompteRenduLoading(false);
@@ -3649,11 +3726,20 @@ export default function App() {
                   )}
 
                   {/* Points divers */}
-                  {compteRenduData.divers && compteRenduData.divers.trim() && (
+                  {compteRenduData.divers && compteRenduData.divers.trim() ? (
                     <View style={styles.compteRenduSection}>
                       <Text style={styles.compteRenduSectionTitle}>📝 Points divers</Text>
                       <View style={styles.compteRenduDiversContainer}>
                         <Text style={styles.compteRenduDiversText}>{compteRenduData.divers}</Text>
+                      </View>
+                    </View>
+                  ) : (
+                    <View style={styles.compteRenduSection}>
+                      <Text style={styles.compteRenduSectionTitle}>📝 Points divers</Text>
+                      <View style={styles.compteRenduDiversVideContainer}>
+                        <Text style={styles.compteRenduDiversVide}>
+                          Aucun point divers enregistré pour cette réunion.
+                        </Text>
                       </View>
                     </View>
                   )}
@@ -5317,6 +5403,21 @@ const styles = StyleSheet.create({
     color: '#333',
     lineHeight: 20,
     textAlign: 'justify',
+  },
+  compteRenduDiversVideContainer: {
+    padding: 12,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderStyle: 'dashed',
+  },
+  compteRenduDiversVide: {
+    fontSize: 13,
+    color: '#666',
+    lineHeight: 18,
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
   compteRenduLoadingState: {
     alignItems: 'center',
