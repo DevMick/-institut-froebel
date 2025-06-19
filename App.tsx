@@ -2484,19 +2484,76 @@ export default function App() {
       console.log('📋 === ÉTAPE 1: DONNÉES DE BASE ===');
       console.log('📋 Ordres du jour à traiter:', reunion.ordresDuJour?.length || 0);
 
-      // ÉTAPE 2 : Charger le contenu pour chaque ordre du jour
-      console.log('📋 === ÉTAPE 2: CHARGEMENT CONTENU ORDRES DU JOUR ===');
+      // ÉTAPE 2 : Récupérer d'abord les ordres du jour complets avec IDs
+      console.log('📋 === ÉTAPE 2: RÉCUPÉRATION ORDRES DU JOUR COMPLETS ===');
+      let ordresDuJourComplets = [];
+
+      try {
+        // Récupérer les ordres du jour complets depuis l'API
+        const ordresUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${currentUser?.clubId}/reunions/${reunion.id}`;
+        console.log('🌐 URL ordres du jour complets:', ordresUrl);
+
+        const ordresResponse = await fetch(ordresUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'ngrok-skip-browser-warning': 'true'
+          }
+        });
+
+        if (ordresResponse.ok) {
+          const reunionComplete = await ordresResponse.json();
+          console.log('📋 Réunion complète reçue:', reunionComplete);
+
+          if (reunionComplete.ordresDuJour && Array.isArray(reunionComplete.ordresDuJour)) {
+            ordresDuJourComplets = reunionComplete.ordresDuJour;
+            console.log('✅ Ordres du jour complets trouvés:', ordresDuJourComplets.length);
+            ordresDuJourComplets.forEach((ordre, idx) => {
+              console.log(`📋 Ordre ${idx + 1}:`, {
+                id: ordre.id,
+                description: ordre.description,
+                hasId: !!ordre.id
+              });
+            });
+          } else {
+            console.log('⚠️ Pas d\'ordres du jour complets dans la réponse');
+          }
+        } else {
+          console.log('❌ Erreur lors de la récupération des ordres complets:', ordresResponse.status);
+        }
+      } catch (error) {
+        console.log('❌ Erreur récupération ordres complets:', error.message);
+      }
+
+      // Si pas d'ordres complets, utiliser les données existantes (strings)
+      if (ordresDuJourComplets.length === 0 && reunion.ordresDuJour && reunion.ordresDuJour.length > 0) {
+        console.log('⚠️ Utilisation des ordres du jour sous forme de strings (pas d\'IDs)');
+        ordresDuJourComplets = reunion.ordresDuJour.map((description, index) => ({
+          id: null, // Pas d'ID disponible
+          description: typeof description === 'string' ? description : description.description || description,
+          numero: index + 1
+        }));
+      }
+
+      // ÉTAPE 3 : Charger le contenu pour chaque ordre du jour (si IDs disponibles)
+      console.log('📋 === ÉTAPE 3: CHARGEMENT CONTENU ORDRES DU JOUR ===');
       const ordresAvecContenu = [];
       let diversExistant = '';
 
-      if (reunion.ordresDuJour && reunion.ordresDuJour.length > 0) {
-        for (let i = 0; i < reunion.ordresDuJour.length; i++) {
-          const ordre = reunion.ordresDuJour[i];
-          console.log(`📋 Traitement ordre ${i + 1}:`, {
-            id: ordre.id,
-            description: ordre.description || ordre
-          });
+      for (let i = 0; i < ordresDuJourComplets.length; i++) {
+        const ordre = ordresDuJourComplets[i];
+        console.log(`📋 Traitement ordre ${i + 1}:`, {
+          id: ordre.id,
+          description: ordre.description,
+          hasId: !!ordre.id
+        });
 
+        let contenuOrdre = '';
+
+        // Seulement essayer de charger le contenu si on a un ID
+        if (ordre.id) {
           try {
             // Construire l'URL pour les rapports de cet ordre
             const rapportsUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${currentUser?.clubId}/reunions/${reunion.id}/ordres-du-jour/${ordre.id}/rapports`;
@@ -2521,8 +2578,6 @@ export default function App() {
               ok: rapportsResponse.ok,
               url: rapportsUrl
             });
-
-            let contenuOrdre = '';
 
             if (rapportsResponse.ok) {
               const rapportsData = await rapportsResponse.json();
@@ -2575,24 +2630,23 @@ export default function App() {
               });
             }
 
-            ordresAvecContenu.push({
-              numero: i + 1,
-              id: ordre.id,
-              description: ordre.description || ordre,
-              contenu: contenuOrdre
-            });
-
           } catch (error) {
             console.log(`❌ Erreur chargement rapport ordre ${i + 1}:`, error.message);
-            // En cas d'erreur, ajouter l'ordre sans contenu
-            ordresAvecContenu.push({
-              numero: i + 1,
-              id: ordre.id || `ordre-${i + 1}`,
-              description: ordre.description || ordre,
-              contenu: ''
-            });
+            // En cas d'erreur, contenu vide
+            contenuOrdre = '';
           }
+        } else {
+          console.log(`⚠️ Pas d'ID pour ordre ${i + 1}, impossible de charger le contenu`);
         }
+
+        // Ajouter l'ordre avec ou sans contenu
+        ordresAvecContenu.push({
+          numero: i + 1,
+          id: ordre.id || `ordre-${i + 1}`,
+          description: ordre.description || ordre,
+          contenu: contenuOrdre
+        });
+      }
       }
 
       // ÉTAPE 3 : Construction de l'objet final
