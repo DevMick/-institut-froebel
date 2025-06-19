@@ -156,14 +156,35 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
 
       // Charger le contenu pour chaque ordre du jour
       const ordresDuJour = reunionData.ordresDuJour || reunion.ordresDuJour || [];
+      console.log('📋 Structure des ordres du jour:', JSON.stringify(ordresDuJour, null, 2));
+      console.log('📋 Données de réunion complètes:', JSON.stringify(reunionData, null, 2));
+
       let ordresAvecContenu = [];
       let diversExistant = '';
 
       if (ordresDuJour.length > 0) {
+        // Mapper les ordres du jour pour s'assurer qu'ils ont les bonnes propriétés
+        const ordresMapped = ordresDuJour.map((ordre: any, index: number) => {
+          console.log(`📋 Ordre ${index + 1} original:`, JSON.stringify(ordre, null, 2));
+
+          // Essayer différentes propriétés possibles pour l'ID et la description
+          const ordreId = ordre.id || ordre.ordreId || ordre.numero || (index + 1).toString();
+          const description = ordre.description || ordre.titre || ordre.libelle || ordre.sujet || `Ordre du jour ${index + 1}`;
+
+          const ordreMapped = {
+            id: ordreId,
+            description: description,
+            numero: ordre.numero || (index + 1)
+          };
+
+          console.log(`📋 Ordre ${index + 1} mappé:`, JSON.stringify(ordreMapped, null, 2));
+          return ordreMapped;
+        });
+
         const rapportResult = await rapportService.getAllRapportsForReunion(
           club.id,
           reunion.id,
-          ordresDuJour
+          ordresMapped
         );
         ordresAvecContenu = rapportResult.ordresAvecContenu || [];
         diversExistant = rapportResult.diversExistant || '';

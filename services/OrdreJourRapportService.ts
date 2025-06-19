@@ -81,29 +81,38 @@ export class OrdreJourRapportService {
     }
   }
 
-  async getAllRapportsForReunion(clubId: string, reunionId: string, ordresDuJour: any[]): Promise<any[]> {
+  async getAllRapportsForReunion(clubId: string, reunionId: string, ordresDuJour: any[]): Promise<{ordresAvecContenu: any[], diversExistant: string}> {
+    console.log('=== DÉBUT CHARGEMENT COMPTE-RENDU ===');
     console.log('🔄 Chargement de tous les rapports pour la réunion:', reunionId);
-    
+    console.log('📋 Ordres du jour à traiter:', ordresDuJour.length);
+
     const ordresAvecContenu = [];
     let diversExistant = '';
 
     for (let i = 0; i < ordresDuJour.length; i++) {
       const ordre = ordresDuJour[i];
       console.log(`Chargement contenu pour ordre ${i + 1}: ${ordre.description || ordre.titre}`);
-      
+
       try {
+        // Utiliser le service pour récupérer les rapports
         const rapportsResponse = await this.getRapports(clubId, reunionId, ordre.id);
-        
+
+        console.log(`Rapports reçus pour ordre ${i + 1}:`, rapportsResponse);
+
         let contenuOrdre = '';
-        
+
         // Extraire le contenu du premier rapport avec du texte
-        if (rapportsResponse.rapports && rapportsResponse.rapports.length > 0) {
+        if (rapportsResponse.success && rapportsResponse.rapports && rapportsResponse.rapports.length > 0) {
+          console.log(`📊 ${rapportsResponse.rapports.length} rapport(s) trouvé(s) pour ordre ${i + 1}`);
+
           const rapportTexte = rapportsResponse.rapports.find(r => r.texte && r.texte.trim());
           if (rapportTexte) {
             contenuOrdre = rapportTexte.texte;
             console.log(`✅ Contenu trouvé pour ordre ${i + 1}:`, contenuOrdre.substring(0, 100) + '...');
+          } else {
+            console.log(`⚠️ Aucun rapport avec texte pour ordre ${i + 1}`);
           }
-          
+
           // Extraire les points divers (une seule fois)
           if (!diversExistant) {
             const rapportDivers = rapportsResponse.rapports.find(r => r.divers && r.divers.trim());
@@ -112,8 +121,12 @@ export class OrdreJourRapportService {
               console.log('✅ Points divers trouvés:', diversExistant.substring(0, 100) + '...');
             }
           }
+        } else if (!rapportsResponse.success) {
+          console.log(`❌ Échec de récupération des rapports pour ordre ${i + 1}:`, rapportsResponse.message);
+        } else {
+          console.log(`⚠️ Aucun rapport trouvé pour ordre ${i + 1}`);
         }
-        
+
         ordresAvecContenu.push({
           numero: i + 1,
           id: ordre.id,
@@ -121,7 +134,7 @@ export class OrdreJourRapportService {
           contenu: contenuOrdre,
           hasContent: !!contenuOrdre.trim()
         });
-        
+
       } catch (rapportError) {
         console.error(`❌ Erreur pour ordre ${i + 1}:`, rapportError);
         // En cas d'erreur, ajouter l'ordre sans contenu
@@ -134,6 +147,13 @@ export class OrdreJourRapportService {
         });
       }
     }
+
+    console.log('=== COMPTE-RENDU COMPLET CONSTRUIT ===');
+    console.log('✅ Tous les rapports chargés:', {
+      totalOrdres: ordresAvecContenu.length,
+      ordresAvecContenu: ordresAvecContenu.filter(o => o.hasContent).length,
+      diversExistant: diversExistant.length > 0
+    });
 
     return {
       ordresAvecContenu: ordresAvecContenu,
