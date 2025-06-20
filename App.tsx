@@ -12,6 +12,7 @@ import { LoginScreen } from './components/LoginScreen';
 import { Dashboard } from './components/Dashboard';
 import { MembersScreen } from './components/MembersScreen';
 import { ReunionsScreen } from './components/ReunionsScreen';
+import { ClubsScreen } from './components/ClubsScreen';
 import { ProfileScreen } from './components/ProfileScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { ApiService } from './services/ApiService';
@@ -147,6 +148,16 @@ export default function App() {
             <StatusBar style="light" backgroundColor="#005AA9" />
             <ReunionsScreen
               club={selectedClub}
+              onBack={handleBackToDashboard}
+            />
+          </>
+        );
+
+      case 'clubs':
+        return (
+          <>
+            <StatusBar style="light" backgroundColor="#005AA9" />
+            <ClubsScreen
               onBack={handleBackToDashboard}
             />
           </>

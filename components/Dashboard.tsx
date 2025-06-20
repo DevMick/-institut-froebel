@@ -88,6 +88,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
       screen: 'reunions' as NavigationScreen,
     },
     {
+      id: 'clubs',
+      title: 'Clubs',
+      subtitle: 'Liste des clubs Rotary',
+      icon: 'business',
+      color: '#FF3B30',
+      screen: 'clubs' as NavigationScreen,
+    },
+    {
       id: 'profile',
       title: 'Mon Profil',
       subtitle: 'Informations personnelles',
