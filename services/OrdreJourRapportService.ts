@@ -1,3 +1,4 @@
+import * as SecureStore from 'expo-secure-store';
 import { API_CONFIG } from '../config/api';
 
 export interface RapportOrdreJour {
@@ -19,10 +20,14 @@ export interface RapportsResponse {
 export class OrdreJourRapportService {
   private async getToken(): Promise<string | null> {
     try {
-      // Utiliser la même méthode que ApiService
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-      const token = await AsyncStorage.getItem('authToken');
-      console.log('🔑 Token récupéré pour rapports:', token ? 'Présent' : 'Absent');
+      // Utiliser exactement la même méthode que ApiService
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const token = window.localStorage.getItem('authToken');
+        console.log('🔑 Token récupéré pour rapports (localStorage):', token ? 'Présent' : 'Absent');
+        return token;
+      }
+      const token = await SecureStore.getItemAsync('authToken');
+      console.log('🔑 Token récupéré pour rapports (SecureStore):', token ? 'Présent' : 'Absent');
       return token;
     } catch (error) {
       console.error('❌ Erreur récupération token pour rapports:', error);
