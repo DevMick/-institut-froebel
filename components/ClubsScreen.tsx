@@ -57,8 +57,9 @@ export const ClubsScreen: React.FC<ClubsScreenProps> = ({ onBack }) => {
     return (
       (club.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (club.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (club.phoneNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (club.address || '').toLowerCase().includes(searchTerm.toLowerCase())
+      (club.numeroTelephone || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (club.adresse || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (club.lieuReunion || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
@@ -79,7 +80,7 @@ export const ClubsScreen: React.FC<ClubsScreenProps> = ({ onBack }) => {
         </View>
         <View style={styles.clubInfo}>
           <Text style={styles.clubName}>{item.name || 'Sans nom'}</Text>
-          <Text style={styles.clubNumber}>N° {item.code || 'Non défini'}</Text>
+          <Text style={styles.clubNumber}>N° {item.numeroClub || 'Non défini'}</Text>
         </View>
       </View>
 
@@ -91,7 +92,7 @@ export const ClubsScreen: React.FC<ClubsScreenProps> = ({ onBack }) => {
         </View>
         <View style={styles.contactItem}>
           <Ionicons name="call" size={16} color="#34C759" />
-          <Text style={styles.contactText}>{item.phoneNumber || 'Non défini'}</Text>
+          <Text style={styles.contactText}>{item.numeroTelephone || 'Non défini'}</Text>
         </View>
       </View>
 
@@ -99,18 +100,18 @@ export const ClubsScreen: React.FC<ClubsScreenProps> = ({ onBack }) => {
       <View style={styles.meetingSection}>
         <View style={styles.meetingItem}>
           <Ionicons name="calendar" size={16} color="#005AA9" />
-          <Text style={styles.meetingText}>Jour: {item.foundedDate || 'Non défini'}</Text>
+          <Text style={styles.meetingText}>Jour: {item.jourReunion || 'Non défini'}</Text>
         </View>
         <View style={styles.meetingItem}>
           <Ionicons name="time" size={16} color="#34C759" />
-          <Text style={styles.meetingText}>Heure: {formatTime(item.foundedDate)}</Text>
+          <Text style={styles.meetingText}>Heure: {formatTime(item.heureReunion)}</Text>
         </View>
       </View>
 
       {/* Lieu */}
       <View style={styles.locationSection}>
         <Ionicons name="location" size={16} color="#005AA9" />
-        <Text style={styles.locationText}>{item.address || 'Non défini'}</Text>
+        <Text style={styles.locationText}>{item.lieuReunion || 'Non défini'}</Text>
       </View>
 
       {/* Bouton pour voir les détails */}
@@ -154,7 +155,7 @@ export const ClubsScreen: React.FC<ClubsScreenProps> = ({ onBack }) => {
               <Text style={styles.detailLabel}>Numéro du club</Text>
               <View style={styles.detailValue}>
                 <Ionicons name="business" size={20} color="#005AA9" />
-                <Text style={styles.detailText}>{selectedClub.code || 'Non défini'}</Text>
+                <Text style={styles.detailText}>{selectedClub.numeroClub || 'Non défini'}</Text>
               </View>
             </View>
 
@@ -172,7 +173,7 @@ export const ClubsScreen: React.FC<ClubsScreenProps> = ({ onBack }) => {
               <Text style={styles.detailLabel}>Téléphone</Text>
               <View style={styles.detailValue}>
                 <Ionicons name="call" size={20} color="#34C759" />
-                <Text style={styles.detailText}>{selectedClub.phoneNumber || 'Non défini'}</Text>
+                <Text style={styles.detailText}>{selectedClub.numeroTelephone || 'Non défini'}</Text>
               </View>
             </View>
 
@@ -181,25 +182,52 @@ export const ClubsScreen: React.FC<ClubsScreenProps> = ({ onBack }) => {
               <Text style={styles.detailLabel}>Date de création</Text>
               <View style={styles.detailValue}>
                 <Ionicons name="calendar" size={20} color="#005AA9" />
-                <Text style={styles.detailText}>{selectedClub.foundedDate || 'Non définie'}</Text>
+                <Text style={styles.detailText}>{selectedClub.dateCreation || 'Non définie'}</Text>
               </View>
             </View>
 
-            {/* Ville */}
+            {/* Parrainé par */}
             <View style={styles.detailCard}>
-              <Text style={styles.detailLabel}>Ville</Text>
+              <Text style={styles.detailLabel}>Parrainé par</Text>
+              <View style={styles.detailValue}>
+                <Ionicons name="people" size={20} color="#005AA9" />
+                <Text style={styles.detailText}>{selectedClub.parrainePar || 'Non défini'}</Text>
+              </View>
+            </View>
+
+            {/* Jour de réunion */}
+            <View style={styles.detailCard}>
+              <Text style={styles.detailLabel}>Jour de réunion</Text>
+              <View style={styles.detailValue}>
+                <Ionicons name="calendar" size={20} color="#005AA9" />
+                <Text style={styles.detailText}>{selectedClub.jourReunion || 'Non défini'}</Text>
+              </View>
+            </View>
+
+            {/* Heure de réunion */}
+            <View style={styles.detailCard}>
+              <Text style={styles.detailLabel}>Heure de réunion</Text>
+              <View style={styles.detailValue}>
+                <Ionicons name="time" size={20} color="#34C759" />
+                <Text style={styles.detailText}>{formatTime(selectedClub.heureReunion)}</Text>
+              </View>
+            </View>
+
+            {/* Fréquence */}
+            <View style={styles.detailCard}>
+              <Text style={styles.detailLabel}>Fréquence</Text>
+              <View style={styles.detailValue}>
+                <Ionicons name="repeat" size={20} color="#005AA9" />
+                <Text style={styles.detailText}>{selectedClub.frequence || 'Non définie'}</Text>
+              </View>
+            </View>
+
+            {/* Lieu de réunion */}
+            <View style={styles.detailCard}>
+              <Text style={styles.detailLabel}>Lieu de réunion</Text>
               <View style={styles.detailValue}>
                 <Ionicons name="location" size={20} color="#005AA9" />
-                <Text style={styles.detailText}>{selectedClub.city || 'Non définie'}</Text>
-              </View>
-            </View>
-
-            {/* Pays */}
-            <View style={styles.detailCard}>
-              <Text style={styles.detailLabel}>Pays</Text>
-              <View style={styles.detailValue}>
-                <Ionicons name="flag" size={20} color="#005AA9" />
-                <Text style={styles.detailText}>{selectedClub.country || 'Non défini'}</Text>
+                <Text style={styles.detailText}>{selectedClub.lieuReunion || 'Non défini'}</Text>
               </View>
             </View>
 
@@ -208,16 +236,7 @@ export const ClubsScreen: React.FC<ClubsScreenProps> = ({ onBack }) => {
               <Text style={styles.detailLabel}>Adresse</Text>
               <View style={styles.detailValue}>
                 <Ionicons name="home" size={20} color="#005AA9" />
-                <Text style={styles.detailText}>{selectedClub.address || 'Non définie'}</Text>
-              </View>
-            </View>
-
-            {/* Site web */}
-            <View style={styles.detailCard}>
-              <Text style={styles.detailLabel}>Site web</Text>
-              <View style={styles.detailValue}>
-                <Ionicons name="globe" size={20} color="#005AA9" />
-                <Text style={styles.detailText}>{selectedClub.website || 'Non défini'}</Text>
+                <Text style={styles.detailText}>{selectedClub.adresse || 'Non définie'}</Text>
               </View>
             </View>
           </ScrollView>
@@ -228,7 +247,7 @@ export const ClubsScreen: React.FC<ClubsScreenProps> = ({ onBack }) => {
 
   // Calcul des statistiques
   const totalClubs = filteredClubs.length;
-  const clubsActifs = filteredClubs.filter(c => c.isActive).length;
+  const clubsAvecReunions = filteredClubs.filter(c => c.jourReunion && c.heureReunion).length;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -263,8 +282,8 @@ export const ClubsScreen: React.FC<ClubsScreenProps> = ({ onBack }) => {
           <Text style={styles.statLabel}>Total clubs</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{clubsActifs}</Text>
-          <Text style={styles.statLabel}>Clubs actifs</Text>
+          <Text style={styles.statNumber}>{clubsAvecReunions}</Text>
+          <Text style={styles.statLabel}>Avec réunions</Text>
         </View>
       </View>
 

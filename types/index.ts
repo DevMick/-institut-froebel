@@ -3,17 +3,16 @@
 export interface Club {
   id: string;
   name: string;
-  code: string;
-  description: string;
-  address: string;
-  city: string;
-  country: string;
-  phoneNumber: string;
-  email: string;
-  website: string;
-  logoUrl: string;
-  foundedDate: string;
-  isActive: boolean;
+  dateCreation?: string;
+  numeroClub?: number;
+  numeroTelephone?: string;
+  email?: string;
+  lieuReunion?: string;
+  parrainePar?: string;
+  jourReunion?: string;
+  heureReunion?: string; // TimeSpan sera converti en string par l'API
+  frequence?: string;
+  adresse?: string;
 }
 
 export interface User {
