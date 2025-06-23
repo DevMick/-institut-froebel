@@ -130,35 +130,35 @@ export const MembersScreen: React.FC<MembersScreenProps> = ({ club, onBack }) =>
           {/* Fonctions en premier */}
           {item.fonctions && item.fonctions.length > 0 ? (
             <View style={styles.functionsContainer}>
-              <Text style={styles.functionsTitle}>🏛️ Fonctions:</Text>
+              <Text style={styles.functionsTitle}>Fonctions:</Text>
               {item.fonctions.map((fonction, index) => {
                 console.log(`  - Affichage fonction ${index + 1}:`, fonction);
                 return (
                   <Text key={index} style={styles.functionText}>
-                    • {fonction.comiteNom} {fonction.estResponsable ? '(Responsable)' : ''}
+                    {fonction.comiteNom} {fonction.estResponsable ? '(Responsable)' : ''}
                   </Text>
                 );
               })}
             </View>
           ) : (
-            <Text style={styles.noDataText}>🏛️ Aucune fonction assignée</Text>
+            <Text style={styles.noDataText}>Aucune fonction assignée</Text>
           )}
 
           {/* Commissions en second */}
           {item.commissions && item.commissions.length > 0 ? (
             <View style={styles.commissionsContainer}>
-              <Text style={styles.commissionsTitle}>👥 Commissions:</Text>
+              <Text style={styles.commissionsTitle}>Commissions:</Text>
               {item.commissions.map((commission, index) => {
                 console.log(`  - Affichage commission ${index + 1}:`, commission);
                 return (
                   <Text key={index} style={styles.commissionText}>
-                    • {commission.commissionNom} {commission.estResponsable ? '(Responsable)' : ''}
+                    {commission.commissionNom} {commission.estResponsable ? '(Responsable)' : ''}
                   </Text>
                 );
               })}
             </View>
           ) : (
-            <Text style={styles.noDataText}>👥 Aucune commission assignée</Text>
+            <Text style={styles.noDataText}>Aucune commission assignée</Text>
           )}
 
           {/* Téléphone en dernier */}
