@@ -219,8 +219,9 @@ export const MembersScreen: React.FC<MembersScreenProps> = ({ club, onBack }) =>
           </TouchableOpacity>
         </View>
       )}
-    </View>
-  );
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
