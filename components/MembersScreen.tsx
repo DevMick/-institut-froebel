@@ -100,16 +100,11 @@ export const MembersScreen: React.FC<MembersScreenProps> = ({ club, onBack }) =>
             </View>
           )}
         </View>
-        
-        <Text style={styles.memberEmail}>{item.email}</Text>
-        
-        {item.phoneNumber && (
-          <Text style={styles.memberPhone}>{item.phoneNumber}</Text>
-        )}
 
+        {/* Fonctions en premier */}
         {item.fonctions && item.fonctions.length > 0 && (
           <View style={styles.functionsContainer}>
-            <Text style={styles.functionsTitle}>Fonctions:</Text>
+            <Text style={styles.functionsTitle}>🏛️ Fonctions:</Text>
             {item.fonctions.map((fonction, index) => (
               <Text key={index} style={styles.functionText}>
                 • {fonction.comiteNom} {fonction.estResponsable ? '(Responsable)' : ''}
@@ -118,15 +113,21 @@ export const MembersScreen: React.FC<MembersScreenProps> = ({ club, onBack }) =>
           </View>
         )}
 
+        {/* Commissions en second */}
         {item.commissions && item.commissions.length > 0 && (
           <View style={styles.commissionsContainer}>
-            <Text style={styles.commissionsTitle}>Commissions:</Text>
+            <Text style={styles.commissionsTitle}>👥 Commissions:</Text>
             {item.commissions.map((commission, index) => (
               <Text key={index} style={styles.commissionText}>
                 • {commission.commissionNom} {commission.estResponsable ? '(Responsable)' : ''}
               </Text>
             ))}
           </View>
+        )}
+
+        {/* Téléphone en dernier */}
+        {item.phoneNumber && (
+          <Text style={styles.memberPhone}>{item.phoneNumber}</Text>
         )}
       </View>
 
@@ -309,43 +310,46 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
-  memberEmail: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 3,
-  },
+
   memberPhone: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 8,
+    marginTop: 8,
+    fontWeight: '500',
   },
   functionsContainer: {
-    marginTop: 5,
+    marginTop: 8,
+    marginBottom: 5,
   },
   functionsTitle: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#005AA9',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   functionText: {
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 5,
+    fontSize: 13,
+    color: '#333',
+    marginLeft: 8,
+    marginBottom: 2,
+    fontWeight: '500',
   },
   commissionsContainer: {
     marginTop: 5,
+    marginBottom: 5,
   },
   commissionsTitle: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#FF9500',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   commissionText: {
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 5,
+    fontSize: 13,
+    color: '#333',
+    marginLeft: 8,
+    marginBottom: 2,
+    fontWeight: '500',
   },
   actionButtons: {
     flexDirection: 'column',
