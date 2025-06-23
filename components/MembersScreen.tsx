@@ -195,34 +195,6 @@ export const MembersScreen: React.FC<MembersScreenProps> = ({ club, onBack }) =>
     );
   };
 
-      {item.phoneNumber && (
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.callButton]}
-            onPress={() => handleCall(item.phoneNumber)}
-          >
-            <Ionicons name="call" size={16} color="white" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[styles.actionButton, styles.smsButton]}
-            onPress={() => handleSMS(item.phoneNumber)}
-          >
-            <Ionicons name="chatbubble" size={16} color="white" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[styles.actionButton, styles.whatsappButton]}
-            onPress={() => handleWhatsApp(item.phoneNumber)}
-          >
-            <Ionicons name="logo-whatsapp" size={16} color="white" />
-          </TouchableOpacity>
-        </View>
-      )}
-      </View>
-    );
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
