@@ -14,6 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Member, Club } from '../types';
 import { ApiService } from '../services/ApiService';
+import { memberFunctionsService } from '../services/MemberFunctionsService';
 
 interface MembersScreenProps {
   club: Club;
@@ -40,29 +41,28 @@ export const MembersScreen: React.FC<MembersScreenProps> = ({ club, onBack }) =>
     try {
       setLoading(true);
       console.log('🔄 Chargement des membres...');
+
+      // 1. Charger les membres de base
       const membersData = await apiService.getClubMembers(club.id);
-      console.log('✅ Membres chargés:', membersData.length);
+      console.log('✅ Membres de base chargés:', membersData.length);
 
-      // Logs détaillés pour diagnostiquer les fonctions et commissions
-      if (membersData.length > 0) {
-        console.log('🔍 Premier membre (structure complète):', JSON.stringify(membersData[0], null, 2));
+      // 2. Enrichir avec les fonctions et commissions
+      console.log('🔄 Enrichissement avec fonctions et commissions...');
+      const enrichedMembers = await memberFunctionsService.loadMemberFunctionsAndCommissions(club.id, membersData);
 
-        membersData.forEach((member, index) => {
+      // 3. Logs de vérification
+      console.log('✅ Membres enrichis:', enrichedMembers.length);
+      if (enrichedMembers.length > 0) {
+        console.log('🔍 Premier membre enrichi:', JSON.stringify(enrichedMembers[0], null, 2));
+
+        enrichedMembers.forEach((member, index) => {
           console.log(`👤 Membre ${index + 1}: ${member.fullName}`);
           console.log(`  - Fonctions:`, member.fonctions ? member.fonctions.length : 'undefined');
           console.log(`  - Commissions:`, member.commissions ? member.commissions.length : 'undefined');
-
-          if (member.fonctions && member.fonctions.length > 0) {
-            console.log(`  - Détail fonctions:`, member.fonctions);
-          }
-
-          if (member.commissions && member.commissions.length > 0) {
-            console.log(`  - Détail commissions:`, member.commissions);
-          }
         });
       }
 
-      setMembers(membersData);
+      setMembers(enrichedMembers);
     } catch (error: any) {
       console.error('❌ Erreur chargement membres:', error);
       Alert.alert('Erreur', 'Impossible de charger les membres');
