@@ -378,8 +378,9 @@ export class MemberFunctionsService {
       }
 
       const data = await response.json();
-      console.log(`✅ Fonctions/commissions reçues:`, data.Membres ? data.Membres.length : 'Format inattendu');
-      console.log(`📊 Statistiques globales:`, data.StatistiquesGlobales);
+      console.log(`✅ Fonctions/commissions reçues:`, data.membres ? data.membres.length : 'Format inattendu');
+      console.log(`📊 Statistiques globales:`, data.statistiques);
+      console.log(`🔍 Premier membre exemple:`, data.membres && data.membres.length > 0 ? JSON.stringify(data.membres[0], null, 2) : 'Aucun membre');
       return data;
     } catch (error) {
       console.error(`❌ Erreur chargement fonctions/commissions:`, error);
@@ -393,36 +394,43 @@ export class MemberFunctionsService {
     // Essayer d'utiliser le nouvel endpoint optimisé d'abord
     const apiData = await this.getAllMembersFunctionsCommissions(clubId);
 
-    if (apiData && apiData.Membres) {
+    if (apiData && apiData.membres) {
       console.log('✅ Utilisation de l\'endpoint optimisé /membres/fonctions-commissions');
 
       // Enrichir les membres existants avec les données de l'API
       const enrichedMembers = members.map((member) => {
         // Trouver les données correspondantes dans la réponse API
-        const apiMember = apiData.Membres.find((m: any) => m.Membre.Id === member.id);
+        const apiMember = apiData.membres.find((m: any) => m.membreId === member.id);
 
         if (apiMember) {
-          // Mapper les fonctions au format attendu par l'interface
-          const mappedFonctions = apiMember.Fonctions.map((f: any) => ({
-            comiteId: f.ComiteMembreId,
-            nomFonction: f.NomFonction, // Le nom de la fonction
-            estResponsable: f.NomFonction.toLowerCase().includes('président') || f.NomFonction.toLowerCase().includes('responsable'),
+          // Mapper la fonction (une seule) au format attendu par l'interface
+          const mappedFonctions = apiMember.fonction ? [{
+            fonctionId: apiMember.fonction.fonctionId,
+            nomFonction: apiMember.fonction.nomFonction.trim(), // Supprimer les espaces
+            estResponsable: apiMember.fonction.nomFonction.toLowerCase().includes('président') ||
+                           apiMember.fonction.nomFonction.toLowerCase().includes('responsable'),
             estActif: true,
             dateNomination: new Date().toISOString(),
-            mandatAnnee: apiData.Mandat.Annee
-          }));
+            mandatAnnee: apiData.mandatActuel.annee
+          }] : [];
 
           // Mapper les commissions au format attendu par l'interface
-          const mappedCommissions = apiMember.Commissions.map((c: any) => ({
-            commissionId: c.CommissionId,
-            commissionNom: c.NomCommission,
-            estResponsable: c.EstResponsable,
+          const mappedCommissions = apiMember.commissions.map((c: any) => ({
+            commissionId: c.commissionId,
+            commissionNom: c.nomCommission.trim(), // Supprimer les espaces
+            estResponsable: c.estResponsable,
             estActif: true,
-            dateNomination: c.DateNomination,
-            mandatAnnee: apiData.Mandat.Annee
+            dateNomination: c.dateNomination,
+            mandatAnnee: apiData.mandatActuel.annee
           }));
 
-          console.log(`✅ Membre ${member.fullName}: ${mappedFonctions.length} fonctions, ${mappedCommissions.length} commissions`);
+          console.log(`✅ Membre ${member.fullName}: ${mappedFonctions.length} fonction, ${mappedCommissions.length} commissions`);
+          if (mappedFonctions.length > 0) {
+            console.log(`  - Fonction: ${mappedFonctions[0].nomFonction}`);
+          }
+          if (mappedCommissions.length > 0) {
+            console.log(`  - Commissions: ${mappedCommissions.map(c => c.commissionNom).join(', ')}`);
+          }
 
           return {
             ...member,
