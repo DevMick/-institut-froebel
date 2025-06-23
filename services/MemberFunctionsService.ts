@@ -294,28 +294,122 @@ export class MemberFunctionsService {
     return testData[memberId] || [];
   }
 
+  async getAllMembersFunctionsCommissions(clubId: string): Promise<any> {
+    try {
+      const token = await this.getToken();
+      if (!token) {
+        console.log('⚠️ Token manquant pour fonctions/commissions membres');
+        return null;
+      }
+
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/membres/fonctions-commissions`;
+      console.log(`🔄 Chargement fonctions/commissions tous membres:`, url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log(`📋 Endpoint fonctions/commissions non trouvé - utilisation données de test`);
+          return null;
+        }
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(`✅ Fonctions/commissions reçues:`, data.Membres ? data.Membres.length : 'Format inattendu');
+      console.log(`📊 Statistiques globales:`, data.StatistiquesGlobales);
+      return data;
+    } catch (error) {
+      console.error(`❌ Erreur chargement fonctions/commissions:`, error);
+      return null;
+    }
+  }
+
   async loadMemberFunctionsAndCommissions(clubId: string, members: any[]): Promise<any[]> {
     console.log('🔄 Chargement fonctions et commissions pour tous les membres...');
-    console.log('⚠️ Utilisation de données de test en attendant l\'implémentation des endpoints backend');
 
-    const enrichedMembers = members.map((member) => {
-      console.log(`📋 Traitement membre: ${member.fullName}`);
+    // Essayer d'utiliser le nouvel endpoint optimisé
+    const apiData = await this.getAllMembersFunctionsCommissions(clubId);
 
-      // Utiliser les données de test
-      const fonctions = this.getTestFunctionsForMember(member.id, member.fullName);
-      const commissions = this.getTestCommissionsForMember(member.id, member.fullName);
+    if (apiData && apiData.Membres) {
+      console.log('✅ Utilisation des données de l\'API backend');
 
-      console.log(`✅ Membre ${member.fullName}: ${fonctions.length} fonctions, ${commissions.length} commissions`);
+      // Enrichir les membres existants avec les données de l'API
+      const enrichedMembers = members.map((member) => {
+        // Trouver les données correspondantes dans la réponse API
+        const apiMember = apiData.Membres.find((m: any) => m.Membre.Id === member.id);
 
-      return {
-        ...member,
-        fonctions: fonctions,
-        commissions: commissions
-      };
-    });
+        if (apiMember) {
+          // Mapper les fonctions au format attendu par l'interface
+          const mappedFonctions = apiMember.Fonctions.map((f: any) => ({
+            comiteId: f.ComiteMembreId,
+            comiteNom: f.NomFonction, // Le nom de la fonction fait office de nom du comité
+            estResponsable: f.NomFonction.toLowerCase().includes('président') || f.NomFonction.toLowerCase().includes('responsable'),
+            estActif: true,
+            dateNomination: new Date().toISOString(),
+            mandatAnnee: apiData.Mandat.Annee
+          }));
 
-    console.log('✅ Enrichissement des membres terminé (avec données de test)');
-    return enrichedMembers;
+          // Mapper les commissions au format attendu par l'interface
+          const mappedCommissions = apiMember.Commissions.map((c: any) => ({
+            commissionId: c.CommissionId,
+            commissionNom: c.NomCommission,
+            estResponsable: c.EstResponsable,
+            estActif: true,
+            dateNomination: c.DateNomination,
+            mandatAnnee: apiData.Mandat.Annee
+          }));
+
+          console.log(`✅ Membre ${member.fullName}: ${mappedFonctions.length} fonctions, ${mappedCommissions.length} commissions`);
+
+          return {
+            ...member,
+            fonctions: mappedFonctions,
+            commissions: mappedCommissions
+          };
+        } else {
+          console.log(`⚠️ Membre ${member.fullName}: non trouvé dans les données API`);
+          return {
+            ...member,
+            fonctions: [],
+            commissions: []
+          };
+        }
+      });
+
+      console.log('✅ Enrichissement des membres terminé (avec données API)');
+      return enrichedMembers;
+    } else {
+      // Fallback vers les données de test
+      console.log('⚠️ Utilisation de données de test en attendant l\'implémentation de l\'endpoint backend');
+
+      const enrichedMembers = members.map((member) => {
+        console.log(`📋 Traitement membre: ${member.fullName}`);
+
+        // Utiliser les données de test
+        const fonctions = this.getTestFunctionsForMember(member.id, member.fullName);
+        const commissions = this.getTestCommissionsForMember(member.id, member.fullName);
+
+        console.log(`✅ Membre ${member.fullName}: ${fonctions.length} fonctions, ${commissions.length} commissions`);
+
+        return {
+          ...member,
+          fonctions: fonctions,
+          commissions: commissions
+        };
+      });
+
+      console.log('✅ Enrichissement des membres terminé (avec données de test)');
+      return enrichedMembers;
+    }
   }
 }
 
