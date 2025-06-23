@@ -171,12 +171,6 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
 
       setCompteRendu(compteRenduData);
       console.log('✅ Compte-rendu chargé:', compteRenduData.statistiques);
-      console.log('📋 Ordres du jour dans compte-rendu:', compteRenduData.ordresDuJour.map((o: any) => ({
-        numero: o.numero,
-        description: o.description,
-        hasContent: o.hasContent,
-        contenuLength: o.contenu ? o.contenu.length : 0
-      })));
     } catch (error: any) {
       console.error('❌ Erreur chargement compte-rendu:', error);
       setCompteRendu(null);
@@ -300,51 +294,33 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
                 {/* Ordres du jour avec contenu */}
                 <View style={styles.detailSection}>
                   <Text style={styles.sectionTitle}>📋 Ordres du jour avec contenu ({compteRendu.statistiques.ordresAvecContenu})</Text>
-                  {compteRendu.ordresDuJour.map((ordre: any, index: number) => {
-                    console.log(`🔍 Affichage ordre ${index + 1}:`, {
-                      id: ordre.id,
-                      description: ordre.description,
-                      hasContent: ordre.hasContent,
-                      contenuLength: ordre.contenu ? ordre.contenu.length : 0,
-                      contenuPreview: ordre.contenu ? ordre.contenu.substring(0, 50) + '...' : 'Aucun contenu'
-                    });
-
-                    return (
-                      <View key={ordre.id || index} style={styles.ordreCard}>
-                        <View style={styles.ordreHeader}>
-                          <Text style={styles.ordreTitle}>{ordre.numero}. {ordre.description}</Text>
-                          {ordre.hasContent ? (
-                            <Ionicons name="checkmark-circle" size={20} color="#34C759" />
-                          ) : (
-                            <Ionicons name="alert-circle" size={20} color="#FF9500" />
-                          )}
-                        </View>
-                        {ordre.contenu && ordre.contenu.trim() ? (
-                          <Text style={styles.ordreContent}>{ordre.contenu}</Text>
+                  {compteRendu.ordresDuJour.map((ordre: any, index: number) => (
+                    <View key={ordre.id || index} style={styles.ordreCard}>
+                      <View style={styles.ordreHeader}>
+                        <Text style={styles.ordreTitle}>{ordre.numero}. {ordre.description}</Text>
+                        {ordre.hasContent ? (
+                          <Ionicons name="checkmark-circle" size={20} color="#34C759" />
                         ) : (
-                          <Text style={styles.ordreNoContent}>📝 Aucun contenu enregistré</Text>
+                          <Ionicons name="alert-circle" size={20} color="#FF9500" />
                         )}
                       </View>
-                    );
-                  })}
+                      {ordre.contenu && ordre.contenu.trim() ? (
+                        <Text style={styles.ordreContent}>{ordre.contenu}</Text>
+                      ) : (
+                        <Text style={styles.ordreNoContent}>📝 Aucun contenu enregistré</Text>
+                      )}
+                    </View>
+                  ))}
                 </View>
 
                 {/* Points divers */}
                 <View style={styles.detailSection}>
                   <Text style={styles.sectionTitle}>📝 Points divers</Text>
-                  {(() => {
-                    console.log('🔍 Points divers:', {
-                      exists: !!compteRendu.divers,
-                      length: compteRendu.divers ? compteRendu.divers.length : 0,
-                      preview: compteRendu.divers ? compteRendu.divers.substring(0, 50) + '...' : 'Aucun'
-                    });
-
-                    return compteRendu.divers && compteRendu.divers.trim() ? (
-                      <Text style={styles.diversContent}>{compteRendu.divers}</Text>
-                    ) : (
-                      <Text style={styles.diversNoContent}>Aucun point divers enregistré.</Text>
-                    );
-                  })()}
+                  {compteRendu.divers && compteRendu.divers.trim() ? (
+                    <Text style={styles.diversContent}>{compteRendu.divers}</Text>
+                  ) : (
+                    <Text style={styles.diversNoContent}>Aucun point divers enregistré.</Text>
+                  )}
                 </View>
               </>
             )}

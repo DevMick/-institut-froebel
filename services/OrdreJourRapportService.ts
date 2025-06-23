@@ -80,7 +80,7 @@ export class OrdreJourRapportService {
       return {
         rapports: [],
         success: false,
-        message: error.message
+        message: String(error.message || error)
       };
     }
   }
