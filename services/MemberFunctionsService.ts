@@ -203,49 +203,118 @@ export class MemberFunctionsService {
     }
   }
 
+  // Données de test en attendant l'implémentation des endpoints
+  private getTestFunctionsForMember(memberId: string, memberName: string): any[] {
+    const testData = {
+      '60403bc7-b785-4703-bee6-345da9687aa2': [ // Kouadio Yao (Admin)
+        {
+          comiteId: 'comite-1',
+          comiteNom: 'Comité Exécutif',
+          estResponsable: true,
+          estActif: true,
+          dateNomination: '2024-07-01',
+          mandatAnnee: 2024
+        },
+        {
+          comiteId: 'comite-2',
+          comiteNom: 'Comité Administration',
+          estResponsable: false,
+          estActif: true,
+          dateNomination: '2024-07-01',
+          mandatAnnee: 2024
+        }
+      ],
+      '0cbfc6d5-18a9-4b35-a82e-81b62fa2bcf5': [ // Jean-Baptiste Kouamé
+        {
+          comiteId: 'comite-3',
+          comiteNom: 'Comité Finances',
+          estResponsable: true,
+          estActif: true,
+          dateNomination: '2024-07-01',
+          mandatAnnee: 2024
+        }
+      ],
+      'fd503d4e-f59a-42b1-b9ea-703bf82faeb3': [ // Paul Gnangnan
+        {
+          comiteId: 'comite-3',
+          comiteNom: 'Comité Finances',
+          estResponsable: false,
+          estActif: true,
+          dateNomination: '2024-07-01',
+          mandatAnnee: 2024
+        }
+      ]
+    };
+
+    return testData[memberId] || [];
+  }
+
+  private getTestCommissionsForMember(memberId: string, memberName: string): any[] {
+    const testData = {
+      '60403bc7-b785-4703-bee6-345da9687aa2': [ // Kouadio Yao
+        {
+          commissionId: 'comm-1',
+          commissionNom: 'Commission Actions Communautaires',
+          estResponsable: true,
+          estActif: true,
+          dateNomination: '2024-07-01',
+          mandatAnnee: 2024
+        }
+      ],
+      'eaf935d4-6ac1-40a4-8bc4-fb153d53bd07': [ // Fatou Camara
+        {
+          commissionId: 'comm-1',
+          commissionNom: 'Commission Actions Communautaires',
+          estResponsable: false,
+          estActif: true,
+          dateNomination: '2024-07-01',
+          mandatAnnee: 2024
+        },
+        {
+          commissionId: 'comm-2',
+          commissionNom: 'Commission Jeunesse',
+          estResponsable: true,
+          estActif: true,
+          dateNomination: '2024-07-01',
+          mandatAnnee: 2024
+        }
+      ],
+      '95ba8bcb-7308-473a-b619-46853807dd30': [ // Didier Assi
+        {
+          commissionId: 'comm-3',
+          commissionNom: 'Commission Communication',
+          estResponsable: true,
+          estActif: true,
+          dateNomination: '2024-07-01',
+          mandatAnnee: 2024
+        }
+      ]
+    };
+
+    return testData[memberId] || [];
+  }
+
   async loadMemberFunctionsAndCommissions(clubId: string, members: any[]): Promise<any[]> {
     console.log('🔄 Chargement fonctions et commissions pour tous les membres...');
-    
-    const enrichedMembers = await Promise.all(
-      members.map(async (member) => {
-        console.log(`📋 Traitement membre: ${member.fullName}`);
-        
-        // Charger les fonctions
-        const fonctions = await this.getMemberComiteFunctions(clubId, member.id);
-        
-        // Charger les commissions
-        const commissions = await this.getMemberCommissions(clubId, member.id);
-        
-        // Mapper au format attendu par l'interface
-        const mappedFonctions = fonctions.map(f => ({
-          comiteId: f.comiteId,
-          comiteNom: f.nomComite,
-          estResponsable: f.estResponsable,
-          estActif: f.estActif,
-          dateNomination: f.dateNomination,
-          mandatAnnee: f.anneeMandat
-        }));
+    console.log('⚠️ Utilisation de données de test en attendant l\'implémentation des endpoints backend');
 
-        const mappedCommissions = commissions.map(c => ({
-          commissionId: c.commissionId,
-          commissionNom: c.nomCommission,
-          estResponsable: c.estResponsable,
-          estActif: c.estActif,
-          dateNomination: c.dateNomination,
-          mandatAnnee: c.anneeMandat
-        }));
+    const enrichedMembers = members.map((member) => {
+      console.log(`📋 Traitement membre: ${member.fullName}`);
 
-        console.log(`✅ Membre ${member.fullName}: ${mappedFonctions.length} fonctions, ${mappedCommissions.length} commissions`);
+      // Utiliser les données de test
+      const fonctions = this.getTestFunctionsForMember(member.id, member.fullName);
+      const commissions = this.getTestCommissionsForMember(member.id, member.fullName);
 
-        return {
-          ...member,
-          fonctions: mappedFonctions,
-          commissions: mappedCommissions
-        };
-      })
-    );
+      console.log(`✅ Membre ${member.fullName}: ${fonctions.length} fonctions, ${commissions.length} commissions`);
 
-    console.log('✅ Enrichissement des membres terminé');
+      return {
+        ...member,
+        fonctions: fonctions,
+        commissions: commissions
+      };
+    });
+
+    console.log('✅ Enrichissement des membres terminé (avec données de test)');
     return enrichedMembers;
   }
 }
