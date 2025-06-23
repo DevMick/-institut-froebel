@@ -209,7 +209,7 @@ export class MemberFunctionsService {
       '60403bc7-b785-4703-bee6-345da9687aa2': [ // Kouadio Yao (Admin)
         {
           comiteId: 'comite-1',
-          comiteNom: 'Comité Exécutif',
+          nomFonction: 'Président',
           estResponsable: true,
           estActif: true,
           dateNomination: '2024-07-01',
@@ -217,7 +217,7 @@ export class MemberFunctionsService {
         },
         {
           comiteId: 'comite-2',
-          comiteNom: 'Comité Administration',
+          nomFonction: 'Secrétaire',
           estResponsable: false,
           estActif: true,
           dateNomination: '2024-07-01',
@@ -227,7 +227,7 @@ export class MemberFunctionsService {
       '0cbfc6d5-18a9-4b35-a82e-81b62fa2bcf5': [ // Jean-Baptiste Kouamé
         {
           comiteId: 'comite-3',
-          comiteNom: 'Comité Finances',
+          nomFonction: 'Vice-Président',
           estResponsable: true,
           estActif: true,
           dateNomination: '2024-07-01',
@@ -237,7 +237,7 @@ export class MemberFunctionsService {
       'fd503d4e-f59a-42b1-b9ea-703bf82faeb3': [ // Paul Gnangnan
         {
           comiteId: 'comite-3',
-          comiteNom: 'Comité Finances',
+          nomFonction: 'Trésorier',
           estResponsable: false,
           estActif: true,
           dateNomination: '2024-07-01',
@@ -351,7 +351,7 @@ export class MemberFunctionsService {
           // Mapper les fonctions au format attendu par l'interface
           const mappedFonctions = apiMember.Fonctions.map((f: any) => ({
             comiteId: f.ComiteMembreId,
-            comiteNom: f.NomFonction, // Le nom de la fonction fait office de nom du comité
+            nomFonction: f.NomFonction, // Le nom de la fonction
             estResponsable: f.NomFonction.toLowerCase().includes('président') || f.NomFonction.toLowerCase().includes('responsable'),
             estActif: true,
             dateNomination: new Date().toISOString(),

@@ -135,7 +135,7 @@ export const MembersScreen: React.FC<MembersScreenProps> = ({ club, onBack }) =>
                 console.log(`  - Affichage fonction ${index + 1}:`, fonction);
                 return (
                   <Text key={index} style={styles.functionText}>
-                    {fonction.comiteNom} {fonction.estResponsable ? '(Responsable)' : ''}
+                    {fonction.nomFonction || fonction.comiteNom} {fonction.estResponsable ? '(Responsable)' : ''}
                   </Text>
                 );
               })}
@@ -144,18 +144,17 @@ export const MembersScreen: React.FC<MembersScreenProps> = ({ club, onBack }) =>
             <Text style={styles.noDataText}>Aucune fonction assignée</Text>
           )}
 
-          {/* Commissions en second */}
+          {/* Commissions en second - toutes sur la même ligne */}
           {item.commissions && item.commissions.length > 0 ? (
             <View style={styles.commissionsContainer}>
               <Text style={styles.commissionsTitle}>Commissions:</Text>
-              {item.commissions.map((commission, index) => {
-                console.log(`  - Affichage commission ${index + 1}:`, commission);
-                return (
-                  <Text key={index} style={styles.commissionText}>
-                    {commission.commissionNom} {commission.estResponsable ? '(Responsable)' : ''}
-                  </Text>
-                );
-              })}
+              <Text style={styles.commissionText}>
+                {item.commissions.map((commission, index) => {
+                  console.log(`  - Affichage commission ${index + 1}:`, commission);
+                  const commissionText = `${commission.commissionNom}${commission.estResponsable ? ' (Responsable)' : ''}`;
+                  return index === item.commissions.length - 1 ? commissionText : `${commissionText}, `;
+                }).join('')}
+              </Text>
             </View>
           ) : (
             <Text style={styles.noDataText}>Aucune commission assignée</Text>
