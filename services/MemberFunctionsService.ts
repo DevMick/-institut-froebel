@@ -41,16 +41,16 @@ export class MemberFunctionsService {
     }
   }
 
-  async getMembresComite(): Promise<any[]> {
+  async getClubComites(clubId: string): Promise<any[]> {
     try {
       const token = await this.getToken();
       if (!token) {
-        console.log('⚠️ Token manquant pour membres comité');
+        console.log('⚠️ Token manquant pour comités club');
         return [];
       }
 
-      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/membres-comite`;
-      console.log(`🔄 Chargement tous les membres comité:`, url);
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/comites`;
+      console.log(`🔄 Chargement comités du club ${clubId}:`, url);
 
       const response = await fetch(url, {
         method: 'GET',
@@ -67,11 +67,49 @@ export class MemberFunctionsService {
       }
 
       const data = await response.json();
-      console.log(`✅ Membres comité reçus:`, Array.isArray(data) ? data.length : 'Format inattendu');
+      console.log(`✅ Comités du club reçus:`, Array.isArray(data) ? data.length : 'Format inattendu');
       return Array.isArray(data) ? data : data.data || [];
     } catch (error) {
-      console.error(`❌ Erreur chargement membres comité:`, error);
+      console.error(`❌ Erreur chargement comités club:`, error);
       return [];
+    }
+  }
+
+  async getComiteMembres(clubId: string, comiteId: string): Promise<any> {
+    try {
+      const token = await this.getToken();
+      if (!token) {
+        console.log('⚠️ Token manquant pour membres comité');
+        return { Membres: [] };
+      }
+
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/comites/${comiteId}/membres`;
+      console.log(`🔄 Chargement membres comité ${comiteId}:`, url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log(`📋 Aucun membre trouvé pour comité ${comiteId}`);
+          return { Membres: [] };
+        }
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(`✅ Membres comité ${comiteId} reçus:`, data.Membres ? data.Membres.length : 'Format inattendu');
+      return data;
+    } catch (error) {
+      console.error(`❌ Erreur chargement membres comité ${comiteId}:`, error);
+      return { Membres: [] };
     }
   }
 
@@ -79,9 +117,33 @@ export class MemberFunctionsService {
     try {
       console.log(`🔄 Recherche fonctions pour membre ${membreId}`);
 
-      // Récupérer tous les membres comité et filtrer pour ce membre
-      const allMembresComite = await this.getMembresComite();
-      const fonctionsDuMembre = allMembresComite.filter(mc => mc.membreId === membreId);
+      // Récupérer tous les comités du club
+      const comites = await this.getClubComites(clubId);
+      const fonctionsDuMembre = [];
+
+      // Pour chaque comité, récupérer les membres et chercher notre membre
+      for (const comite of comites) {
+        try {
+          const comiteData = await this.getComiteMembres(clubId, comite.id);
+          const membreDansComite = comiteData.Membres.find((m: any) => m.MembreId === membreId);
+
+          if (membreDansComite) {
+            fonctionsDuMembre.push({
+              id: membreDansComite.Id,
+              comiteId: comite.id,
+              nomFonction: membreDansComite.NomFonction,
+              fonctionId: membreDansComite.FonctionId,
+              estResponsable: membreDansComite.NomFonction.toLowerCase().includes('président') ||
+                             membreDansComite.NomFonction.toLowerCase().includes('responsable'),
+              estActif: membreDansComite.IsActiveMembre,
+              dateNomination: new Date().toISOString(),
+              mandatAnnee: new Date().getFullYear()
+            });
+          }
+        } catch (error) {
+          console.warn(`⚠️ Erreur lors de la récupération des membres du comité ${comite.id}:`, error);
+        }
+      }
 
       console.log(`✅ Fonctions trouvées pour membre ${membreId}:`, fonctionsDuMembre.length);
       return fonctionsDuMembre;
@@ -336,11 +398,11 @@ export class MemberFunctionsService {
   async loadMemberFunctionsAndCommissions(clubId: string, members: any[]): Promise<any[]> {
     console.log('🔄 Chargement fonctions et commissions pour tous les membres...');
 
-    // Essayer d'utiliser le nouvel endpoint optimisé
+    // Essayer d'utiliser le nouvel endpoint optimisé d'abord
     const apiData = await this.getAllMembersFunctionsCommissions(clubId);
 
     if (apiData && apiData.Membres) {
-      console.log('✅ Utilisation des données de l\'API backend');
+      console.log('✅ Utilisation de l\'endpoint optimisé /membres/fonctions-commissions');
 
       // Enrichir les membres existants avec les données de l'API
       const enrichedMembers = members.map((member) => {
@@ -385,29 +447,52 @@ export class MemberFunctionsService {
         }
       });
 
-      console.log('✅ Enrichissement des membres terminé (avec données API)');
+      console.log('✅ Enrichissement des membres terminé (avec endpoint optimisé)');
       return enrichedMembers;
     } else {
-      // Fallback vers les données de test
-      console.log('⚠️ Utilisation de données de test en attendant l\'implémentation de l\'endpoint backend');
+      // Fallback vers les endpoints individuels des comités
+      console.log('⚠️ Endpoint optimisé non disponible - utilisation des endpoints comités individuels');
 
-      const enrichedMembers = members.map((member) => {
-        console.log(`📋 Traitement membre: ${member.fullName}`);
+      const enrichedMembers = await Promise.all(
+        members.map(async (member) => {
+          console.log(`📋 Traitement membre: ${member.fullName}`);
 
-        // Utiliser les données de test
-        const fonctions = this.getTestFunctionsForMember(member.id, member.fullName);
-        const commissions = this.getTestCommissionsForMember(member.id, member.fullName);
+          // Charger les fonctions via les comités
+          const fonctions = await this.getMemberComiteFunctions(clubId, member.id);
 
-        console.log(`✅ Membre ${member.fullName}: ${fonctions.length} fonctions, ${commissions.length} commissions`);
+          // Charger les commissions
+          const commissions = await this.getMemberCommissions(clubId, member.id);
 
-        return {
-          ...member,
-          fonctions: fonctions,
-          commissions: commissions
-        };
-      });
+          // Mapper au format attendu par l'interface
+          const mappedFonctions = fonctions.map(f => ({
+            comiteId: f.comiteId,
+            nomFonction: f.nomFonction,
+            estResponsable: f.estResponsable,
+            estActif: f.estActif,
+            dateNomination: f.dateNomination,
+            mandatAnnee: f.mandatAnnee
+          }));
 
-      console.log('✅ Enrichissement des membres terminé (avec données de test)');
+          const mappedCommissions = commissions.map(c => ({
+            commissionId: c.commissionId,
+            commissionNom: c.nomCommission,
+            estResponsable: c.estResponsable,
+            estActif: c.estActif,
+            dateNomination: c.dateNomination,
+            mandatAnnee: c.anneeMandat
+          }));
+
+          console.log(`✅ Membre ${member.fullName}: ${mappedFonctions.length} fonctions, ${mappedCommissions.length} commissions`);
+
+          return {
+            ...member,
+            fonctions: mappedFonctions,
+            commissions: mappedCommissions
+          };
+        })
+      );
+
+      console.log('✅ Enrichissement des membres terminé (avec endpoints individuels)');
       return enrichedMembers;
     }
   }
