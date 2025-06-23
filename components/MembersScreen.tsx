@@ -127,18 +127,14 @@ export const MembersScreen: React.FC<MembersScreenProps> = ({ club, onBack }) =>
             )}
           </View>
 
-          {/* Fonctions en premier */}
+          {/* Fonction (une seule) */}
           {item.fonctions && item.fonctions.length > 0 ? (
             <View style={styles.functionsContainer}>
-              <Text style={styles.functionsTitle}>Fonctions:</Text>
-              {item.fonctions.map((fonction, index) => {
-                console.log(`  - Affichage fonction ${index + 1}:`, fonction);
-                return (
-                  <Text key={index} style={styles.functionText}>
-                    {fonction.nomFonction || fonction.comiteNom} {fonction.estResponsable ? '(Responsable)' : ''}
-                  </Text>
-                );
-              })}
+              <Text style={styles.functionText}>
+                <Text style={styles.functionsTitle}>Fonction: </Text>
+                {item.fonctions[0].nomFonction || item.fonctions[0].comiteNom}
+                {item.fonctions[0].estResponsable ? ' (Responsable)' : ''}
+              </Text>
             </View>
           ) : (
             <Text style={styles.noDataText}>Aucune fonction assignée</Text>

@@ -276,14 +276,6 @@ export class MemberFunctionsService {
           estActif: true,
           dateNomination: '2024-07-01',
           mandatAnnee: 2024
-        },
-        {
-          comiteId: 'comite-2',
-          nomFonction: 'Secrétaire',
-          estResponsable: false,
-          estActif: true,
-          dateNomination: '2024-07-01',
-          mandatAnnee: 2024
         }
       ],
       '0cbfc6d5-18a9-4b35-a82e-81b62fa2bcf5': [ // Jean-Baptiste Kouamé
