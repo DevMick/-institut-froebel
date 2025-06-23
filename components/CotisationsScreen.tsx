@@ -22,7 +22,6 @@ export default function CotisationsScreen({ club, user, onBack }: CotisationsScr
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [situation, setSituation] = useState<SituationCotisation | null>(null);
-  const [paiements, setPaiements] = useState<Paiement[]>([]);
   const [showPaiements, setShowPaiements] = useState(false);
 
   const loadData = async () => {
@@ -30,13 +29,9 @@ export default function CotisationsScreen({ club, user, onBack }: CotisationsScr
       setLoading(true);
       console.log('🔄 Chargement données cotisations...');
       
-      // Charger ma situation
+      // Charger ma situation (inclut déjà les paiements)
       const maSituation = await cotisationService.getMaSituation(club.id, user.id);
       setSituation(maSituation);
-      
-      // Charger mes paiements
-      const mesPaiements = await cotisationService.getMesPaiements(club.id, user.id);
-      setPaiements(mesPaiements);
       
       console.log('✅ Données cotisations chargées');
     } catch (error: any) {
@@ -76,34 +71,43 @@ export default function CotisationsScreen({ club, user, onBack }: CotisationsScr
         <View style={styles.situationRow}>
           <Text style={styles.situationLabel}>Montant total dû:</Text>
           <Text style={styles.situationValue}>
-            {cotisationService.formatMontant(situation.montantTotalCotisations)}
+            {cotisationService.formatMontant(situation.resume.montantTotalCotisations)}
           </Text>
         </View>
-        
+
         <View style={styles.situationRow}>
           <Text style={styles.situationLabel}>Montant total payé:</Text>
           <Text style={[styles.situationValue, { color: '#34C759' }]}>
-            {cotisationService.formatMontant(situation.montantTotalPaiements)}
+            {cotisationService.formatMontant(situation.resume.montantTotalPaiements)}
           </Text>
         </View>
-        
+
         <View style={styles.situationRow}>
           <Text style={styles.situationLabel}>Solde restant:</Text>
           <Text style={[
-            styles.situationValue, 
-            { color: situation.solde > 0 ? '#FF3B30' : '#34C759' }
+            styles.situationValue,
+            { color: situation.resume.solde > 0 ? '#FF3B30' : '#34C759' }
           ]}>
-            {cotisationService.formatMontant(situation.solde)}
+            {cotisationService.formatMontant(situation.resume.solde)}
           </Text>
         </View>
-        
+
+        <View style={styles.situationRow}>
+          <Text style={styles.situationLabel}>Taux de recouvrement:</Text>
+          <Text style={[styles.situationValue, { color: '#005AA9' }]}>
+            {situation.resume.tauxRecouvrement.toFixed(1)}%
+          </Text>
+        </View>
+
         <View style={styles.statutContainer}>
           <Text style={styles.situationLabel}>Statut:</Text>
           <View style={[
-            styles.statutBadge, 
-            { backgroundColor: cotisationService.getStatutColor(situation.statut) }
+            styles.statutBadge,
+            { backgroundColor: situation.resume.solde <= 0 ? '#34C759' : situation.resume.montantTotalPaiements > 0 ? '#FF9500' : '#FF3B30' }
           ]}>
-            <Text style={styles.statutText}>{situation.statut}</Text>
+            <Text style={styles.statutText}>
+              {situation.resume.solde <= 0 ? 'À jour' : situation.resume.montantTotalPaiements > 0 ? 'Partiellement payé' : 'En retard'}
+            </Text>
           </View>
         </View>
       </View>
@@ -118,7 +122,7 @@ export default function CotisationsScreen({ club, user, onBack }: CotisationsScr
           onPress={() => setShowPaiements(!showPaiements)}
         >
           <Ionicons name="receipt" size={24} color="#005AA9" />
-          <Text style={styles.cardTitle}>Mes paiements ({paiements.length})</Text>
+          <Text style={styles.cardTitle}>Mes paiements ({situation?.historiquePaiements.length || 0})</Text>
           <Ionicons 
             name={showPaiements ? "chevron-up" : "chevron-down"} 
             size={20} 
@@ -128,10 +132,10 @@ export default function CotisationsScreen({ club, user, onBack }: CotisationsScr
         
         {showPaiements && (
           <View style={styles.paiementsContainer}>
-            {paiements.length === 0 ? (
+            {!situation?.historiquePaiements || situation.historiquePaiements.length === 0 ? (
               <Text style={styles.noDataText}>Aucun paiement enregistré</Text>
             ) : (
-              paiements.map((paiement, index) => (
+              situation.historiquePaiements.map((paiement, index) => (
                 <View key={paiement.id || index} style={styles.paiementCard}>
                   <View style={styles.paiementHeader}>
                     <Text style={styles.paiementMontant}>
