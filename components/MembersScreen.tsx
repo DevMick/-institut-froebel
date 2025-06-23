@@ -42,6 +42,26 @@ export const MembersScreen: React.FC<MembersScreenProps> = ({ club, onBack }) =>
       console.log('🔄 Chargement des membres...');
       const membersData = await apiService.getClubMembers(club.id);
       console.log('✅ Membres chargés:', membersData.length);
+
+      // Logs détaillés pour diagnostiquer les fonctions et commissions
+      if (membersData.length > 0) {
+        console.log('🔍 Premier membre (structure complète):', JSON.stringify(membersData[0], null, 2));
+
+        membersData.forEach((member, index) => {
+          console.log(`👤 Membre ${index + 1}: ${member.fullName}`);
+          console.log(`  - Fonctions:`, member.fonctions ? member.fonctions.length : 'undefined');
+          console.log(`  - Commissions:`, member.commissions ? member.commissions.length : 'undefined');
+
+          if (member.fonctions && member.fonctions.length > 0) {
+            console.log(`  - Détail fonctions:`, member.fonctions);
+          }
+
+          if (member.commissions && member.commissions.length > 0) {
+            console.log(`  - Détail commissions:`, member.commissions);
+          }
+        });
+      }
+
       setMembers(membersData);
     } catch (error: any) {
       console.error('❌ Erreur chargement membres:', error);
@@ -89,47 +109,91 @@ export const MembersScreen: React.FC<MembersScreenProps> = ({ club, onBack }) =>
     }
   };
 
-  const renderMember = ({ item }: { item: Member }) => (
-    <View style={styles.memberCard}>
-      <View style={styles.memberInfo}>
-        <View style={styles.memberHeader}>
-          <Text style={styles.memberName}>{item.fullName}</Text>
-          {item.isActive && (
-            <View style={styles.activeIndicator}>
-              <Text style={styles.activeText}>Actif</Text>
+  const renderMember = ({ item }: { item: Member }) => {
+    // Logs pour diagnostiquer l'affichage
+    console.log(`🎨 Rendu membre: ${item.fullName}`);
+    console.log(`  - Fonctions disponibles:`, item.fonctions ? `${item.fonctions.length} fonctions` : 'Aucune');
+    console.log(`  - Commissions disponibles:`, item.commissions ? `${item.commissions.length} commissions` : 'Aucune');
+
+    return (
+      <View style={styles.memberCard}>
+        <View style={styles.memberInfo}>
+          <View style={styles.memberHeader}>
+            <Text style={styles.memberName}>{item.fullName}</Text>
+            {item.isActive && (
+              <View style={styles.activeIndicator}>
+                <Text style={styles.activeText}>Actif</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Fonctions en premier */}
+          {item.fonctions && item.fonctions.length > 0 ? (
+            <View style={styles.functionsContainer}>
+              <Text style={styles.functionsTitle}>🏛️ Fonctions:</Text>
+              {item.fonctions.map((fonction, index) => {
+                console.log(`  - Affichage fonction ${index + 1}:`, fonction);
+                return (
+                  <Text key={index} style={styles.functionText}>
+                    • {fonction.comiteNom} {fonction.estResponsable ? '(Responsable)' : ''}
+                  </Text>
+                );
+              })}
             </View>
+          ) : (
+            <Text style={styles.noDataText}>🏛️ Aucune fonction assignée</Text>
+          )}
+
+          {/* Commissions en second */}
+          {item.commissions && item.commissions.length > 0 ? (
+            <View style={styles.commissionsContainer}>
+              <Text style={styles.commissionsTitle}>👥 Commissions:</Text>
+              {item.commissions.map((commission, index) => {
+                console.log(`  - Affichage commission ${index + 1}:`, commission);
+                return (
+                  <Text key={index} style={styles.commissionText}>
+                    • {commission.commissionNom} {commission.estResponsable ? '(Responsable)' : ''}
+                  </Text>
+                );
+              })}
+            </View>
+          ) : (
+            <Text style={styles.noDataText}>👥 Aucune commission assignée</Text>
+          )}
+
+          {/* Téléphone en dernier */}
+          {item.phoneNumber && (
+            <Text style={styles.memberPhone}>{item.phoneNumber}</Text>
           )}
         </View>
 
-        {/* Fonctions en premier */}
-        {item.fonctions && item.fonctions.length > 0 && (
-          <View style={styles.functionsContainer}>
-            <Text style={styles.functionsTitle}>🏛️ Fonctions:</Text>
-            {item.fonctions.map((fonction, index) => (
-              <Text key={index} style={styles.functionText}>
-                • {fonction.comiteNom} {fonction.estResponsable ? '(Responsable)' : ''}
-              </Text>
-            ))}
-          </View>
-        )}
-
-        {/* Commissions en second */}
-        {item.commissions && item.commissions.length > 0 && (
-          <View style={styles.commissionsContainer}>
-            <Text style={styles.commissionsTitle}>👥 Commissions:</Text>
-            {item.commissions.map((commission, index) => (
-              <Text key={index} style={styles.commissionText}>
-                • {commission.commissionNom} {commission.estResponsable ? '(Responsable)' : ''}
-              </Text>
-            ))}
-          </View>
-        )}
-
-        {/* Téléphone en dernier */}
         {item.phoneNumber && (
-          <Text style={styles.memberPhone}>{item.phoneNumber}</Text>
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.callButton]}
+              onPress={() => handleCall(item.phoneNumber)}
+            >
+              <Ionicons name="call" size={16} color="white" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionButton, styles.smsButton]}
+              onPress={() => handleSMS(item.phoneNumber)}
+            >
+              <Ionicons name="chatbubble" size={16} color="white" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionButton, styles.whatsappButton]}
+              onPress={() => handleWhatsApp(item.phoneNumber)}
+            >
+              <Ionicons name="logo-whatsapp" size={16} color="white" />
+            </TouchableOpacity>
+          </View>
         )}
       </View>
+    );
+  };
 
       {item.phoneNumber && (
         <View style={styles.actionButtons}>
@@ -350,6 +414,13 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     marginBottom: 2,
     fontWeight: '500',
+  },
+  noDataText: {
+    fontSize: 12,
+    color: '#999',
+    fontStyle: 'italic',
+    marginTop: 5,
+    marginBottom: 5,
   },
   actionButtons: {
     flexDirection: 'column',

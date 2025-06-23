@@ -212,7 +212,24 @@ export class ApiService {
       }
 
       const data = await response.json();
-      return Array.isArray(data) ? data : data.data || data.members || [];
+      console.log('📊 Données brutes reçues de l\'API membres:', JSON.stringify(data, null, 2));
+
+      const members = Array.isArray(data) ? data : data.data || data.members || [];
+      console.log('👥 Membres après traitement:', members.length);
+
+      if (members.length > 0) {
+        console.log('🔍 Premier membre API (structure):', JSON.stringify(members[0], null, 2));
+
+        // Vérifier spécifiquement les fonctions et commissions
+        members.forEach((member, index) => {
+          console.log(`📋 Membre ${index + 1} API: ${member.fullName || member.firstName + ' ' + member.lastName}`);
+          console.log(`  - Propriété 'fonctions':`, member.fonctions ? 'Présente' : 'Absente');
+          console.log(`  - Propriété 'commissions':`, member.commissions ? 'Présente' : 'Absente');
+          console.log(`  - Toutes les propriétés:`, Object.keys(member));
+        });
+      }
+
+      return members;
     } catch (error) {
       console.error('Erreur chargement membres:', error);
       throw error;
