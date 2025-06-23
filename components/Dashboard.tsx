@@ -88,6 +88,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
       screen: 'reunions' as NavigationScreen,
     },
     {
+      id: 'cotisations',
+      title: 'Mes cotisations',
+      subtitle: 'Situation et paiements',
+      icon: 'wallet',
+      color: '#FF9500',
+      screen: 'cotisations' as NavigationScreen,
+    },
+    {
       id: 'clubs',
       title: 'Clubs',
       subtitle: 'Liste des clubs Rotary',

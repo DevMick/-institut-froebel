@@ -132,6 +132,7 @@ export type NavigationScreen =
   | 'dashboard'
   | 'members'
   | 'reunions'
+  | 'cotisations'
   | 'clubs'
   | 'profile'
   | 'settings';
