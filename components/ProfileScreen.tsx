@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,9 +6,12 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { User, Club } from '../types';
+import { ApiService } from '../services/ApiService';
 
 interface ProfileScreenProps {
   user: User;
@@ -17,46 +20,104 @@ interface ProfileScreenProps {
 }
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, club, onBack }) => {
+  const [clubDetails, setClubDetails] = useState<Club | null>(null);
+  const [loading, setLoading] = useState(false);
+  const apiService = new ApiService();
+
+  useEffect(() => {
+    loadClubDetails();
+  }, [club.id]);
+
+  const loadClubDetails = async () => {
+    try {
+      setLoading(true);
+      // Utiliser les détails du club passé en props ou charger depuis l'API si nécessaire
+      setClubDetails(club);
+    } catch (error) {
+      console.error('Erreur chargement détails club:', error);
+      setClubDetails(club); // Fallback sur les données existantes
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatTime = (timeString?: string) => {
+    if (!timeString) return 'Non définie';
+    return timeString;
+  };
+
+  const handleCall = (phoneNumber?: string) => {
+    if (phoneNumber) {
+      Linking.openURL(`tel:${phoneNumber}`);
+    }
+  };
+
+  const handleEmail = (email?: string) => {
+    if (email) {
+      Linking.openURL(`mailto:${email}`);
+    }
+  };
+
+  const currentClub = clubDetails || club;
+
   const profileSections = [
     {
       title: 'Informations personnelles',
       items: [
-        { label: 'Nom complet', value: user.fullName, icon: 'person' },
-        { label: 'Email', value: user.email, icon: 'mail' },
-        { label: 'Prénom', value: user.firstName, icon: 'person-outline' },
-        { label: 'Nom', value: user.lastName, icon: 'person-outline' },
+        { label: 'Nom complet', value: user.fullName, icon: 'person', color: '#005AA9' },
+        { label: 'Prénom', value: user.firstName, icon: 'person-outline', color: '#005AA9' },
+        { label: 'Nom', value: user.lastName, icon: 'person-outline', color: '#005AA9' },
+        { label: 'Email', value: user.email, icon: 'mail', color: '#34C759', action: () => handleEmail(user.email) },
       ],
     },
     {
       title: 'Informations du club',
       items: [
-        { label: 'Club', value: club.name, icon: 'business' },
-        { label: 'Ville', value: club.city, icon: 'location' },
-        { label: 'Pays', value: club.country, icon: 'flag' },
-        { label: 'Fondé en', value: new Date(club.foundedDate).getFullYear().toString(), icon: 'calendar' },
+        { label: 'Nom du club', value: currentClub.name, icon: 'business', color: '#005AA9' },
+        { label: 'Numéro du club', value: currentClub.numeroClub?.toString(), icon: 'business', color: '#005AA9' },
+        { label: 'Date de création', value: currentClub.dateCreation, icon: 'calendar', color: '#005AA9' },
+        { label: 'Parrainé par', value: currentClub.parrainePar, icon: 'people', color: '#005AA9' },
+      ],
+    },
+    {
+      title: 'Réunions du club',
+      items: [
+        { label: 'Jour de réunion', value: currentClub.jourReunion, icon: 'calendar', color: '#005AA9' },
+        { label: 'Heure de réunion', value: formatTime(currentClub.heureReunion), icon: 'time', color: '#34C759' },
+        { label: 'Fréquence', value: currentClub.frequence, icon: 'repeat', color: '#005AA9' },
+        { label: 'Lieu de réunion', value: currentClub.lieuReunion, icon: 'location', color: '#FF9500' },
       ],
     },
     {
       title: 'Contact du club',
       items: [
-        { label: 'Téléphone', value: club.phoneNumber, icon: 'call' },
-        { label: 'Email', value: club.email, icon: 'mail' },
-        { label: 'Site web', value: club.website, icon: 'globe' },
-        { label: 'Adresse', value: `${club.address}, ${club.city}`, icon: 'location-outline' },
+        { label: 'Téléphone', value: currentClub.numeroTelephone, icon: 'call', color: '#34C759', action: () => handleCall(currentClub.numeroTelephone) },
+        { label: 'Email', value: currentClub.email, icon: 'mail', color: '#34C759', action: () => handleEmail(currentClub.email) },
+        { label: 'Adresse', value: currentClub.adresse, icon: 'home', color: '#005AA9' },
       ],
     },
   ];
 
   const renderProfileItem = (item: any) => (
-    <View key={item.label} style={styles.profileItem}>
+    <TouchableOpacity
+      key={item.label}
+      style={styles.profileItem}
+      onPress={item.action}
+      disabled={!item.action}
+    >
       <View style={styles.itemIcon}>
-        <Ionicons name={item.icon as any} size={20} color="#005AA9" />
+        <Ionicons name={item.icon as any} size={20} color={item.color || "#005AA9"} />
       </View>
       <View style={styles.itemContent}>
         <Text style={styles.itemLabel}>{item.label}</Text>
-        <Text style={styles.itemValue}>{item.value || 'Non renseigné'}</Text>
+        <Text style={[styles.itemValue, item.action && styles.clickableValue]}>
+          {item.value || 'Non renseigné'}
+        </Text>
       </View>
-    </View>
+      {item.action && (
+        <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />
+      )}
+    </TouchableOpacity>
   );
 
   const renderSection = (section: any) => (
@@ -79,6 +140,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, club, onBack
           <Text style={styles.title}>Mon Profil</Text>
           <Text style={styles.subtitle}>{user.fullName}</Text>
         </View>
+        {loading && (
+          <ActivityIndicator size="small" color="white" style={{ marginLeft: 10 }} />
+        )}
       </View>
 
       <ScrollView style={styles.content}>
@@ -95,8 +159,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, club, onBack
           <Text style={styles.profileEmail}>{user.email}</Text>
           <View style={styles.clubBadge}>
             <Ionicons name="business" size={16} color="white" />
-            <Text style={styles.clubBadgeText}>{club.name}</Text>
+            <Text style={styles.clubBadgeText}>{currentClub.name}</Text>
           </View>
+          {currentClub.numeroClub && (
+            <Text style={styles.clubNumber}>N° {currentClub.numeroClub}</Text>
+          )}
         </View>
 
         {/* Profile Sections */}
@@ -218,6 +285,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 5,
   },
+  clubNumber: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 5,
+    fontWeight: '500',
+  },
   section: {
     marginBottom: 20,
   },
@@ -265,6 +338,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     fontWeight: '500',
+  },
+  clickableValue: {
+    color: '#005AA9',
+    textDecorationLine: 'underline',
   },
   actionsSection: {
     backgroundColor: 'white',
