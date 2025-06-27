@@ -350,6 +350,7 @@ export class MemberFunctionsService {
 
   async getAllMembersFunctionsCommissions(clubId: string): Promise<any> {
     try {
+      console.log(`🚀 DÉBUT getAllMembersFunctionsCommissions pour club: ${clubId}`);
       const token = await this.getToken();
       if (!token) {
         console.log('⚠️ Token manquant pour fonctions/commissions membres');
@@ -358,6 +359,7 @@ export class MemberFunctionsService {
 
       const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/membres/fonctions-commissions`;
       console.log(`🔄 Chargement fonctions/commissions tous membres:`, url);
+      console.log(`🔑 Token présent: ${token ? 'OUI' : 'NON'}`);
 
       const response = await fetch(url, {
         method: 'GET',
@@ -369,11 +371,14 @@ export class MemberFunctionsService {
         },
       });
 
+      console.log(`📡 Réponse HTTP: ${response.status} ${response.statusText}`);
+
       if (!response.ok) {
         if (response.status === 404) {
-          console.log(`📋 Endpoint fonctions/commissions non trouvé - utilisation données de test`);
+          console.log(`📋 Endpoint fonctions/commissions non trouvé (404) - utilisation fallback`);
           return null;
         }
+        console.log(`❌ Erreur HTTP ${response.status}: ${response.statusText}`);
         throw new Error(`Erreur HTTP: ${response.status}`);
       }
 
@@ -385,7 +390,9 @@ export class MemberFunctionsService {
       console.log(`🔍 Premier membre exemple:`, membres && membres.length > 0 ? JSON.stringify(membres[0], null, 2) : 'Aucun membre');
       return data;
     } catch (error) {
-      console.error(`❌ Erreur chargement fonctions/commissions:`, error);
+      console.error(`❌ ERREUR getAllMembersFunctionsCommissions:`, error);
+      console.error(`❌ Type d'erreur:`, typeof error);
+      console.error(`❌ Message:`, error instanceof Error ? error.message : 'Erreur inconnue');
       return null;
     }
   }
