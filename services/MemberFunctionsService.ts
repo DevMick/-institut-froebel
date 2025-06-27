@@ -378,9 +378,11 @@ export class MemberFunctionsService {
       }
 
       const data = await response.json();
-      console.log(`✅ Fonctions/commissions reçues:`, data.membres ? data.membres.length : 'Format inattendu');
-      console.log(`📊 Statistiques globales:`, data.statistiques);
-      console.log(`🔍 Premier membre exemple:`, data.membres && data.membres.length > 0 ? JSON.stringify(data.membres[0], null, 2) : 'Aucun membre');
+      const membres = data.membres || data.Membres;
+      console.log(`✅ Fonctions/commissions reçues:`, membres ? membres.length : 'Format inattendu');
+      console.log(`📊 Structure complète des données:`, JSON.stringify(data, null, 2));
+      console.log(`📊 Statistiques globales:`, data.statistiques || data.Statistiques);
+      console.log(`🔍 Premier membre exemple:`, membres && membres.length > 0 ? JSON.stringify(membres[0], null, 2) : 'Aucun membre');
       return data;
     } catch (error) {
       console.error(`❌ Erreur chargement fonctions/commissions:`, error);
@@ -390,38 +392,48 @@ export class MemberFunctionsService {
 
   async loadMemberFunctionsAndCommissions(clubId: string, members: any[]): Promise<any[]> {
     console.log('🔄 Chargement fonctions et commissions pour tous les membres...');
+    console.log(`📊 Nombre de membres à enrichir: ${members.length}`);
 
     // Essayer d'utiliser le nouvel endpoint optimisé d'abord
     const apiData = await this.getAllMembersFunctionsCommissions(clubId);
+    console.log('🔍 Réponse API getAllMembersFunctionsCommissions:', apiData ? 'Données reçues' : 'Null/undefined');
 
-    if (apiData && apiData.membres) {
+    if (apiData && (apiData.membres || apiData.Membres)) {
       console.log('✅ Utilisation de l\'endpoint optimisé /membres/fonctions-commissions');
+
+      // Utiliser la bonne propriété (membres ou Membres selon la réponse)
+      const apiMembers = apiData.membres || apiData.Membres;
+      console.log(`📊 Nombre de membres dans l'API: ${apiMembers.length}`);
 
       // Enrichir les membres existants avec les données de l'API
       const enrichedMembers = members.map((member) => {
         // Trouver les données correspondantes dans la réponse API
-        const apiMember = apiData.membres.find((m: any) => m.membreId === member.id);
+        const apiMember = apiMembers.find((m: any) => m.membreId === member.id || m.MembreId === member.id);
 
         if (apiMember) {
+          console.log(`🔍 Données API pour ${member.fullName}:`, JSON.stringify(apiMember, null, 2));
+
           // Mapper la fonction (une seule) au format attendu par l'interface
-          const mappedFonctions = apiMember.fonction ? [{
-            fonctionId: apiMember.fonction.fonctionId,
-            nomFonction: apiMember.fonction.nomFonction.trim(), // Supprimer les espaces
-            estResponsable: apiMember.fonction.nomFonction.toLowerCase().includes('président') ||
-                           apiMember.fonction.nomFonction.toLowerCase().includes('responsable'),
+          const fonction = apiMember.fonction || apiMember.Fonction;
+          const mappedFonctions = fonction ? [{
+            fonctionId: fonction.fonctionId || fonction.FonctionId,
+            nomFonction: (fonction.nomFonction || fonction.NomFonction || '').trim(),
+            estResponsable: (fonction.nomFonction || fonction.NomFonction || '').toLowerCase().includes('président') ||
+                           (fonction.nomFonction || fonction.NomFonction || '').toLowerCase().includes('responsable'),
             estActif: true,
             dateNomination: new Date().toISOString(),
-            mandatAnnee: apiData.mandatActuel.annee
+            mandatAnnee: (apiData.mandatActuel || apiData.MandatActuel)?.annee || (apiData.mandatActuel || apiData.MandatActuel)?.Annee
           }] : [];
 
           // Mapper les commissions au format attendu par l'interface
-          const mappedCommissions = apiMember.commissions.map((c: any) => ({
-            commissionId: c.commissionId,
-            commissionNom: c.nomCommission.trim(), // Supprimer les espaces
-            estResponsable: c.estResponsable,
+          const commissions = apiMember.commissions || apiMember.Commissions || [];
+          const mappedCommissions = commissions.map((c: any) => ({
+            commissionId: c.commissionId || c.CommissionId,
+            commissionNom: (c.nomCommission || c.NomCommission || '').trim(),
+            estResponsable: c.estResponsable || c.EstResponsable,
             estActif: true,
-            dateNomination: c.dateNomination,
-            mandatAnnee: apiData.mandatActuel.annee
+            dateNomination: c.dateNomination || c.DateNomination,
+            mandatAnnee: (apiData.mandatActuel || apiData.MandatActuel)?.annee || (apiData.mandatActuel || apiData.MandatActuel)?.Annee
           }));
 
           console.log(`✅ Membre ${member.fullName}: ${mappedFonctions.length} fonction, ${mappedCommissions.length} commissions`);
@@ -452,6 +464,7 @@ export class MemberFunctionsService {
     } else {
       // Fallback vers les endpoints individuels des comités
       console.log('⚠️ Endpoint optimisé non disponible - utilisation des endpoints comités individuels');
+      console.log('🔄 Début du fallback avec endpoints individuels...');
 
       const enrichedMembers = await Promise.all(
         members.map(async (member) => {
