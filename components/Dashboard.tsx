@@ -43,6 +43,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const loadDashboardData = async () => {
     try {
       setLoading(true);
+
+      // 🔍 LOG: Vérification des données utilisateur
+      console.log('🔍 DASHBOARD - Données utilisateur reçues:', {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        fullName: user.fullName,
+        clubId: user.clubId
+      });
+
       const membersData = await apiService.getClubMembers(club.id);
       setMembers(membersData);
 
@@ -58,9 +69,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           const dateReunion = new Date(reunion.date);
           return dateReunion > maintenant; // Réunion dans le futur = programmée
         }).length;
-        console.log(`📊 Dashboard: ${reunionsProgrammees} réunions programmées sur ${reunionsData.length} total`);
       } catch (error) {
-        console.log('⚠️ Erreur chargement réunions pour dashboard:', error);
+        // Erreur silencieuse pour les réunions
       }
 
       setStats({

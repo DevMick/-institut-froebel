@@ -59,7 +59,16 @@ export default function App() {
 
   const handleLogin = async (userData: User, club: Club) => {
     try {
-      console.log('✅ Connexion réussie:', userData);
+      // 🔍 LOG: Vérification des données utilisateur lors de la connexion
+      console.log('🔍 CONNEXION - Données utilisateur reçues du login:', {
+        id: userData.id,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        fullName: userData.fullName,
+        clubId: userData.clubId
+      });
+
       setUser(userData);
       setSelectedClub(club);
       setIsAuthenticated(true);

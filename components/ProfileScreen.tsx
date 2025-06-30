@@ -31,10 +31,20 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, club, onBack
   const loadClubDetails = async () => {
     try {
       setLoading(true);
+
+      // 🔍 LOG: Vérification des données utilisateur dans le profil
+      console.log('🔍 PROFIL - Données utilisateur reçues:', {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        fullName: user.fullName,
+        clubId: user.clubId
+      });
+
       // Utiliser les détails du club passé en props ou charger depuis l'API si nécessaire
       setClubDetails(club);
     } catch (error) {
-      console.error('Erreur chargement détails club:', error);
       setClubDetails(club); // Fallback sur les données existantes
     } finally {
       setLoading(false);
