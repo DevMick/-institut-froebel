@@ -107,9 +107,13 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
 
       if (response.success || response.Success) {
         Alert.alert(
-          'Inscription réussie',
-          'Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.',
-          [{ text: 'OK', onPress: onNavigateToLogin }]
+          '🎉 Bienvenue dans la famille Rotary !',
+          `Félicitations ${formData.firstName} ${formData.lastName} !\n\nVotre compte a été créé avec succès pour le club "${selectedClub?.name}".\n\nVous pouvez maintenant vous connecter et découvrir toutes les fonctionnalités de l'application.`,
+          [{
+            text: 'Se connecter maintenant',
+            onPress: onNavigateToLogin,
+            style: 'default'
+          }]
         );
       } else if (response.errors) {
         setErrors(response.errors);
