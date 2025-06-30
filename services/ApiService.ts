@@ -158,7 +158,13 @@ export class ApiService {
       console.log('📥 Réponse /Auth/me:', response);
       if (response.success && response.user) {
         console.log('✅ getCurrentUser: Succès avec /Auth/me');
-        return response.user;
+        // Construire fullName s'il n'existe pas
+        const user = response.user;
+        if (!user.fullName && user.firstName && user.lastName) {
+          user.fullName = `${user.firstName} ${user.lastName}`;
+        }
+        console.log('🔍 Utilisateur final avec fullName:', { firstName: user.firstName, lastName: user.lastName, fullName: user.fullName });
+        return user;
       }
     } catch (error) {
       console.log('❌ getCurrentUser: Erreur avec /Auth/me:', error);
