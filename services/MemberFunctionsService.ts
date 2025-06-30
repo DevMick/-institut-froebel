@@ -398,11 +398,14 @@ export class MemberFunctionsService {
   }
 
   async loadMemberFunctionsAndCommissions(clubId: string, members: any[]): Promise<any[]> {
+    console.log('🚨🚨🚨 DEBUT LOAD MEMBER FUNCTIONS AND COMMISSIONS 🚨🚨🚨');
     console.log('🔄 Chargement fonctions et commissions pour tous les membres...');
     console.log(`📊 Nombre de membres à enrichir: ${members.length}`);
 
     // Essayer d'utiliser le nouvel endpoint optimisé d'abord
+    console.log('🚨 AVANT APPEL getAllMembersFunctionsCommissions');
     const apiData = await this.getAllMembersFunctionsCommissions(clubId);
+    console.log('🚨 APRÈS APPEL getAllMembersFunctionsCommissions');
     console.log('🔍 Réponse API getAllMembersFunctionsCommissions:', apiData ? 'Données reçues' : 'Null/undefined');
 
     if (apiData && (apiData.membres || apiData.Membres)) {
