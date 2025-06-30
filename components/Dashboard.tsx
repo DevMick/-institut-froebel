@@ -30,7 +30,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
     totalMembers: 0,
-    activeMembers: 0,
+    totalClubs: 0,
     totalReunions: 0,
   });
 
@@ -45,10 +45,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
       setLoading(true);
       const membersData = await apiService.getClubMembers(club.id);
       setMembers(membersData);
-      
+
+      // Charger le nombre de clubs
+      const clubsData = await apiService.getClubs();
+
       setStats({
         totalMembers: membersData.length,
-        activeMembers: membersData.filter(m => m.isActive).length,
+        totalClubs: clubsData.length,
         totalReunions: 0, // À implémenter plus tard
       });
     } catch (error: any) {
@@ -74,7 +77,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     {
       id: 'members',
       title: 'Membres',
-      subtitle: `${stats.activeMembers} membres actifs`,
+      subtitle: `${stats.totalMembers} membres actifs`,
       icon: 'people',
       color: '#007AFF',
       screen: 'members' as NavigationScreen,
@@ -152,8 +155,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <Text style={styles.statLabel}>Membres</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{stats.activeMembers}</Text>
-            <Text style={styles.statLabel}>Actifs</Text>
+            <Text style={styles.statNumber}>{stats.totalClubs}</Text>
+            <Text style={styles.statLabel}>Clubs</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{stats.totalReunions}</Text>
@@ -181,21 +184,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           ))}
         </View>
 
-        {/* Refresh Button */}
-        <TouchableOpacity
-          style={styles.refreshButton}
-          onPress={loadDashboardData}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#005AA9" />
-          ) : (
-            <>
-              <Ionicons name="refresh" size={20} color="#005AA9" />
-              <Text style={styles.refreshButtonText}>Actualiser</Text>
-            </>
-          )}
-        </TouchableOpacity>
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -321,24 +310,5 @@ const styles = StyleSheet.create({
   menuSubtitle: {
     fontSize: 14,
     color: '#666',
-  },
-  refreshButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  refreshButtonText: {
-    color: '#005AA9',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
   },
 });
