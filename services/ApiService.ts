@@ -110,17 +110,34 @@ export class ApiService {
 
       if (result.token) {
         await this.setToken(result.token);
-        
+
         try {
+          console.log('🔄 Tentative de récupération du profil utilisateur...');
           const profile = await this.getCurrentUser();
+          console.log('✅ Profil utilisateur récupéré:', profile);
           return profile;
         } catch (error) {
+          console.log('⚠️ Erreur récupération profil utilisateur:', error);
+
+          // Essayer de récupérer le nom depuis la réponse de login si disponible
+          let firstName = 'Utilisateur';
+          let lastName = 'Connecté';
+          let fullName = 'Utilisateur Connecté';
+
+          if (result.user) {
+            firstName = result.user.firstName || result.user.prenom || firstName;
+            lastName = result.user.lastName || result.user.nom || lastName;
+            fullName = result.user.fullName || result.user.nomComplet || `${firstName} ${lastName}`;
+          }
+
+          console.log('🔄 Utilisation des données de fallback:', { firstName, lastName, fullName });
+
           return {
-            id: 'user-id',
+            id: result.userId || 'user-id',
             email: loginData.email,
-            firstName: 'Utilisateur',
-            lastName: 'Connecté',
-            fullName: 'Utilisateur Connecté',
+            firstName,
+            lastName,
+            fullName,
             clubId: loginData.clubId
           };
         }
@@ -134,24 +151,31 @@ export class ApiService {
   }
 
   async getCurrentUser(): Promise<User> {
+    console.log('🔄 getCurrentUser: Tentative avec /Auth/me...');
     try {
       const response = await this.makeRequest<User>('/Auth/me');
+      console.log('📥 Réponse /Auth/me:', response);
       if (response.success && response.data) {
+        console.log('✅ getCurrentUser: Succès avec /Auth/me');
         return response.data;
       }
     } catch (error) {
-      console.log('Tentative avec getCurrentProfile...');
+      console.log('❌ getCurrentUser: Erreur avec /Auth/me:', error);
+      console.log('🔄 getCurrentUser: Tentative avec /Auth/getCurrentProfile...');
     }
 
     try {
       const response = await this.makeRequest<User>('/Auth/getCurrentProfile');
+      console.log('📥 Réponse /Auth/getCurrentProfile:', response);
       if (response) {
+        console.log('✅ getCurrentUser: Succès avec /Auth/getCurrentProfile');
         return response;
       }
     } catch (error) {
-      console.log('getCurrentProfile échoué aussi');
+      console.log('❌ getCurrentUser: Erreur avec /Auth/getCurrentProfile:', error);
     }
 
+    console.log('❌ getCurrentUser: Toutes les tentatives ont échoué');
     throw new Error('Impossible de récupérer les informations utilisateur');
   }
 
