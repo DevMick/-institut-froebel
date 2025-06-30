@@ -49,10 +49,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
       // Charger le nombre de clubs
       const clubsData = await apiService.getClubs();
 
+      // Charger les réunions et compter celles qui sont programmées (futures)
+      let reunionsProgrammees = 0;
+      try {
+        const reunionsData = await apiService.getClubReunions(club.id);
+        const maintenant = new Date();
+        reunionsProgrammees = reunionsData.filter(reunion => {
+          const dateReunion = new Date(reunion.date);
+          return dateReunion > maintenant; // Réunion dans le futur = programmée
+        }).length;
+        console.log(`📊 Dashboard: ${reunionsProgrammees} réunions programmées sur ${reunionsData.length} total`);
+      } catch (error) {
+        console.log('⚠️ Erreur chargement réunions pour dashboard:', error);
+      }
+
       setStats({
         totalMembers: membersData.length,
         totalClubs: clubsData.length,
-        totalReunions: 0, // À implémenter plus tard
+        totalReunions: reunionsProgrammees,
       });
     } catch (error: any) {
       console.error('Erreur chargement dashboard:', error);

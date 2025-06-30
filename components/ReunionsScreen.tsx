@@ -346,8 +346,14 @@ export const ReunionsScreen: React.FC<ReunionsScreenProps> = ({ club, onBack }) 
       {/* Stats */}
       <View style={styles.statsContainer}>
         <Text style={styles.statsText}>
-          {reunions.length} réunion{reunions.length > 1 ? 's' : ''} • 
-          {reunions.filter(r => r.statut === 'programmee').length} programmée{reunions.filter(r => r.statut === 'programmee').length > 1 ? 's' : ''}
+          {(() => {
+            const maintenant = new Date();
+            const programmees = reunions.filter(r => {
+              const dateReunion = new Date(r.date);
+              return dateReunion > maintenant; // Réunion dans le futur = programmée
+            }).length;
+            return `${reunions.length} réunion${reunions.length > 1 ? 's' : ''} • ${programmees} programmée${programmees > 1 ? 's' : ''}`;
+          })()}
         </Text>
       </View>
 
