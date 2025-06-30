@@ -124,10 +124,11 @@ export class ApiService {
           let lastName = 'Connecté';
           let fullName = 'Utilisateur Connecté';
 
-          if (result.user) {
-            firstName = result.user.firstName || result.user.prenom || firstName;
-            lastName = result.user.lastName || result.user.nom || lastName;
-            fullName = result.user.fullName || result.user.nomComplet || `${firstName} ${lastName}`;
+          // Les données sont dans result directement, pas dans result.user
+          if (result.firstName || result.lastName) {
+            firstName = result.firstName || firstName;
+            lastName = result.lastName || lastName;
+            fullName = result.fullName || `${firstName} ${lastName}`;
           }
 
           console.log('🔄 Utilisation des données de fallback:', { firstName, lastName, fullName });
@@ -153,11 +154,11 @@ export class ApiService {
   async getCurrentUser(): Promise<User> {
     console.log('🔄 getCurrentUser: Tentative avec /Auth/me...');
     try {
-      const response = await this.makeRequest<User>('/Auth/me');
+      const response = await this.makeRequest<any>('/Auth/me');
       console.log('📥 Réponse /Auth/me:', response);
-      if (response.success && response.data) {
+      if (response.success && response.user) {
         console.log('✅ getCurrentUser: Succès avec /Auth/me');
-        return response.data;
+        return response.user;
       }
     } catch (error) {
       console.log('❌ getCurrentUser: Erreur avec /Auth/me:', error);
