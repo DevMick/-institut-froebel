@@ -20,6 +20,7 @@ interface LoginScreenProps {
   loading: boolean;
   onLogin: (user: User, club: Club) => void;
   onLoadClubs: () => void;
+  onNavigateToRegister: () => void;
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({
@@ -27,6 +28,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   loading,
   onLogin,
   onLoadClubs,
+  onNavigateToRegister,
 }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -152,15 +154,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.refreshButton}
-            onPress={onLoadClubs}
-            disabled={loading}
-          >
-            <Text style={styles.refreshButtonText}>
-              {loading ? 'Chargement...' : 'Actualiser les clubs'}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.registerSection}>
+            <Text style={styles.registerText}>Pas encore membre ? </Text>
+            <TouchableOpacity onPress={() => onNavigateToRegister()}>
+              <Text style={styles.registerLink}>Créer un compte</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -236,13 +235,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  refreshButton: {
+  registerSection: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    padding: 10,
+    marginTop: 20,
   },
-  refreshButtonText: {
+  registerText: {
+    color: '#666',
+    fontSize: 14,
+  },
+  registerLink: {
     color: '#005AA9',
     fontSize: 14,
+    fontWeight: 'bold',
   },
   modalOverlay: {
     flex: 1,

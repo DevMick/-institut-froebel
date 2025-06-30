@@ -129,6 +129,7 @@ export interface AppState {
 
 export type NavigationScreen =
   | 'login'
+  | 'register'
   | 'dashboard'
   | 'members'
   | 'reunions'

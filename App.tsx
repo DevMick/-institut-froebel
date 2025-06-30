@@ -9,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 
 // Imports des composants modulaires
 import { LoginScreen } from './components/LoginScreen';
+import { RegisterScreen } from './components/RegisterScreen';
 import { Dashboard } from './components/Dashboard';
 import { MembersScreen } from './components/MembersScreen';
 import { ReunionsScreen } from './components/ReunionsScreen';
@@ -97,6 +98,14 @@ export default function App() {
     setCurrentScreen(screen);
   };
 
+  const handleNavigateToRegister = () => {
+    setCurrentScreen('register');
+  };
+
+  const handleNavigateToLogin = () => {
+    setCurrentScreen('login');
+  };
+
   // Écran de chargement initial
   if (loading && clubs.length === 0) {
     return (
@@ -108,8 +117,23 @@ export default function App() {
     );
   }
 
-  // Écran de connexion
-  if (!isAuthenticated || currentScreen === 'login') {
+  // Écrans de connexion et d'inscription
+  if (!isAuthenticated) {
+    if (currentScreen === 'register') {
+      return (
+        <>
+          <StatusBar style="light" backgroundColor="#005AA9" />
+          <RegisterScreen
+            clubs={clubs}
+            loading={loading}
+            onNavigateToLogin={handleNavigateToLogin}
+            onLoadClubs={loadClubs}
+          />
+        </>
+      );
+    }
+
+    // Écran de connexion par défaut
     return (
       <>
         <StatusBar style="light" backgroundColor="#005AA9" />
@@ -118,6 +142,7 @@ export default function App() {
           loading={loading}
           onLogin={handleLogin}
           onLoadClubs={loadClubs}
+          onNavigateToRegister={handleNavigateToRegister}
         />
       </>
     );
