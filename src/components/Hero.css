@@ -1,0 +1,394 @@
+/* Hero Section avec overlay de texte - HAUTEUR RÉDUITE */
+.hero-section {
+    width: 100%;
+    height: 50vh; /* Réduit de 100vh à 50vh */
+    max-height: 400px; /* Réduit de 800px à 400px */
+    min-height: 300px; /* Réduit de 500px à 300px */
+    position: relative;
+    overflow: hidden;
+    background-color: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Poppins', sans-serif;
+}
+
+.hero-section .slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+    background-position: center center;
+    background-size: cover; /* Maintient la proportion de l'image */
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    will-change: opacity;
+}
+
+.hero-section .slide.active {
+    opacity: 1;
+}
+
+/* Overlay supprimé - Images dans leurs couleurs naturelles */
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    z-index: 1;
+}
+
+/* Container principal pour le contenu */
+.hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: white;
+    max-width: 1000px; /* Légèrement réduit */
+    padding: 0 30px; /* Réduit le padding */
+    animation: heroFadeIn 1.2s ease-out;
+}
+
+@keyframes heroFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px); /* Réduit l'animation */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Titre principal - TAILLE RÉDUITE */
+.hero-title {
+    font-size: 2.5rem; /* Réduit de 3.5rem à 2.5rem */
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1rem; /* Réduit de 1.5rem à 1rem */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    color: #00A86B; /* Vert principal de l'Institut Froebel */
+    animation: heroTitleSlide 1.5s ease-out 0.3s both;
+}
+
+@keyframes heroTitleSlide {
+    from {
+        opacity: 0;
+        transform: translateX(-50px); /* Réduit l'animation */
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Sous-titre */
+.hero-subtitle {
+    font-size: 1.2rem; /* Réduit de 1.5rem à 1.2rem */
+    font-weight: 600;
+    margin-bottom: 0.8rem; /* Réduit */
+    color: #f0f0f0;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    animation: heroSubtitleSlide 1.5s ease-out 0.6s both;
+}
+
+@keyframes heroSubtitleSlide {
+    from {
+        opacity: 0;
+        transform: translateX(50px); /* Réduit l'animation */
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Message spécifique pour chaque image */
+.hero-message {
+    font-size: 1.1rem; /* Réduit de 1.4rem à 1.1rem */
+    font-weight: 500;
+    margin-bottom: 2rem; /* Réduit de 3rem à 2rem */
+    color: #f0f0f0;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+    max-width: 500px; /* Réduit */
+    margin-left: auto;
+    margin-right: auto;
+    animation: heroMessageFade 1.5s ease-out 0.9s both;
+    transition: all 0.5s ease;
+}
+
+@keyframes heroMessageFade {
+    from {
+        opacity: 0;
+        transform: translateY(20px); /* Réduit */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Boutons d'action */
+.hero-buttons {
+    display: flex;
+    gap: 1.5rem; /* Réduit de 2rem à 1.5rem */
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: heroButtonsSlide 1.5s ease-out 1.2s both;
+}
+
+@keyframes heroButtonsSlide {
+    from {
+        opacity: 0;
+        transform: translateY(30px); /* Réduit */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Styles des boutons - TAILLE RÉDUITE */
+.btn-primary, .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px; /* Réduit */
+    padding: 14px 28px; /* Réduit de 18px 35px */
+    font-size: 1rem; /* Réduit de 1.1rem */
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 50px;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #00A86B 0%, #4CAF50 100%);
+    color: white;
+    border: 2px solid transparent;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-primary:hover::before {
+    left: 100%;
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 168, 107, 0.3);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+}
+
+.btn-secondary:hover {
+    background: white;
+    color: #00A86B;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+}
+
+/* Badges/Pills informatifs - TAILLE RÉDUITE */
+.hero-badges {
+    display: flex;
+    gap: 1rem; /* Réduit de 1.5rem */
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 2rem; /* Réduit de 3rem */
+    animation: heroBadgesFade 1.5s ease-out 1.5s both;
+}
+
+@keyframes heroBadgesFade {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.hero-badge {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 16px; /* Réduit de 12px 24px */
+    border-radius: 30px;
+    color: white;
+    font-size: 0.85rem; /* Réduit de 0.95rem */
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Réduit */
+    transition: all 0.3s ease;
+}
+
+.hero-badge:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+}
+
+.hero-badge i {
+    color: #00A86B;
+    font-size: 1rem; /* Réduit */
+}
+
+/* Indicateurs de slide - CACHÉS */
+.hero-indicators {
+    display: none !important; /* Cache complètement les indicateurs */
+}
+
+/* Flèches de navigation - CACHÉES */
+.hero-navigation {
+    display: none !important; /* Cache complètement les flèches */
+}
+
+/* Responsive Design - AJUSTÉ POUR LA NOUVELLE HAUTEUR */
+@media screen and (max-width: 1024px) {
+    .hero-section {
+        height: 45vh; /* Réduit */
+        max-height: 350px; /* Réduit */
+    }
+    
+    .hero-title {
+        font-size: 2.2rem; /* Réduit */
+    }
+    
+    .hero-content {
+        padding: 0 25px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .hero-section {
+        height: 40vh; /* Réduit */
+        min-height: 280px; /* Réduit */
+        max-height: 320px; /* Réduit */
+    }
+    
+    .hero-title {
+        font-size: 1.8rem; /* Réduit */
+    }
+    
+    .hero-message {
+        font-size: 1rem; /* Réduit */
+        margin-bottom: 1.5rem;
+    }
+    
+    .hero-buttons {
+        gap: 1rem;
+    }
+    
+    .btn-primary, .btn-secondary {
+        padding: 12px 24px; /* Réduit */
+        font-size: 0.9rem; /* Réduit */
+    }
+    
+    .hero-badges {
+        margin-bottom: 1.5rem;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .hero-section {
+        height: 35vh; /* Réduit */
+        min-height: 250px; /* Réduit */
+    }
+    
+    .hero-title {
+        font-size: 1.5rem; /* Réduit */
+    }
+    
+    .hero-content {
+        padding: 0 15px;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn-primary, .btn-secondary {
+        width: 100%;
+        max-width: 280px; /* Réduit */
+        justify-content: center;
+    }
+    
+    .hero-badges {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* Animations de particules (optionnel) */
+.hero-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    animation: float 20s infinite linear;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-10vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Ajuster l'apparence pour different moments de la journée */
+.hero-section.morning {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(0, 168, 107, 0.1) 100%);
+}
+
+.hero-section.afternoon {
+    background: linear-gradient(135deg, rgba(54, 162, 235, 0.1) 0%, rgba(0, 168, 107, 0.1) 100%);
+}
+
+.hero-section.evening {
+    background: linear-gradient(135deg, rgba(153, 102, 255, 0.1) 0%, rgba(0, 168, 107, 0.1) 100%);
+} 

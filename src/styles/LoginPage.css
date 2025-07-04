@@ -1,0 +1,116 @@
+/* Styles modernes pour la page de connexion */
+
+.modern-form .form-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.modern-form .required-asterisk {
+  color: #ef4444;
+}
+
+/* Styles RotaryManager pour le select avec icône */
+.select-with-icon {
+  position: relative;
+}
+
+.select-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  color: #3b82f6;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.select-with-icon .modern-select .ant-select-selector {
+  padding-left: 40px !important;
+}
+
+.select-with-icon .modern-select .ant-select-selection-search {
+  margin-left: 0 !important;
+}
+
+.select-with-icon .modern-select .ant-select-selection-placeholder {
+  margin-left: 0 !important;
+}
+
+.modern-select .ant-select-selector,
+.modern-input {
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s ease !important;
+}
+
+.modern-select .ant-select-selector:hover,
+.modern-input:hover {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+.modern-select .ant-select-focused .ant-select-selector,
+.modern-input:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+.modern-select .ant-select-selector,
+.modern-input {
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s ease !important;
+}
+
+.modern-select .ant-select-selector:hover,
+.modern-input:hover {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+.modern-select .ant-select-focused .ant-select-selector,
+.modern-input:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+.modern-button:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4) !important;
+}
+
+.modern-button:active {
+  transform: translateY(0);
+}
+
+/* Animation pour l'apparition de la carte */
+.login-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .login-container {
+    padding: 1rem;
+  }
+  
+  .login-card .ant-card-body {
+    padding: 1.5rem !important;
+  }
+}
