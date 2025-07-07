@@ -1,9 +1,6 @@
 /* Hero Section avec overlay de texte - HAUTEUR RÉDUITE */
 .hero-section {
     width: 100%;
-    height: 50vh; /* Réduit de 100vh à 50vh */
-    max-height: 400px; /* Réduit de 800px à 400px */
-    min-height: 300px; /* Réduit de 500px à 300px */
     position: relative;
     overflow: hidden;
     background-color: #f0f0f0;
@@ -270,7 +267,6 @@
 @media screen and (max-width: 1024px) {
     .hero-section {
         height: 45vh; /* Réduit */
-        max-height: 350px; /* Réduit */
     }
     
     .hero-title {
@@ -285,7 +281,6 @@
 @media screen and (max-width: 768px) {
     .hero-section {
         height: 40vh; /* Réduit */
-        min-height: 280px; /* Réduit */
         max-height: 320px; /* Réduit */
     }
     
@@ -315,7 +310,6 @@
 @media screen and (max-width: 480px) {
     .hero-section {
         height: 35vh; /* Réduit */
-        min-height: 250px; /* Réduit */
     }
     
     .hero-title {

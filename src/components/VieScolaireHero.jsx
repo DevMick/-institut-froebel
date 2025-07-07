@@ -59,26 +59,25 @@ const VieScolaireHero = () => {
   return (
     <section
       id="vieScolaireHeroSection"
-      className="hero-section morning min-h-[220px] h-[320px] md:h-[380px] flex items-center justify-center px-2 md:px-0"
+      className="hero-section morning flex items-center justify-center px-2 md:px-0"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
       {slidesData.map((slide, index) => (
-        <div
+        <img
           key={index}
+          src={slide.img}
+          alt={slide.message}
           className={`slide ${index === currentSlide ? 'active' : ''}`}
           style={{
-            backgroundImage: `url('${slide.img}')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
             width: '100%',
-            height: '100%',
-            position: 'absolute',
-            top: 0,
-            left: 0
+            display: index === currentSlide ? 'block' : 'none',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            position: 'relative',
+            zIndex: 0
           }}
-        ></div>
+        />
       ))}
       <div className="hero-overlay"></div>
       <Particles />
