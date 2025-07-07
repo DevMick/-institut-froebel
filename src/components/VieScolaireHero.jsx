@@ -48,7 +48,7 @@ const VieScolaireHero = () => {
           setCurrentSlide((prevIndex) =>
             prevIndex === slidesData.length - 1 ? 0 : prevIndex + 1
           ),
-        6000
+        5000
       );
     }
     return () => {
