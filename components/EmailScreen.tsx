@@ -13,6 +13,7 @@ import {
   FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
 import { Member, User, Club } from '../types';
 import { ApiService } from '../services/ApiService';
 
@@ -26,7 +27,7 @@ interface EmailData {
   subject: string;
   message: string;
   recipients: string[];
-  attachments?: string[];
+  attachments?: { name: string; type: string; size: string; base64?: string; uri?: string }[];
 }
 
 interface Attachment {
@@ -34,6 +35,8 @@ interface Attachment {
   name: string;
   size: string;
   type: string;
+  uri?: string;
+  base64?: string;
 }
 
 export const EmailScreen: React.FC<EmailScreenProps> = ({
@@ -104,15 +107,28 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
     );
   };
 
-  const handleAddAttachment = () => {
-    // Simulation d'ajout de pièce jointe
-    const newAttachment: Attachment = {
-      id: Date.now().toString(),
-      name: `document_${attachments.length + 1}.pdf`,
-      size: '2.5 MB',
-      type: 'application/pdf'
-    };
-    setAttachments(prev => [...prev, newAttachment]);
+  const handleAddAttachment = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*', // Pick any file
+        copyToCacheDirectory: false,
+      });
+
+      if (result.type === 'success') {
+        const newAttachment: Attachment = {
+          id: Date.now().toString(),
+          name: result.name || `document_${attachments.length + 1}.pdf`,
+          size: result.size ? `${result.size / 1024} KB` : 'N/A',
+          type: result.mimeType || 'application/pdf',
+          uri: result.uri,
+          base64: result.base64,
+        };
+        setAttachments(prev => [...prev, newAttachment]);
+      }
+    } catch (error: any) {
+      Alert.alert('Erreur', 'Impossible de sélectionner le fichier');
+      console.error('Erreur DocumentPicker:', error);
+    }
   };
 
   const handleRemoveAttachment = (attachmentId: string) => {
@@ -137,18 +153,28 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
 
     try {
       setSending(true);
+      
+      // Préparer les données des pièces jointes
+      const attachmentData = attachments.map(att => ({
+        name: att.name,
+        type: att.type,
+        size: att.size,
+        base64: att.base64 || null,
+        uri: att.uri || null
+      }));
+
       const emailData: EmailData = {
         subject: subject.trim(),
         message: message.trim(),
         recipients: getSelectedEmails(),
-        attachments: attachments.map(att => att.name),
+        attachments: attachmentData,
       };
 
       await apiService.sendClubEmail(emailData);
       
       Alert.alert(
         'Succès',
-        `Email envoyé à ${selectedMembers.length} membre(s)`,
+        `Email envoyé à ${selectedMembers.length} membre(s)${attachments.length > 0 ? ` avec ${attachments.length} pièce(s) jointe(s)` : ''}`,
         [
           {
             text: 'OK',
