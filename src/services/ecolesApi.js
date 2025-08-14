@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Configuration pour l'API des écoles
-const ECOLES_API_BASE = 'https://mon-api-aspnet.onrender.com/api';
+// Configuration pour l'API des écoles - utilise le proxy
+const ECOLES_API_BASE = '/api';
 
 console.log('ECOLES_API_BASE:', ECOLES_API_BASE);
 

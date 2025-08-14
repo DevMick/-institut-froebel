@@ -107,7 +107,7 @@ export default function CahierLiaisonPage() {
       }
 
       console.log('🔄 Chargement des classes...');
-      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/classes`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/classes`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -149,7 +149,7 @@ export default function CahierLiaisonPage() {
       const token = getToken();
 
       console.log('🔄 Chargement des élèves pour la classe:', selectedClasse);
-      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/enfants?classeId=${selectedClasse}&statut=inscrit`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/enfants?classeId=${selectedClasse}&statut=inscrit`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -196,7 +196,7 @@ export default function CahierLiaisonPage() {
       const token = getToken();
 
       console.log('🔄 Rechargement des messages après suppression pour l\'élève:', selectedEleve.id);
-      const loadUrl = `https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/enfants/${selectedEleve.id}/cahier-liaison`;
+      const loadUrl = `/api/ecoles/${ecoleId}/enfants/${selectedEleve.id}/cahier-liaison`;
       console.log('📡 URL de rechargement:', loadUrl);
 
       const response = await fetch(loadUrl, {
@@ -311,7 +311,7 @@ export default function CahierLiaisonPage() {
       let url;
       if (editingMessage) {
         // Modification
-        url = `https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/enfants/${selectedEleve.id}/cahier-liaison/${editingMessage.id}`;
+        url = `/api/ecoles/${ecoleId}/enfants/${selectedEleve.id}/cahier-liaison/${editingMessage.id}`;
         console.log('🔄 PUT URL:', url);
         response = await fetch(url, {
           method: 'PUT',
@@ -324,7 +324,7 @@ export default function CahierLiaisonPage() {
         });
       } else {
         // Création
-        url = `https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/enfants/${selectedEleve.id}/cahier-liaison`;
+        url = `/api/ecoles/${ecoleId}/enfants/${selectedEleve.id}/cahier-liaison`;
         console.log('➕ POST URL:', url);
         response = await fetch(url, {
           method: 'POST',
@@ -433,7 +433,7 @@ export default function CahierLiaisonPage() {
         return;
       }
 
-      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/enfants/${selectedEleve.id}/cahier-liaison/${id}`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/enfants/${selectedEleve.id}/cahier-liaison/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

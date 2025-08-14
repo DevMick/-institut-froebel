@@ -67,7 +67,7 @@ export default function FAQAdmissionsPage() {
       
       console.log('Chargement des FAQ admissions pour l\'école:', ecoleId);
       
-      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/faq-admissions`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/faq-admissions`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json'

@@ -86,7 +86,7 @@ export default function CommunicationPage() {
         return;
       }
 
-      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/classes`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/classes`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -127,7 +127,7 @@ export default function CommunicationPage() {
       }
 
       console.log('🔄 Chargement des annonces...');
-      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/annonces`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/annonces`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -255,7 +255,7 @@ export default function CommunicationPage() {
       let response;
       if (editingAnnonce) {
         // Modification
-        response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/annonces/${editingAnnonce.id}`, {
+        response = await fetch(`/api/ecoles/${ecoleId}/annonces/${editingAnnonce.id}`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -265,7 +265,7 @@ export default function CommunicationPage() {
         });
       } else {
         // Création
-        response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/annonces`, {
+        response = await fetch(`/api/ecoles/${ecoleId}/annonces`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -311,7 +311,7 @@ export default function CommunicationPage() {
       }
 
       console.log('🗑️ Suppression annonce:', id);
-      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/annonces/${id}`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/annonces/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

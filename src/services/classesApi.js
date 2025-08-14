@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Configuration pour l'API des classes
-const CLASSES_API_BASE = 'https://mon-api-aspnet.onrender.com/api';
+// Configuration pour l'API des classes - utilise le proxy
+const CLASSES_API_BASE = '/api';
 
 console.log('CLASSES_API_BASE:', CLASSES_API_BASE);
 

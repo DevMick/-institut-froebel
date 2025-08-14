@@ -79,7 +79,7 @@ export default function TarifsPage() {
       
       console.log('Chargement des tarifs pour l\'école:', ecoleId);
       
-      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/tarifs`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/tarifs`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json'
@@ -121,7 +121,7 @@ export default function TarifsPage() {
       const user = getUser();
       const ecoleId = user.ecoleId || 2;
       
-      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/classes`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/classes`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json'

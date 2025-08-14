@@ -68,7 +68,7 @@ const PreInscriptionForm = ({ onSuccess }) => {
       };
 
       // Appel à l'API
-      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${selectedSchool.id}/preinscriptions`, {
+      const response = await fetch(`/api/ecoles/${selectedSchool.id}/preinscriptions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

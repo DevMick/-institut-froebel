@@ -13,7 +13,7 @@ const ConditionsSection = () => {
 
   const loadConditions = async () => {
     try {
-      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/2/conditions-admission`, {
+      const response = await fetch(`/api/ecoles/2/conditions-admission`, {
         headers: {
           'Accept': 'application/json'
         }

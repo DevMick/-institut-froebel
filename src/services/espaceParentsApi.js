@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 
-const API_BASE_URL = 'https://mon-api-aspnet.onrender.com/api';
+const API_BASE_URL = '/api';
 
 const getAuthHeaders = (token) => ({
   Authorization: `Bearer ${token}`,
