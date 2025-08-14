@@ -80,7 +80,7 @@ export default function DossierAFournirPage() {
       
       console.log('Chargement des dossiers à fournir pour l\'école:', ecoleId);
       
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/dossier-a-fournir`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/dossier-a-fournir`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json'

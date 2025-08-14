@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://mon-api-aspnet.onrender.com/api';
 
 // Create axios instance
 const apiClient = axios.create({

@@ -74,7 +74,7 @@ export default function ClassesPage() {
       
       console.log('Chargement des classes pour l\'école:', ecoleId);
       
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/classes`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/classes`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${getToken()}`,

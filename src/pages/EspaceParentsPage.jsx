@@ -8,8 +8,6 @@ import { useAuth } from '../contexts/AuthContext';
 const DashboardSection = lazy(() => import('../components/espace-parents/DashboardSection'));
 const CahierLiaisonSection = lazy(() => import('../components/espace-parents/CahierLiaisonSection'));
 const AnnoncesSection = lazy(() => import('../components/espace-parents/AnnoncesSection'));
-const BulletinsSection = lazy(() => import('../components/espace-parents/BulletinsSection'));
-const CantineActivitesSection = lazy(() => import('../components/espace-parents/CantineActivitesSection'));
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -57,8 +55,6 @@ const EspaceParentsPage = () => {
             <Route index element={<DashboardSection />} />
             <Route path="cahier-liaison" element={<CahierLiaisonSection />} />
             <Route path="annonces" element={<AnnoncesSection />} />
-            <Route path="bulletins" element={<BulletinsSection />} />
-            <Route path="cantine-activites" element={<CantineActivitesSection />} />
           </Route>
         </Routes>
       </Suspense>

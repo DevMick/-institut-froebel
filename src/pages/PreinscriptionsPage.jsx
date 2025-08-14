@@ -66,7 +66,7 @@ export default function PreinscriptionsPage() {
       
       console.log('Chargement des préinscriptions pour l\'école:', ecoleId);
       
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/preinscriptions`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/preinscriptions`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -166,7 +166,7 @@ export default function PreinscriptionsPage() {
       const user = getUser();
       const ecoleId = user.ecoleId || 2;
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/classes`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/classes`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json'

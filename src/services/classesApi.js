@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Configuration pour l'API des classes
-const CLASSES_API_BASE = 'http://localhost:5000/api';
+const CLASSES_API_BASE = 'https://mon-api-aspnet.onrender.com/api';
 
 console.log('CLASSES_API_BASE:', CLASSES_API_BASE);
 

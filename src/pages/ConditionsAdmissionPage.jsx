@@ -80,7 +80,7 @@ export default function ConditionsAdmissionPage() {
       
       console.log('Chargement des conditions d\'admission pour l\'école:', ecoleId);
       
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/conditions-admission`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/conditions-admission`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json'
@@ -156,7 +156,7 @@ export default function ConditionsAdmissionPage() {
       const user = getUser();
       const ecoleId = user.ecoleId || 2;
       
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/classes`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/classes`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json'

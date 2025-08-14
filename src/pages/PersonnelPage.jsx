@@ -113,7 +113,7 @@ export default function PersonnelPage() {
       console.log('Token utilisé:', getToken());
 
       // Utiliser l'endpoint spécifié pour récupérer les utilisateurs de l'école
-      const response = await fetch(`http://localhost:5000/api/auth/school/${ecoleId}/users`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/auth/school/${ecoleId}/users`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',

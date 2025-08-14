@@ -28,20 +28,30 @@ export const AuthProvider = ({ children }) => {
 
         // Vérifier que nous avons les deux éléments et qu'ils sont valides
         if (savedToken && savedToken.trim() !== '' && savedUser) {
-          const userData = JSON.parse(savedUser);
+          try {
+            const userData = JSON.parse(savedUser);
 
-          // Vérifier que l'utilisateur a au moins un nom et prénom (pour tous les types d'utilisateurs)
-          if (userData && (userData.id || userData.nom || userData.prenom)) {
-            console.log('Restauration de la session utilisateur:', userData.prenom, userData.nom);
-            setUser(userData);
-            setToken(savedToken);
-            setIsAuthenticated(true);
+            // Vérifier que l'utilisateur a au moins un identifiant (plus flexible)
+            if (userData && (userData.id || userData.email || userData.nom)) {
+              console.log('Restauration de la session utilisateur:', userData);
+              setUser(userData);
+              setToken(savedToken);
+              setIsAuthenticated(true);
 
-            // Seulement pour les parents qui ont des enfants
-            if (userData.enfants && userData.enfants.length > 0) {
-              setSelectedEnfant(userData.enfants[0]);
+              // Restaurer l'enfant sélectionné s'il existe
+              const savedSelectedEnfant = localStorage.getItem('selectedEnfant');
+              if (savedSelectedEnfant) {
+                try {
+                  setSelectedEnfant(JSON.parse(savedSelectedEnfant));
+                } catch (e) {
+                  console.warn('Erreur lors de la restauration de l\'enfant sélectionné');
+                }
+              }
+
+              return;
             }
-            return;
+          } catch (parseError) {
+            console.error('Erreur lors du parsing des données utilisateur:', parseError);
           }
         }
 
@@ -66,22 +76,16 @@ export const AuthProvider = ({ children }) => {
     checkAuthOnMount();
   }, []); // Exécuter seulement au montage
 
+  // Synchroniser l'état d'authentification avec le localStorage
   useEffect(() => {
-    if (token && token.trim() !== '' && user && user.id) {
+    if (token && token.trim() !== '' && user) {
       setIsAuthenticated(true);
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
-      if (user.enfants && user.enfants.length > 0 && !selectedEnfant) {
-        setSelectedEnfant(user.enfants[0]);
-      }
     } else if (!token || !user) {
-      // Si les données ne sont pas cohérentes, nettoyer complètement
       setIsAuthenticated(false);
-      setUser(null);
-      setSelectedEnfant(null);
-      clearAuthData();
     }
-  }, [token, user, selectedEnfant]);
+  }, [token, user]); // Retirer selectedEnfant pour éviter les boucles
 
   const login = (userData, jwtToken) => {
     console.log('Connexion utilisateur:', userData);

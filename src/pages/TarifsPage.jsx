@@ -79,7 +79,7 @@ export default function TarifsPage() {
       
       console.log('Chargement des tarifs pour l\'école:', ecoleId);
       
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/tarifs`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/tarifs`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json'
@@ -121,7 +121,7 @@ export default function TarifsPage() {
       const user = getUser();
       const ecoleId = user.ecoleId || 2;
       
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/classes`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/classes`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json'
@@ -157,7 +157,7 @@ export default function TarifsPage() {
       const user = getUser();
       const ecoleId = user.ecoleId || 2;
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/tarifs`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/tarifs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -191,7 +191,7 @@ export default function TarifsPage() {
       const user = getUser();
       const ecoleId = user.ecoleId || 2;
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/tarifs/${id}`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/tarifs/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -227,7 +227,7 @@ export default function TarifsPage() {
       const user = getUser();
       const ecoleId = user.ecoleId || 2;
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/tarifs/${id}`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/tarifs/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${getToken()}`,

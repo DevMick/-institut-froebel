@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Configuration de l'API - utilise localhost:5000
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://mon-api-aspnet.onrender.com/api';
 
 console.log('API_BASE:', API_BASE);
 
@@ -201,8 +201,8 @@ const authApi = {
   // Récupérer la liste des écoles disponibles
   getSchools: async (page = 1, pageSize = 20) => {
     try {
-      // Utiliser localhost:5000 comme spécifié dans votre curl
-      const localApiBase = 'http://localhost:5000/api';
+      // Utiliser l'API hébergée sur Render
+      const localApiBase = 'https://mon-api-aspnet.onrender.com/api';
       const url = `${localApiBase}/ecoles?page=${page}&pageSize=${pageSize}`;
       console.log('Tentative de récupération des écoles depuis:', url);
 
@@ -259,8 +259,8 @@ const authApi = {
   // Récupérer la liste des classes d'une école
   getClasses: async (ecoleId) => {
     try {
-      // Utiliser localhost:5000 comme spécifié dans votre curl
-      const localApiBase = 'http://localhost:5000/api';
+      // Utiliser l'API hébergée sur Render
+      const localApiBase = 'https://mon-api-aspnet.onrender.com/api';
       console.log('Tentative de récupération des classes depuis:', `${localApiBase}/ecoles/${ecoleId}/classes`);
 
       const response = await axios.get(`${localApiBase}/ecoles/${ecoleId}/classes`, {

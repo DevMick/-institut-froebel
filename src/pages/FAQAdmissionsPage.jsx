@@ -67,7 +67,7 @@ export default function FAQAdmissionsPage() {
       
       console.log('Chargement des FAQ admissions pour l\'école:', ecoleId);
       
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/faq-admissions`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/faq-admissions`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json'
@@ -153,7 +153,7 @@ export default function FAQAdmissionsPage() {
 
       console.log('Création FAQ avec token:', token ? 'Token présent' : 'Token manquant');
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/faq-admissions`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/faq-admissions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

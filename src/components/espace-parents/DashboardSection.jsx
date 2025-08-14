@@ -3,8 +3,8 @@ import { fetchDashboard } from '../../services/espaceParentsApi';
 import { useAuth } from '../../contexts/AuthContext';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import NotificationBadge from '../ui/NotificationBadge';
-import { formatDate, formatDateTime } from '../../utils/dateUtils';
-import { User, Users, Bell, Megaphone, Calendar, Rocket } from 'lucide-react';
+import { formatDate } from '../../utils/dateUtils';
+import { User, Users, Bell, Megaphone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const DashboardSection = () => {
@@ -70,14 +70,18 @@ const DashboardSection = () => {
             <Users className="text-emerald-600" size={24} />
             <h2 className="text-base md:text-lg font-bold text-gray-800">Mes Enfants</h2>
           </div>
-          <ul className="space-y-1">
-            {enfants.map((enf) => (
-              <li key={enf.id} className="text-gray-700 text-sm flex items-center gap-2 flex-wrap">
-                <span className="font-medium">{enf.prenom} {enf.nom}</span>
-                <span className="bg-emerald-50 text-emerald-700 rounded px-2 py-0.5 text-xs ml-2">{enf.classe} - {enf.niveau}</span>
-              </li>
-            ))}
-          </ul>
+          {enfants && enfants.length > 0 ? (
+            <ul className="space-y-1">
+              {enfants.map((enf) => (
+                <li key={enf.id} className="text-gray-700 text-sm flex items-center gap-2 flex-wrap">
+                  <span className="font-medium">{enf.prenom} {enf.nom}</span>
+                  <span className="bg-emerald-50 text-emerald-700 rounded px-2 py-0.5 text-xs ml-2">{enf.classe}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="text-gray-500 text-sm">Aucun enfant trouvé</div>
+          )}
         </div>
         {/* Card Notifications */}
         <div className="bg-white rounded-xl shadow p-3 md:p-5 flex flex-col gap-2 border border-gray-100 w-full min-w-0 relative">
@@ -89,33 +93,20 @@ const DashboardSection = () => {
           <div className="text-sm md:text-base text-gray-700 font-medium mb-1">Messages non lus : <span className="text-emerald-600 font-bold">{notifications.messagesNonLus}</span></div>
           <div className="mt-2">
             <div className="text-xs md:text-sm text-gray-500 font-semibold mb-1">Dernières annonces :</div>
-            <ul className="space-y-1">
-              {notifications.dernieresAnnonces.map((ann) => (
-                <li key={ann.id} className="flex items-center gap-2 text-gray-700 flex-wrap">
-                  <Megaphone className="text-blue-500" size={14} />
-                  <span className="font-medium">{ann.titre}</span>
-                  <span className="text-xs text-gray-400 ml-2">{formatDate(ann.datePublication)}</span>
-                </li>
-              ))}
-            </ul>
+            {notifications.dernieresAnnonces && notifications.dernieresAnnonces.length > 0 ? (
+              <ul className="space-y-1">
+                {notifications.dernieresAnnonces.map((ann) => (
+                  <li key={ann.id} className="flex items-center gap-2 text-gray-700 flex-wrap">
+                    <Megaphone className="text-blue-500" size={14} />
+                    <span className="font-medium">{ann.titre}</span>
+                    <span className="text-xs text-gray-400 ml-2">{formatDate(ann.datePublication)}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-gray-500 text-xs">Aucune annonce récente</div>
+            )}
           </div>
-        </div>
-        {/* Card Activités */}
-        <div className="bg-white rounded-xl shadow p-3 md:p-5 flex flex-col gap-2 border border-gray-100 w-full min-w-0">
-          <div className="flex items-center gap-3 mb-2">
-            <Calendar className="text-emerald-600" size={24} />
-            <h2 className="text-base md:text-lg font-bold text-gray-800">Prochaines Activités</h2>
-          </div>
-          <ul className="space-y-1">
-            {notifications.prochainesActivites.map((act) => (
-              <li key={act.id} className="flex items-center gap-2 text-gray-700 flex-wrap">
-                <Rocket className="text-yellow-500" size={14} />
-                <span className="font-medium">{act.nom}</span>
-                <span className="text-xs text-gray-400 ml-2">{formatDateTime(act.dateDebut)}</span>
-                <span className="text-xs text-gray-500 ml-2">{act.lieu}</span>
-              </li>
-            ))}
-          </ul>
         </div>
       </section>
     </>

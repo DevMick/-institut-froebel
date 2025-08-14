@@ -13,7 +13,7 @@ const DossiersSection = () => {
 
   const loadDossiers = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/ecoles/2/dossier-a-fournir`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/2/dossier-a-fournir`, {
         headers: {
           'Accept': 'application/json'
         }

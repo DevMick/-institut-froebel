@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = 'https://ominous-space-potato-r4gg6jvq474jcx99j-5271.app.github.dev/api';
+const API_BASE = 'https://mon-api-aspnet.onrender.com/api';
 
 // Créer une instance axios avec configuration d'authentification
 const createAuthenticatedApi = (token) => {
@@ -620,4 +620,131 @@ export const fetchPaymentStatuses = (ecoleId) => {
   const token = getToken();
   const api = createAuthenticatedApi(token);
   return api.get(`/ecoles/${ecoleId}/paiements/statuts`);
-}; 
+};
+
+// Dashboard - Récupérer les statistiques générales
+export const fetchDashboardStats = async () => {
+  const token = getToken();
+  const api = createAuthenticatedApi(token);
+
+  try {
+    console.log('Récupération des statistiques du dashboard...');
+
+    // Récupérer les données en parallèle
+    const [
+      personnelResponse,
+      classesResponse,
+      studentsResponse,
+      preInscriptionsResponse
+    ] = await Promise.allSettled([
+      api.get('/users', { params: { page: 1, pageSize: 1000 } }),
+      api.get('/classes', { params: { page: 1, pageSize: 1000 } }),
+      api.get('/enfants', { params: { page: 1, pageSize: 1000 } }),
+      api.get('/pre-inscriptions', { params: { page: 1, pageSize: 1000 } })
+    ]);
+
+    // Traiter les résultats
+    const personnel = personnelResponse.status === 'fulfilled' ?
+      (personnelResponse.value.data.items || personnelResponse.value.data || []) : [];
+
+    const classes = classesResponse.status === 'fulfilled' ?
+      (classesResponse.value.data.items || classesResponse.value.data || []) : [];
+
+    const students = studentsResponse.status === 'fulfilled' ?
+      (studentsResponse.value.data.items || studentsResponse.value.data || []) : [];
+
+    const preInscriptions = preInscriptionsResponse.status === 'fulfilled' ?
+      (preInscriptionsResponse.value.data.items || preInscriptionsResponse.value.data || []) : [];
+
+    // Calculer les statistiques
+    const stats = {
+      totalEleves: Array.isArray(students) ? students.length : 0,
+      totalPersonnel: Array.isArray(personnel) ? personnel.filter(p => p.role !== 'Parent').length : 0,
+      totalClasses: Array.isArray(classes) ? classes.length : 0,
+      totalPreInscriptions: Array.isArray(preInscriptions) ? preInscriptions.length : 0,
+      preInscriptionsEnAttente: Array.isArray(preInscriptions) ?
+        preInscriptions.filter(p => p.statut === 'En attente' || p.status === 'pending').length : 0
+    };
+
+    console.log('Statistiques calculées:', stats);
+    return { success: true, data: stats };
+
+  } catch (error) {
+    console.error('Erreur lors de la récupération des statistiques:', error);
+    return {
+      success: false,
+      error: error.message,
+      data: {
+        totalEleves: 0,
+        totalPersonnel: 0,
+        totalClasses: 0,
+        totalPreInscriptions: 0,
+        preInscriptionsEnAttente: 0
+      }
+    };
+  }
+};
+
+// Dashboard - Récupérer les communications récentes
+export const fetchRecentCommunications = async () => {
+  const token = getToken();
+  const api = createAuthenticatedApi(token);
+
+  try {
+    console.log('Récupération des communications récentes...');
+
+    // Récupérer les annonces et messages du cahier de liaison
+    const [
+      recentAnnouncements,
+      recentCahierMessages
+    ] = await Promise.allSettled([
+      api.get('/ecoles/2/annonces', { params: { page: 1, pageSize: 3 } }),
+      api.get('/ecoles/2/cahier-liaison', { params: { page: 1, pageSize: 3 } })
+    ]);
+
+    const communications = [];
+
+    // Ajouter les annonces récentes
+    if (recentAnnouncements.status === 'fulfilled') {
+      const announcements = recentAnnouncements.value.data || [];
+      announcements.forEach(announcement => {
+        communications.push({
+          id: `announcement-${announcement.id}`,
+          type: 'annonce',
+          title: announcement.titre,
+          description: announcement.contenu?.substring(0, 80) + (announcement.contenu?.length > 80 ? '...' : ''),
+          date: announcement.datePublication || announcement.createdAt,
+          author: announcement.createdByNom || 'Administration',
+          typeLabel: announcement.type || 'information'
+        });
+      });
+    }
+
+    // Ajouter les messages du cahier de liaison récents
+    if (recentCahierMessages.status === 'fulfilled') {
+      const messages = recentCahierMessages.value.data.items || recentCahierMessages.value.data || [];
+      messages.forEach(message => {
+        communications.push({
+          id: `cahier-${message.id}`,
+          type: 'cahier',
+          title: `Message: ${message.objet || 'Sans objet'}`,
+          description: message.contenu?.substring(0, 80) + (message.contenu?.length > 80 ? '...' : ''),
+          date: message.dateEnvoi || message.createdAt,
+          author: message.expediteurNom || 'Expéditeur',
+          typeLabel: 'cahier de liaison'
+        });
+      });
+    }
+
+    // Trier par date (plus récent en premier) et limiter à 2
+    communications.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const recentCommunications = communications.slice(0, 2);
+
+    console.log('Communications récentes récupérées:', recentCommunications);
+    return { success: true, data: recentCommunications };
+
+  } catch (error) {
+    console.error('Erreur lors de la récupération des communications récentes:', error);
+    return { success: false, error: error.message, data: [] };
+  }
+};

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, Megaphone, FileText, Utensils, Calendar, LogOut, ChevronLeft, ChevronRight, X, Menu, User } from 'lucide-react';
+import { Home, BookOpen, Megaphone, Calendar, LogOut, ChevronLeft, ChevronRight, X, Menu, User } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import Logo from '../../assets/images/Logo.png';
 
@@ -8,8 +8,6 @@ const navItems = [
   { label: 'Dashboard', to: '/espace-parents', icon: <Home size={20} /> },
   { label: 'Cahier de Liaison', to: '/espace-parents/cahier-liaison', icon: <BookOpen size={20} /> },
   { label: 'Annonces', to: '/espace-parents/annonces', icon: <Megaphone size={20} /> },
-  { label: 'Bulletins', to: '/espace-parents/bulletins', icon: <FileText size={20} /> },
-  { label: 'Cantine & Activités', to: '/espace-parents/cantine-activites', icon: <Utensils size={20} /> },
 ];
 
 const ParentSidebar = ({ mobile = false, onClose }) => {

@@ -13,7 +13,7 @@ const TarifsSection = () => {
 
   const loadTarifs = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/ecoles/2/tarifs`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/2/tarifs`, {
         headers: {
           'Accept': 'application/json'
         }

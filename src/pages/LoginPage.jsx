@@ -82,7 +82,7 @@ const LoginPage = () => {
         }
       } catch (e) {
         console.error('Erreur lors de la récupération des écoles:', e);
-        setSchoolsError('Erreur lors du chargement des écoles depuis localhost:5000');
+        setSchoolsError('Erreur lors du chargement des écoles depuis l\'API');
         setSchools([]);
       } finally {
         setSchoolsLoading(false);

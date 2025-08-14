@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import Layout from './components/Layout';
@@ -16,20 +16,6 @@ import LoginPage from './pages/LoginPage';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 
 function App() {
-  // Nettoyage forcé du localStorage au démarrage de l'application
-  useEffect(() => {
-    const forceCleanLocalStorage = () => {
-      console.log('Nettoyage forcé du localStorage au démarrage...');
-      // Nettoyer complètement toutes les données d'authentification
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('school');
-      console.log('localStorage nettoyé avec succès');
-    };
-
-    forceCleanLocalStorage();
-  }, []);
   return (
     <AuthProvider>
       <Router>

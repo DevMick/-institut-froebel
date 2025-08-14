@@ -7,7 +7,7 @@ La page de connexion a été configurée pour fonctionner avec l'API d'authentif
 ## Structure de l'API
 
 ### Endpoint de connexion
-- **URL**: `https://ominous-space-potato-r4gg6jvq474jcx99j-5271.app.github.dev/api/auth/login`
+- **URL**: `https://mon-api-aspnet.onrender.com/api/auth/login`
 - **Méthode**: POST
 - **Content-Type**: application/json
 

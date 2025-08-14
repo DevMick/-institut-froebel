@@ -14,7 +14,7 @@ const FAQSection = () => {
 
   const loadFAQ = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/ecoles/2/faq-admissions`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/2/faq-admissions`, {
         headers: {
           'Accept': 'application/json'
         }

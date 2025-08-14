@@ -1,14 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { fetchAnnonces } from '../../services/espaceParentsApi';
+import { fetchAnnoncesParEcole, fetchEnfantsParent } from '../../services/espaceParentsApi';
 import { useAuth } from '../../contexts/AuthContext';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import AnnonceCard from '../ui/AnnonceCard';
-import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Filter, ChevronLeft, ChevronRight, Users, School } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const AnnoncesSection = () => {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [annonces, setAnnonces] = useState([]);
+  const [enfants, setEnfants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
@@ -16,22 +17,100 @@ const AnnoncesSection = () => {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
 
+  // Récupérer les enfants du parent connecté
+  const fetchEnfants = useCallback(async () => {
+    if (!token) return;
+
+    try {
+      const res = await fetchEnfantsParent(token);
+      if (res.success) {
+        setEnfants(res.data);
+        console.log('Enfants récupérés:', res.data);
+      } else {
+        console.error('Erreur lors de la récupération des enfants:', res.message);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des enfants:', error);
+    }
+  }, [token]);
+
+  // Filtrer les annonces selon les enfants du parent
+  const filterAnnoncesForParent = (annoncesData, enfantsData) => {
+    if (!enfantsData || enfantsData.length === 0) {
+      return annoncesData;
+    }
+
+    // Récupérer les IDs des classes des enfants du parent
+    const classesIds = enfantsData.map(enfant => enfant.classeId).filter(Boolean);
+    console.log('Classes des enfants:', classesIds);
+
+    // Filtrer les annonces :
+    // - Si classeId est null : annonce générale (pour tous)
+    // - Si classeId correspond à une classe d'un enfant : annonce spécifique
+    const filteredAnnonces = annoncesData.filter(annonce => {
+      const isGenerale = annonce.classeId === null || annonce.classeId === undefined;
+      const isForEnfantClasse = classesIds.includes(annonce.classeId);
+
+      console.log(`Annonce "${annonce.titre}": classeId=${annonce.classeId}, isGenerale=${isGenerale}, isForEnfantClasse=${isForEnfantClasse}`);
+
+      return isGenerale || isForEnfantClasse;
+    });
+
+    console.log(`Annonces filtrées: ${filteredAnnonces.length}/${annoncesData.length}`);
+    return filteredAnnonces;
+  };
+
   const fetchData = useCallback(async () => {
+    if (!token || enfants.length === 0) return;
+
     setLoading(true);
     setError(null);
-    const res = await fetchAnnonces(token, page, 10, typeFilter, search);
-    if (res.success) {
-      setAnnonces(res.data.items);
-      setTotalPages(res.data.totalPages);
-    } else {
-      setError(res.message || 'Erreur lors du chargement des annonces.');
-    }
-    setLoading(false);
-  }, [token, page, typeFilter, search]);
 
+    try {
+      // Extraire l'école ID du token JWT
+      let ecoleId = 2; // Fallback par défaut
+
+      if (token) {
+        try {
+          // Décoder le token JWT pour extraire l'école ID
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          ecoleId = parseInt(payload.school_id) || 2;
+          console.log('École ID extraite du token:', ecoleId);
+        } catch (e) {
+          console.warn('Impossible de décoder le token, utilisation de l\'école ID par défaut');
+        }
+      }
+
+      console.log('Récupération des annonces pour l\'école:', ecoleId);
+
+      const res = await fetchAnnoncesParEcole(token, ecoleId, page, 10, typeFilter, search);
+      if (res.success) {
+        // Filtrer les annonces selon les enfants du parent
+        const filteredAnnonces = filterAnnoncesForParent(res.data.items, enfants);
+        setAnnonces(filteredAnnonces);
+        setTotalPages(res.data.totalPages);
+      } else {
+        setError(res.message || 'Erreur lors du chargement des annonces.');
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des annonces:', error);
+      setError('Erreur lors du chargement des annonces.');
+    }
+
+    setLoading(false);
+  }, [token, enfants, page, typeFilter, search]);
+
+  // Récupérer les enfants au chargement du composant
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchEnfants();
+  }, [fetchEnfants]);
+
+  // Récupérer les annonces quand les enfants sont chargés
+  useEffect(() => {
+    if (enfants.length > 0) {
+      fetchData();
+    }
+  }, [fetchData, enfants]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -50,6 +129,27 @@ const AnnoncesSection = () => {
       </Link>
       <section className="w-full">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Annonces</h1>
+
+        {/* Informations sur les enfants et le filtrage */}
+        {enfants.length > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="text-blue-600" size={20} />
+              <h3 className="font-semibold text-blue-800">Annonces pour vos enfants</h3>
+            </div>
+            <div className="text-sm text-blue-700">
+              <p className="mb-2">Vous voyez les annonces générales et celles spécifiques aux classes de :</p>
+              <div className="flex flex-wrap gap-2">
+                {enfants.map((enfant, index) => (
+                  <span key={enfant.id} className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                    <School size={12} />
+                    {enfant.prenom} {enfant.nom} ({enfant.classe})
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Filtres et recherche */}
         <div className="bg-white rounded-lg shadow p-4 mb-6">

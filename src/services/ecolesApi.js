@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Configuration pour l'API des écoles
-const ECOLES_API_BASE = 'http://localhost:5000/api';
+const ECOLES_API_BASE = 'https://mon-api-aspnet.onrender.com/api';
 
 console.log('ECOLES_API_BASE:', ECOLES_API_BASE);
 

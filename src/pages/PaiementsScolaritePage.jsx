@@ -118,7 +118,7 @@ export default function PaiementsScolaritePage() {
       const user = getUser();
       const ecoleId = user.ecoleId || 2;
       
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/classes`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/classes`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json'
@@ -166,12 +166,12 @@ export default function PaiementsScolaritePage() {
       }
 
       // 1. Récupérer tous les enfants (nouveau endpoint simplifié)
-      const enfantsUrl = `http://localhost:5000/api/ecoles/${ecoleId}/enfants`;
+      const enfantsUrl = `https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/enfants`;
 
       console.log('🔗 URL enfants (nouveau endpoint):', enfantsUrl);
 
       // 2. Récupérer tous les paiements existants
-      let paiementsUrl = `http://localhost:5000/api/ecoles/${ecoleId}/paiements-scolarite/tous?page=1&pageSize=100`;
+      let paiementsUrl = `https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/paiements-scolarite/tous?page=1&pageSize=100`;
       if (selectedClasse) {
         paiementsUrl += `&classeId=${selectedClasse}`;
       }
@@ -487,7 +487,7 @@ export default function PaiementsScolaritePage() {
             let parentNom = 'Parent non renseigné';
             try {
               console.log(`🔍 Récupération parent pour enfant orphelin ${paiement.enfantId}`);
-              const parentsResponse = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/parent-enfants/enfants/${paiement.enfantId}/parents`, {
+              const parentsResponse = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/parent-enfants/enfants/${paiement.enfantId}/parents`, {
                 headers: {
                   'Authorization': `Bearer ${token}`,
                   'Accept': 'application/json'
@@ -760,7 +760,7 @@ export default function PaiementsScolaritePage() {
       let tarifId = 1; // Valeur par défaut
 
       try {
-        const tarifsResponse = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/tarifs`, {
+        const tarifsResponse = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/tarifs`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -815,11 +815,11 @@ export default function PaiementsScolaritePage() {
       });
 
       console.log('📤 Envoi requête création paiement:', {
-        url: `http://localhost:5000/api/ecoles/${ecoleId}/paiements-scolarite`,
+        url: `https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/paiements-scolarite`,
         body: requestBody
       });
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/paiements-scolarite`, {
+      const response = await fetch(`https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/paiements-scolarite`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -924,7 +924,7 @@ export default function PaiementsScolaritePage() {
       };
 
       // Utiliser le bon endpoint : paiements-scolarite/{paiementScolariteId}/paiement
-      const apiUrl = `http://localhost:5000/api/ecoles/${ecoleId}/paiements-scolarite/${paiementScolariteId}/paiement`;
+      const apiUrl = `https://mon-api-aspnet.onrender.com/api/ecoles/${ecoleId}/paiements-scolarite/${paiementScolariteId}/paiement`;
       console.log('URL API appelée:', apiUrl);
 
       const response = await fetch(apiUrl, {

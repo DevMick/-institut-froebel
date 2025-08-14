@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://mon-api-aspnet.onrender.com/api';
 
 const getAuthHeaders = (token) => ({
   Authorization: `Bearer ${token}`,
@@ -310,24 +310,115 @@ const activitesTestData = {
   ]
 };
 
-export const fetchDashboard = async (token) => {
+// Nouvelle fonction pour récupérer les vraies données du dashboard
+export const fetchDashboardData = async (token) => {
   try {
-    // Simulation d'un délai réseau
-    await new Promise(resolve => setTimeout(resolve, 500));
+    console.log('Récupération des données du dashboard...');
+
+    // Extraire les informations utilisateur du token JWT
+    let utilisateur = {
+      nomComplet: "Parent Utilisateur",
+      email: "parent@email.com",
+      ecoleNom: "Institut Froebel"
+    };
+
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        utilisateur = {
+          nomComplet: payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || `${payload.user_prenom} ${payload.user_nom}` || "Parent Utilisateur",
+          email: payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || "parent@email.com",
+          ecoleNom: payload.school_code === "FROEBEL_DEFAULT" ? "Institut Froebel" : "Institut Froebel"
+        };
+        console.log('Informations utilisateur extraites du token:', utilisateur);
+      } catch (e) {
+        console.warn('Impossible de décoder le token, utilisation des données par défaut');
+      }
+    }
+
+    // Récupérer les enfants du parent
+    const enfantsResponse = await fetchEnfantsParent(token);
+    const enfants = enfantsResponse.success ? enfantsResponse.data : [];
+    console.log('Enfants récupérés:', enfants);
+
+    // Récupérer les messages non lus du cahier de liaison
+    let messagesNonLus = 0;
+    let dernieresAnnonces = [];
+
+    if (enfants.length > 0) {
+      try {
+        // Récupérer les messages pour le premier enfant (ou on pourrait faire pour tous)
+        const cahierResponse = await fetchCahierLiaison(token, enfants[0].id, 1, 10);
+        if (cahierResponse.success) {
+          const messages = cahierResponse.data.items || [];
+          messagesNonLus = messages.filter(msg => !msg.luParParent).length;
+          console.log('Messages non lus:', messagesNonLus);
+        }
+      } catch (error) {
+        console.warn('Erreur lors de la récupération des messages:', error);
+      }
+
+      try {
+        // Récupérer les dernières annonces
+        const ecoleId = 2; // Utiliser l'école ID appropriée
+        const annoncesResponse = await fetchAnnoncesParEcole(token, ecoleId, 1, 5);
+        if (annoncesResponse.success) {
+          dernieresAnnonces = annoncesResponse.data.items.slice(0, 3).map(annonce => ({
+            id: annonce.id,
+            titre: annonce.titre,
+            type: annonce.type,
+            datePublication: annonce.datePublication
+          }));
+          console.log('Dernières annonces:', dernieresAnnonces);
+        }
+      } catch (error) {
+        console.warn('Erreur lors de la récupération des annonces:', error);
+      }
+    }
+
+    // Plus d'activités - section supprimée
+    const prochainesActivites = [];
+
+    const dashboardData = {
+      utilisateur,
+      enfants: enfants.map(enfant => ({
+        id: enfant.id,
+        prenom: enfant.prenom,
+        nom: enfant.nom,
+        classe: enfant.classe,
+        niveau: enfant.classe // Utiliser la classe comme niveau pour l'instant
+      })),
+      notifications: {
+        messagesNonLus,
+        dernieresAnnonces,
+        prochainesActivites
+      }
+    };
+
+    console.log('Données du dashboard assemblées:', dashboardData);
+
     return {
       success: true,
       message: "Tableau de bord récupéré",
-      data: dashboardTestData
+      data: dashboardData
     };
   } catch (error) {
+    console.error('Erreur lors de la récupération du dashboard:', error);
     return handleApiError(error);
   }
 };
 
+// Ancienne fonction pour compatibilité (utilise maintenant les vraies données)
+export const fetchDashboard = async (token) => {
+  return await fetchDashboardData(token);
+};
+
+
+
 // Récupérer les enfants du parent connecté
 export const fetchEnfantsParent = async (token, parentId = null) => {
   try {
-    const ecoleId = 2; // ID de l'école fixé à 2
+    const ecoleId = 2; // ID de l'école fixé à 2 (correspond au token JWT)
     const response = await api.get(`/ecoles/${ecoleId}/parent-enfants`, {
       headers: getAuthHeaders(token)
     });
@@ -360,28 +451,7 @@ export const fetchEnfantsParent = async (token, parentId = null) => {
     };
   } catch (error) {
     console.error('Erreur lors de la récupération des enfants:', error);
-
-    // Fallback avec des données de test si l'API n'est pas disponible
-    console.log('Utilisation des données de test pour les enfants');
-    return {
-      success: true,
-      message: "Enfants récupérés (données de test)",
-      data: [
-        {
-          id: 1,
-          prenom: "Aya",
-          nom: "Kouassi",
-          classe: "6ème",
-          classeId: 1,
-          dateNaissance: "2016-08-12T00:00:00Z",
-          anneeScolaire: "2024-2025",
-          parentId: "cf29fece-829f-4788-9a71-ace1b868caa0",
-          parentNom: "Adjoua Kouassi",
-          parentEmail: "adjoua.kouassi@email.com",
-          parentTelephone: "+225 07 12 34 56 78"
-        }
-      ]
-    };
+    return handleApiError(error);
   }
 };
 
@@ -477,6 +547,56 @@ export const markMessageLu = async (token, messageId, enfantId = null) => {
     };
   } catch (error) {
     console.error('Erreur lors du marquage du message comme lu:', error);
+    return handleApiError(error);
+  }
+};
+
+// Récupérer les annonces par école pour les parents
+export const fetchAnnoncesParEcole = async (token, ecoleId, page = 1, pageSize = 10, type = '', search = '') => {
+  try {
+    console.log(`Récupération des annonces pour l'école ${ecoleId}`);
+
+    const response = await api.get(`/ecoles/${ecoleId}/annonces`, {
+      headers: getAuthHeaders(token),
+      params: {
+        page,
+        pageSize,
+        type,
+        search
+      }
+    });
+
+    console.log('Réponse brute API annonces:', response.data);
+
+    // Transformer les données pour correspondre au format attendu par le frontend
+    const items = Array.isArray(response.data) ? response.data : [];
+    const transformedData = {
+      items: items.map(item => ({
+        id: item.id,
+        titre: item.titre,
+        contenu: item.contenu,
+        type: item.type,
+        datePublication: item.datePublication,
+        dateExpiration: item.dateExpiration,
+        classeId: item.classeId,
+        classeNom: item.classeNom,
+        createdById: item.createdById,
+        createdByNom: item.createdByNom,
+        createdByName: item.createdByNom,
+        createdAt: item.createdAt
+      })),
+      totalPages: Math.ceil(items.length / pageSize),
+      currentPage: page,
+      totalItems: items.length
+    };
+
+    return {
+      success: true,
+      message: "Annonces récupérées",
+      data: transformedData
+    };
+  } catch (error) {
+    console.error('Erreur lors de la récupération des annonces:', error);
     return handleApiError(error);
   }
 };
