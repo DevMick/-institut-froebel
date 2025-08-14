@@ -17,6 +17,7 @@ import CotisationsScreen from './components/CotisationsScreen';
 import { ClubsScreen } from './components/ClubsScreen';
 import { ProfileScreen } from './components/ProfileScreen';
 import { SettingsScreen } from './components/SettingsScreen';
+import { EmailScreen } from './components/EmailScreen';
 import { ApiService } from './services/ApiService';
 import { User, Club, NavigationScreen } from './types';
 
@@ -195,6 +196,18 @@ export default function App() {
             <CotisationsScreen
               club={selectedClub}
               user={user}
+              onBack={handleBackToDashboard}
+            />
+          </>
+        );
+
+      case 'email':
+        return (
+          <>
+            <StatusBar style="light" backgroundColor="#005AA9" />
+            <EmailScreen
+              user={user}
+              club={selectedClub}
               onBack={handleBackToDashboard}
             />
           </>

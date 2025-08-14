@@ -695,4 +695,53 @@ export class ApiService {
   async logout(): Promise<void> {
     await this.removeToken();
   }
+
+  async sendClubEmail(emailData: {
+    subject: string;
+    message: string;
+    recipients: string[];
+    attachments?: string[];
+  }): Promise<void> {
+    try {
+      const token = await this.getToken();
+      
+      if (!token) {
+        throw new Error('Token d\'authentification manquant');
+      }
+
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/email`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true',
+          'User-Agent': 'RotaryClubMobile/1.0',
+          'Origin': 'https://snack.expo.dev',
+        },
+        body: JSON.stringify(emailData),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          await this.removeToken();
+          throw new Error('Session expirée. Veuillez vous reconnecter.');
+        }
+        const errorText = await response.text();
+        throw new Error(`Erreur ${response.status}: ${errorText}`);
+      }
+
+      console.log('✅ Email envoyé avec succès');
+    } catch (error) {
+      console.error('❌ Erreur envoi email:', error);
+      
+      // Simulation pour la démo si l'API n'est pas disponible
+      console.log('🔄 Simulation d\'envoi d\'email pour la démo');
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simuler un délai
+      
+      throw error;
+    }
+  }
 }

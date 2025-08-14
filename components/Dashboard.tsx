@@ -123,6 +123,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
       screen: 'cotisations' as NavigationScreen,
     },
     {
+      id: 'email',
+      title: 'Envoyer un email',
+      subtitle: 'Contacter les membres du club',
+      icon: 'mail',
+      color: '#28a745',
+      screen: 'email' as NavigationScreen,
+    },
+    {
       id: 'clubs',
       title: 'Clubs',
       subtitle: 'Liste des clubs Rotary',
@@ -207,8 +215,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </TouchableOpacity>
           ))}
         </View>
-
-
       </ScrollView>
     </SafeAreaView>
   );
