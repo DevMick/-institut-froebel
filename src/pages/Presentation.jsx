@@ -1,7 +1,9 @@
 import React from 'react';
-import spotEcoleVideo from '../assets/images/Spot Ecole.mp4';
 import NotrePedagogie from '../components/NotrePedagogie';
 import InstallationsVieScolaire from '../components/InstallationsVieScolaire';
+
+// URL Cloudinary pour la vidéo (optimisée pour le web)
+const spotEcoleVideo = 'https://res.cloudinary.com/dntyghmap/video/upload/v1755144106/Spot_Ecole_hrko3u.mp4';
 
 const Presentation = () => {
   return (

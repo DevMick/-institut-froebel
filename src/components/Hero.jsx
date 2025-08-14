@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Hero.css';
-import spotEcoleVideo from '../assets/images/Spot Ecole.mp4';
+
+// URL Cloudinary pour la vidéo (optimisée pour le web)
+const spotEcoleVideo = 'https://res.cloudinary.com/dntyghmap/video/upload/v1755144106/Spot_Ecole_hrko3u.mp4';
 
 const messagesData = [
   "Cultivons l'excellence ensemble",
