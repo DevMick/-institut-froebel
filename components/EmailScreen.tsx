@@ -13,7 +13,6 @@ import {
   FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as DocumentPicker from 'expo-document-picker';
 import { Member, User, Club } from '../types';
 import { ApiService } from '../services/ApiService';
 
@@ -109,25 +108,42 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
 
   const handleAddAttachment = async () => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: '*/*', // Pick any file
-        copyToCacheDirectory: false,
-      });
-
-      if (result.type === 'success') {
-        const newAttachment: Attachment = {
-          id: Date.now().toString(),
-          name: result.name || `document_${attachments.length + 1}.pdf`,
-          size: result.size ? `${result.size / 1024} KB` : 'N/A',
-          type: result.mimeType || 'application/pdf',
-          uri: result.uri,
-          base64: result.base64,
-        };
-        setAttachments(prev => [...prev, newAttachment]);
-      }
+      // Simulation d'upload de fichier pour Expo Snack
+      // Dans une vraie app, cela utiliserait expo-document-picker
+      Alert.alert(
+        'Simulation d\'upload',
+        'Dans une vraie application, cela ouvrirait le sélecteur de fichiers. Pour la démo, nous simulons l\'ajout d\'un fichier.',
+        [
+          { text: 'Annuler', style: 'cancel' },
+          {
+            text: 'Simuler',
+            onPress: () => {
+              const fileTypes = [
+                { name: 'document.pdf', type: 'application/pdf', size: 1024 * 50 },
+                { name: 'image.jpg', type: 'image/jpeg', size: 1024 * 200 },
+                { name: 'presentation.pptx', type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', size: 1024 * 500 },
+                { name: 'spreadsheet.xlsx', type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', size: 1024 * 100 },
+              ];
+              
+              const randomFile = fileTypes[Math.floor(Math.random() * fileTypes.length)];
+              
+              const newAttachment: Attachment = {
+                id: Date.now().toString(),
+                name: randomFile.name,
+                size: `${Math.round(randomFile.size / 1024)} KB`,
+                type: randomFile.type,
+                uri: `file://${Date.now()}_${randomFile.name}`,
+                base64: 'base64_simulation_data',
+              };
+              
+              setAttachments(prev => [...prev, newAttachment]);
+            }
+          }
+        ]
+      );
     } catch (error: any) {
       Alert.alert('Erreur', 'Impossible de sélectionner le fichier');
-      console.error('Erreur DocumentPicker:', error);
+      console.error('Erreur upload fichier:', error);
     }
   };
 
@@ -355,8 +371,11 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
             onPress={handleAddAttachment}
           >
             <Ionicons name="attach" size={20} color="#005AA9" />
-            <Text style={styles.attachmentText}>Ajouter une pièce jointe</Text>
+            <Text style={styles.attachmentText}>Ajouter une pièce jointe (Simulation)</Text>
           </TouchableOpacity>
+          <Text style={styles.attachmentNote}>
+            Dans une vraie application, cela ouvrirait le sélecteur de fichiers
+          </Text>
           
           {attachments.length > 0 && (
             <View style={styles.attachmentsList}>
@@ -486,6 +505,12 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 16,
     color: '#005AA9',
+  },
+  attachmentNote: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+    textAlign: 'center',
   },
   attachmentsList: {
     marginTop: 12,
