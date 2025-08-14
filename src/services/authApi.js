@@ -1,7 +1,9 @@
 import axios from 'axios';
 
-// Configuration de l'API - utilise localhost:5000
-const API_BASE = 'https://mon-api-aspnet.onrender.com/api';
+// Configuration de l'API - utilise le proxy en développement et production
+const API_BASE = process.env.NODE_ENV === 'production'
+  ? '/api'  // Utilise le proxy en production
+  : '/api'; // Utilise le proxy en développement aussi
 
 console.log('API_BASE:', API_BASE);
 
@@ -201,18 +203,11 @@ const authApi = {
   // Récupérer la liste des écoles disponibles
   getSchools: async (page = 1, pageSize = 20) => {
     try {
-      // Utiliser l'API hébergée sur Render
-      const localApiBase = 'https://mon-api-aspnet.onrender.com/api';
-      const url = `${localApiBase}/ecoles?page=${page}&pageSize=${pageSize}`;
+      // Utiliser l'API via le proxy
+      const url = `/api/ecoles?page=${page}&pageSize=${pageSize}`;
       console.log('Tentative de récupération des écoles depuis:', url);
 
-      const response = await axios.get(url, {
-        headers: {
-          'accept': 'text/plain',
-          'Content-Type': 'application/json',
-        },
-        timeout: 15000,
-      });
+      const response = await apiClient.get(`/ecoles?page=${page}&pageSize=${pageSize}`);
 
       console.log('Réponse brute des écoles:', response);
       console.log('Données des écoles:', response.data);
@@ -259,17 +254,10 @@ const authApi = {
   // Récupérer la liste des classes d'une école
   getClasses: async (ecoleId) => {
     try {
-      // Utiliser l'API hébergée sur Render
-      const localApiBase = 'https://mon-api-aspnet.onrender.com/api';
-      console.log('Tentative de récupération des classes depuis:', `${localApiBase}/ecoles/${ecoleId}/classes`);
+      // Utiliser l'API via le proxy
+      console.log('Tentative de récupération des classes depuis:', `/api/ecoles/${ecoleId}/classes`);
 
-      const response = await axios.get(`${localApiBase}/ecoles/${ecoleId}/classes`, {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        timeout: 15000,
-      });
+      const response = await apiClient.get(`/ecoles/${ecoleId}/classes`);
 
       console.log('Réponse brute des classes:', response);
 
