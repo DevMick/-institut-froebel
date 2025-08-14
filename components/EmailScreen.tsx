@@ -3,46 +3,55 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   TextInput,
+  TouchableOpacity,
   ScrollView,
   Alert,
+  ActivityIndicator,
+  SafeAreaView,
   Modal,
   FlatList,
-  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Member, User, Club } from '../types';
 import { ApiService } from '../services/ApiService';
-import { Member } from '../types';
 
 interface EmailScreenProps {
-  navigation: any;
-  route: any;
+  user: User;
+  club: Club;
+  onBack: () => void;
 }
 
 interface EmailData {
-  to: string[];
   subject: string;
-  body: string;
+  message: string;
+  recipients: string[];
   attachments?: string[];
 }
 
 interface Attachment {
+  id: string;
   name: string;
   size: string;
+  type: string;
 }
 
-export const EmailScreen: React.FC<EmailScreenProps> = ({ navigation, route }) => {
-  const { clubId, userEmail } = route.params;
-  
+export const EmailScreen: React.FC<EmailScreenProps> = ({
+  user,
+  club,
+  onBack,
+}) => {
   const [members, setMembers] = useState<Member[]>([]);
-  const [selectedMembers, setSelectedMembers] = useState<Member[]>([]);
-  const [showMemberModal, setShowMemberModal] = useState(false);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchText, setSearchText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [showMembersModal, setShowMembersModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const apiService = new ApiService();
 
   useEffect(() => {
     loadMembers();
@@ -51,291 +60,313 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({ navigation, route }) =
   const loadMembers = async () => {
     try {
       setLoading(true);
-      const clubMembers = await ApiService.getMembers(clubId);
-      // Exclure l'utilisateur connecté de la liste
-      const filteredMembers = clubMembers.filter(member => member.email !== userEmail);
-      setMembers(filteredMembers);
-    } catch (error) {
-      console.error('Erreur lors du chargement des membres:', error);
-      // Données de démo en cas d'erreur
-      const demoMembers: Member[] = [
-        { id: 1, nom: 'Martin', prenom: 'Jean', email: 'jean.martin@email.com', telephone: '0123456789', fonction: 'Président', statut: 'Actif' },
-        { id: 2, nom: 'Dubois', prenom: 'Marie', email: 'marie.dubois@email.com', telephone: '0123456790', fonction: 'Secrétaire', statut: 'Actif' },
-        { id: 3, nom: 'Moreau', prenom: 'Pierre', email: 'pierre.moreau@email.com', telephone: '0123456791', fonction: 'Trésorier', statut: 'Actif' },
-      ];
-      setMembers(demoMembers);
+      const membersData = await apiService.getClubMembers(club.id);
+      // Filtrer pour exclure l'utilisateur connecté
+      const otherMembers = membersData.filter(member => member.id !== user.id);
+      setMembers(otherMembers);
+    } catch (error: any) {
+      console.error('Erreur chargement membres:', error);
+      Alert.alert('Erreur', 'Impossible de charger les membres');
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredMembers = members.filter(member =>
-    member.nom.toLowerCase().includes(searchText.toLowerCase()) ||
-    member.prenom.toLowerCase().includes(searchText.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchText.toLowerCase())
-  );
-
-  const toggleMemberSelection = (member: Member) => {
-    setSelectedMembers(prev => {
-      const isSelected = prev.some(m => m.id === member.id);
-      if (isSelected) {
-        return prev.filter(m => m.id !== member.id);
-      } else {
-        return [...prev, member];
-      }
-    });
+  const toggleMemberSelection = (memberId: string) => {
+    setSelectedMembers(prev => 
+      prev.includes(memberId)
+        ? prev.filter(id => id !== memberId)
+        : [...prev, memberId]
+    );
   };
 
   const selectAllMembers = () => {
-    setSelectedMembers([...filteredMembers]);
+    const allMemberIds = members.map(member => member.id);
+    setSelectedMembers(allMemberIds);
   };
 
   const deselectAllMembers = () => {
     setSelectedMembers([]);
   };
 
-  const addAttachment = () => {
+  const getSelectedEmails = () => {
+    return members
+      .filter(member => selectedMembers.includes(member.id))
+      .map(member => member.email);
+  };
+
+  const getFilteredMembers = () => {
+    if (!searchQuery.trim()) return members;
+    
+    return members.filter(member =>
+      member.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.email.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  };
+
+  const handleAddAttachment = () => {
     // Simulation d'ajout de pièce jointe
     const newAttachment: Attachment = {
+      id: Date.now().toString(),
       name: `document_${attachments.length + 1}.pdf`,
-      size: '2.5 MB'
+      size: '2.5 MB',
+      type: 'application/pdf'
     };
     setAttachments(prev => [...prev, newAttachment]);
   };
 
-  const removeAttachment = (index: number) => {
-    setAttachments(prev => prev.filter((_, i) => i !== index));
+  const handleRemoveAttachment = (attachmentId: string) => {
+    setAttachments(prev => prev.filter(att => att.id !== attachmentId));
   };
 
-  const validateForm = (): boolean => {
-    if (selectedMembers.length === 0) {
-      Alert.alert('Erreur', 'Veuillez sélectionner au moins un destinataire.');
-      return false;
-    }
+  const handleSendEmail = async () => {
     if (!subject.trim()) {
-      Alert.alert('Erreur', 'Veuillez saisir un sujet.');
-      return false;
+      Alert.alert('Erreur', 'Veuillez saisir un sujet');
+      return;
     }
-    if (!message.trim()) {
-      Alert.alert('Erreur', 'Veuillez saisir un message.');
-      return false;
-    }
-    return true;
-  };
 
-  const sendEmail = async () => {
-    if (!validateForm()) return;
+    if (!message.trim()) {
+      Alert.alert('Erreur', 'Veuillez saisir un message');
+      return;
+    }
+
+    if (selectedMembers.length === 0) {
+      Alert.alert('Erreur', 'Veuillez sélectionner au moins un destinataire');
+      return;
+    }
 
     try {
-      setLoading(true);
-      
+      setSending(true);
       const emailData: EmailData = {
-        to: selectedMembers.map(member => member.email),
         subject: subject.trim(),
-        body: message.trim(),
-        attachments: attachments.map(att => att.name)
+        message: message.trim(),
+        recipients: getSelectedEmails(),
+        attachments: attachments.map(att => att.name),
       };
 
-      await ApiService.sendEmail(clubId, emailData);
+      await apiService.sendClubEmail(emailData);
       
       Alert.alert(
         'Succès',
-        `Email envoyé avec succès à ${selectedMembers.length} destinataire(s).`,
+        `Email envoyé à ${selectedMembers.length} membre(s)`,
         [
           {
             text: 'OK',
             onPress: () => {
-              // Reset du formulaire
-              setSelectedMembers([]);
               setSubject('');
               setMessage('');
+              setSelectedMembers([]);
               setAttachments([]);
-              navigation.goBack();
             }
           }
         ]
       );
-    } catch (error) {
-      console.error('Erreur lors de l\'envoi de l\'email:', error);
-      Alert.alert('Erreur', 'Impossible d\'envoyer l\'email. Veuillez réessayer.');
+    } catch (error: any) {
+      Alert.alert('Erreur', error.message || 'Erreur lors de l\'envoi de l\'email');
     } finally {
-      setLoading(false);
+      setSending(false);
     }
   };
 
-  const renderMemberItem = ({ item }: { item: Member }) => {
-    const isSelected = selectedMembers.some(m => m.id === item.id);
-    
+  const renderMemberItem = ({ item: member }: { item: Member }) => {
+    const isSelected = selectedMembers.includes(member.id);
     return (
       <TouchableOpacity
         style={[styles.memberItem, isSelected && styles.memberItemSelected]}
-        onPress={() => toggleMemberSelection(item)}
+        onPress={() => toggleMemberSelection(member.id)}
       >
         <View style={styles.memberInfo}>
-          <Text style={styles.memberName}>{item.prenom} {item.nom}</Text>
-          <Text style={styles.memberEmail}>{item.email}</Text>
-          <Text style={styles.memberFunction}>{item.fonction}</Text>
+          <View style={styles.avatarContainer}>
+            <Text style={styles.avatarText}>
+              {member.firstName.charAt(0)}{member.lastName.charAt(0)}
+            </Text>
+          </View>
+          <View style={styles.memberDetails}>
+            <Text style={styles.memberName}>{member.fullName}</Text>
+            <Text style={styles.memberEmail}>{member.email}</Text>
+            {member.role && (
+              <Text style={styles.memberRole}>{member.role}</Text>
+            )}
+          </View>
         </View>
         <Ionicons
-          name={isSelected ? 'checkbox' : 'square-outline'}
+          name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
           size={24}
-          color={isSelected ? '#1f4788' : '#666'}
+          color={isSelected ? '#005AA9' : '#ccc'}
         />
       </TouchableOpacity>
     );
   };
 
+  const renderAttachment = ({ item: attachment }: { item: Attachment }) => (
+    <View style={styles.attachmentItem}>
+      <View style={styles.attachmentInfo}>
+        <Ionicons name="document" size={20} color="#005AA9" />
+        <View style={styles.attachmentDetails}>
+          <Text style={styles.attachmentName}>{attachment.name}</Text>
+          <Text style={styles.attachmentSize}>{attachment.size}</Text>
+        </View>
+      </View>
+      <TouchableOpacity
+        onPress={() => handleRemoveAttachment(attachment.id)}
+        style={styles.removeAttachmentButton}
+      >
+        <Ionicons name="close-circle" size={20} color="#dc3545" />
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderMembersModal = () => (
+    <Modal
+      visible={showMembersModal}
+      animationType="slide"
+      onRequestClose={() => setShowMembersModal(false)}
+    >
+      <SafeAreaView style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <TouchableOpacity onPress={() => setShowMembersModal(false)}>
+            <Ionicons name="close" size={24} color="#666" />
+          </TouchableOpacity>
+          <Text style={styles.modalTitle}>Sélectionner les destinataires</Text>
+          <View style={styles.modalActions}>
+            <TouchableOpacity onPress={selectAllMembers} style={styles.actionButton}>
+              <Text style={styles.actionButtonText}>Tout</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={deselectAllMembers} style={styles.actionButton}>
+              <Text style={styles.actionButtonText}>Aucun</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="#666" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Rechercher un membre..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+
+        <View style={styles.selectionInfo}>
+          <Text style={styles.selectionText}>
+            {selectedMembers.length} sélectionné(s) sur {members.length}
+          </Text>
+        </View>
+        
+        <FlatList
+          data={getFilteredMembers()}
+          renderItem={renderMemberItem}
+          keyExtractor={(item) => item.id}
+          style={styles.membersList}
+          showsVerticalScrollIndicator={false}
+        />
+      </SafeAreaView>
+    </Modal>
+  );
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#1f4788" />
+        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Envoyer un email</Text>
-        <View style={{ width: 24 }} />
+        <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.content}>
-        {/* Sélection des destinataires */}
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Destinataires</Text>
           <TouchableOpacity
-            style={styles.recipientSelector}
-            onPress={() => setShowMemberModal(true)}
+            style={styles.recipientsSelector}
+            onPress={() => setShowMembersModal(true)}
           >
-            <Text style={styles.recipientText}>
-              {selectedMembers.length === 0
-                ? 'Sélectionner les destinataires'
-                : `${selectedMembers.length} destinataire(s) sélectionné(s)`
-              }
-            </Text>
+            <View style={styles.recipientsInfo}>
+              <Ionicons name="people" size={20} color="#005AA9" />
+              <Text style={styles.recipientsText}>
+                {selectedMembers.length > 0
+                  ? `${selectedMembers.length} membre(s) sélectionné(s)`
+                  : 'Sélectionner les destinataires'
+                }
+              </Text>
+            </View>
             <Ionicons name="chevron-forward" size={20} color="#666" />
           </TouchableOpacity>
         </View>
 
-        {/* Sujet */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Sujet</Text>
+          <Text style={styles.sectionTitle}>Sujet *</Text>
           <TextInput
             style={styles.input}
+            placeholder="Sujet de l'email"
             value={subject}
             onChangeText={setSubject}
-            placeholder="Entrez le sujet de l'email"
             maxLength={100}
           />
-          <Text style={styles.charCount}>{subject.length}/100</Text>
         </View>
 
-        {/* Message */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Message</Text>
+          <Text style={styles.sectionTitle}>Message *</Text>
           <TextInput
             style={[styles.input, styles.messageInput]}
+            placeholder="Contenu de votre message..."
             value={message}
             onChangeText={setMessage}
-            placeholder="Entrez votre message"
             multiline
-            numberOfLines={6}
+            textAlignVertical="top"
             maxLength={2000}
           />
-          <Text style={styles.charCount}>{message.length}/2000</Text>
+          <Text style={styles.charCount}>
+            {message.length}/2000 caractères
+          </Text>
         </View>
 
-        {/* Pièces jointes */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Pièces jointes</Text>
-            <TouchableOpacity style={styles.addButton} onPress={addAttachment}>
-              <Ionicons name="add" size={20} color="#fff" />
-              <Text style={styles.addButtonText}>Ajouter</Text>
-            </TouchableOpacity>
-          </View>
+          <Text style={styles.sectionTitle}>Pièces jointes</Text>
+          <TouchableOpacity 
+            style={styles.attachmentButton}
+            onPress={handleAddAttachment}
+          >
+            <Ionicons name="attach" size={20} color="#005AA9" />
+            <Text style={styles.attachmentText}>Ajouter une pièce jointe</Text>
+          </TouchableOpacity>
           
           {attachments.length > 0 && (
-            <ScrollView horizontal style={styles.attachmentsList}>
-              {attachments.map((attachment, index) => (
-                <View key={index} style={styles.attachmentItem}>
-                  <Ionicons name="document" size={20} color="#1f4788" />
-                  <Text style={styles.attachmentName}>{attachment.name}</Text>
-                  <Text style={styles.attachmentSize}>{attachment.size}</Text>
-                  <TouchableOpacity
-                    style={styles.removeAttachment}
-                    onPress={() => removeAttachment(index)}
-                  >
-                    <Ionicons name="close-circle" size={16} color="#ff4444" />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </ScrollView>
+            <View style={styles.attachmentsList}>
+              <FlatList
+                data={attachments}
+                renderItem={renderAttachment}
+                keyExtractor={(item) => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+              />
+            </View>
           )}
         </View>
+      </ScrollView>
 
-        {/* Bouton d'envoi */}
+      <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.sendButton, loading && styles.sendButtonDisabled]}
-          onPress={sendEmail}
-          disabled={loading}
+          style={[styles.sendButton, sending && styles.sendButtonDisabled]}
+          onPress={handleSendEmail}
+          disabled={sending}
         >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
+          {sending ? (
+            <ActivityIndicator color="white" />
           ) : (
             <>
-              <Ionicons name="send" size={20} color="#fff" />
-              <Text style={styles.sendButtonText}>Envoyer l'email</Text>
+              <Ionicons name="mail" size={20} color="white" />
+              <Text style={styles.sendButtonText}>
+                Envoyer ({selectedMembers.length})
+              </Text>
             </>
           )}
         </TouchableOpacity>
-      </ScrollView>
+      </View>
 
-      {/* Modal de sélection des membres */}
-      <Modal
-        visible={showMemberModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setShowMemberModal(false)}>
-              <Text style={styles.modalCancel}>Annuler</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Sélectionner les destinataires</Text>
-            <TouchableOpacity onPress={() => setShowMemberModal(false)}>
-              <Text style={styles.modalDone}>Terminé</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.modalContent}>
-            <TextInput
-              style={styles.searchInput}
-              value={searchText}
-              onChangeText={setSearchText}
-              placeholder="Rechercher un membre..."
-              clearButtonMode="while-editing"
-            />
-
-            <View style={styles.selectionButtons}>
-              <TouchableOpacity style={styles.selectionButton} onPress={selectAllMembers}>
-                <Text style={styles.selectionButtonText}>Tout sélectionner</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.selectionButton} onPress={deselectAllMembers}>
-                <Text style={styles.selectionButtonText}>Tout désélectionner</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.selectedCount}>
-              {selectedMembers.length} membre(s) sélectionné(s)
-            </Text>
-
-            <FlatList
-              data={filteredMembers}
-              renderItem={renderMemberItem}
-              keyExtractor={(item) => item.id.toString()}
-              style={styles.membersList}
-            />
-          </View>
-        </View>
-      </Modal>
-    </View>
+      {renderMembersModal()}
+    </SafeAreaView>
   );
 };
 
@@ -345,60 +376,64 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
+    backgroundColor: '#005AA9',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 20,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  backButton: {
+    padding: 8,
   },
   headerTitle: {
+    flex: 1,
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f4788',
+    color: 'white',
+    textAlign: 'center',
+  },
+  placeholder: {
+    width: 40,
   },
   content: {
     flex: 1,
-    padding: 20,
+    padding: 16,
   },
   section: {
-    marginBottom: 25,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 10,
+    marginBottom: 8,
   },
-  recipientSelector: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 15,
+  recipientsSelector: {
+    backgroundColor: 'white',
     borderRadius: 8,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#ddd',
   },
-  recipientText: {
+  recipientsInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  recipientsText: {
+    marginLeft: 8,
     fontSize: 16,
     color: '#333',
   },
   input: {
-    backgroundColor: '#fff',
-    padding: 15,
+    backgroundColor: 'white',
     borderRadius: 8,
+    padding: 16,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#ddd',
     fontSize: 16,
   },
   messageInput: {
@@ -406,155 +441,173 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   charCount: {
-    textAlign: 'right',
-    color: '#666',
     fontSize: 12,
-    marginTop: 5,
+    color: '#666',
+    textAlign: 'right',
+    marginTop: 4,
   },
-  addButton: {
+  attachmentButton: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#28a745',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderStyle: 'dashed',
   },
-  addButtonText: {
-    color: '#fff',
-    marginLeft: 5,
-    fontSize: 14,
+  attachmentText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: '#005AA9',
   },
   attachmentsList: {
-    marginTop: 10,
+    marginTop: 12,
   },
   attachmentItem: {
-    backgroundColor: '#fff',
-    padding: 10,
+    backgroundColor: 'white',
     borderRadius: 8,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    padding: 12,
+    marginRight: 8,
+    flexDirection: 'row',
     alignItems: 'center',
-    minWidth: 100,
+    borderWidth: 1,
+    borderColor: '#eee',
+    minWidth: 200,
+  },
+  attachmentInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  attachmentDetails: {
+    marginLeft: 8,
+    flex: 1,
   },
   attachmentName: {
-    fontSize: 12,
+    fontSize: 14,
+    fontWeight: 'bold',
     color: '#333',
-    marginTop: 5,
-    textAlign: 'center',
   },
   attachmentSize: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#666',
     marginTop: 2,
   },
-  removeAttachment: {
-    position: 'absolute',
-    top: -5,
-    right: -5,
+  removeAttachmentButton: {
+    padding: 4,
+  },
+  footer: {
+    padding: 16,
+    backgroundColor: 'white',
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
   },
   sendButton: {
+    backgroundColor: '#005AA9',
+    borderRadius: 8,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1f4788',
-    padding: 15,
-    borderRadius: 8,
-    marginTop: 20,
-    marginBottom: 40,
   },
   sendButtonDisabled: {
-    backgroundColor: '#ccc',
+    opacity: 0.6,
   },
   sendButtonText: {
-    color: '#fff',
+    color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-    marginLeft: 10,
+    marginLeft: 8,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: 'white',
   },
   modalHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 20,
-    backgroundColor: '#fff',
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  modalCancel: {
-    color: '#ff4444',
-    fontSize: 16,
+    borderBottomColor: '#eee',
   },
   modalTitle: {
+    flex: 1,
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f4788',
+    textAlign: 'center',
   },
-  modalDone: {
-    color: '#1f4788',
-    fontSize: 16,
+  modalActions: {
+    flexDirection: 'row',
+  },
+  actionButton: {
+    backgroundColor: '#005AA9',
+    borderRadius: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginLeft: 8,
+  },
+  actionButtonText: {
+    color: 'white',
+    fontSize: 12,
     fontWeight: 'bold',
   },
-  modalContent: {
-    flex: 1,
-    padding: 20,
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    margin: 16,
   },
   searchInput: {
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
     fontSize: 16,
-    marginBottom: 15,
   },
-  selectionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 15,
+  selectionInfo: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
   },
-  selectionButton: {
-    backgroundColor: '#1f4788',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 6,
-  },
-  selectionButtonText: {
-    color: '#fff',
+  selectionText: {
     fontSize: 14,
-    fontWeight: 'bold',
-  },
-  selectedCount: {
-    textAlign: 'center',
     color: '#666',
-    fontSize: 14,
-    marginBottom: 15,
+    textAlign: 'center',
   },
   membersList: {
     flex: 1,
   },
   memberItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
   memberItemSelected: {
-    borderColor: '#1f4788',
-    backgroundColor: '#f0f4ff',
+    backgroundColor: '#f0f8ff',
   },
   memberInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatarContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#005AA9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  avatarText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  memberDetails: {
     flex: 1,
   },
   memberName: {
@@ -567,9 +620,10 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 2,
   },
-  memberFunction: {
+  memberRole: {
     fontSize: 12,
-    color: '#1f4788',
+    color: '#005AA9',
     marginTop: 2,
+    fontStyle: 'italic',
   },
 });
