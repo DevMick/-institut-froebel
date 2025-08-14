@@ -1,67 +1,74 @@
-import React from 'react';
-import { FaMoneyBillWave } from 'react-icons/fa';
-
-const tarifsParClasse = {
-  '6ème': {
-    inscription: '20 000 FCFA',
-    scolarite: '180 000 FCFA',
-    autres: [
-      'Tenue scolaire : 15 000 FCFA',
-      "Frais d'AMOPA : 5 000 FCFA",
-      'Assurance : 2 000 FCFA'
-    ]
-  },
-  '5ème': {
-    inscription: '20 000 FCFA',
-    scolarite: '180 000 FCFA',
-    autres: [
-      'Tenue scolaire : 15 000 FCFA',
-      "Frais d'AMOPA : 5 000 FCFA",
-      'Assurance : 2 000 FCFA'
-    ]
-  },
-  '4ème': {
-    inscription: '20 000 FCFA',
-    scolarite: '185 000 FCFA',
-    autres: [
-      'Tenue scolaire : 15 000 FCFA',
-      "Frais d'AMOPA : 5 000 FCFA",
-      'Assurance : 2 000 FCFA'
-    ]
-  },
-  '3ème': {
-    inscription: '20 000 FCFA',
-    scolarite: '190 000 FCFA',
-    autres: [
-      'Tenue scolaire : 15 000 FCFA',
-      "Frais d'AMOPA : 5 000 FCFA",
-      'Assurance : 2 000 FCFA'
-    ]
-  }
-};
-
-const classes = ['6ème', '5ème', '4ème', '3ème'];
+import React, { useState, useEffect } from 'react';
+import { FaMoneyBillWave, FaSpinner, FaEuroSign } from 'react-icons/fa';
 
 const TarifsSection = () => {
+  const [tarifs, setTarifs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+
+
+  useEffect(() => {
+    loadTarifs();
+  }, []);
+
+  const loadTarifs = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/ecoles/2/tarifs`, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const tarifsData = Array.isArray(data) ? data : data.data || [];
+        setTarifs(tarifsData);
+      } else {
+        console.error('Erreur API tarifs:', response.status, response.statusText);
+        setTarifs([]);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des tarifs:', error);
+      setTarifs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto flex justify-center items-center py-12">
+        <FaSpinner className="animate-spin text-emerald-600 text-3xl" />
+        <span className="ml-3 text-lg text-gray-600">Chargement des tarifs...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {classes.map(classe => (
-          <div key={classe} className="bg-white rounded-2xl shadow p-6">
+        {tarifs.map(tarif => (
+          <div key={tarif.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-6">
             <h4 className="text-xl font-bold text-emerald-700 mb-4 flex items-center gap-2">
               <FaMoneyBillWave className="text-emerald-500" />
-              Tarifs en {classe}
+              Tarifs en {tarif.classeNom}
             </h4>
-            <ul className="text-gray-700 space-y-2">
-              <li><span className="font-semibold">Frais d'inscription :</span> {tarifsParClasse[classe].inscription}</li>
-              <li><span className="font-semibold">Scolarité annuelle :</span> {tarifsParClasse[classe].scolarite}</li>
-              {tarifsParClasse[classe].autres.map((autre, i) => (
-                <li key={i}>{autre}</li>
-              ))}
-            </ul>
+            <div className="text-gray-700 space-y-3">
+              <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border-l-4 border-emerald-500">
+                <FaEuroSign className="text-emerald-600 flex-shrink-0" />
+                <span className="font-medium">{tarif.tarif.toLocaleString()} FCFA</span>
+              </div>
+            </div>
           </div>
         ))}
       </div>
+
+      {tarifs.length === 0 && (
+        <div className="text-center py-12">
+          <FaMoneyBillWave className="text-gray-400 text-4xl mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Aucun tarif disponible pour le moment.</p>
+        </div>
+      )}
     </div>
   );
 };

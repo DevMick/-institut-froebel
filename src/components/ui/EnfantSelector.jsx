@@ -6,27 +6,36 @@ const EnfantSelector = () => {
   if (!user || !user.enfants || user.enfants.length === 0) return null;
   if (user.enfants.length === 1) {
     return (
-      <span className="text-sm text-gray-700 font-medium" aria-label="Enfant sélectionné">
-        {user.enfants[0].prenom} {user.enfants[0].nom}
-      </span>
+      <div className="text-sm font-medium" aria-label="Enfant sélectionné">
+        <div className="text-white/90">Enfant sélectionné :</div>
+        <div className="text-white font-semibold">
+          {user.enfants[0].prenom} {user.enfants[0].nom}
+        </div>
+        <div className="text-white/70 text-xs">
+          {user.enfants[0].classe}
+        </div>
+      </div>
     );
   }
   return (
-    <select
-      className="text-sm border border-gray-200 rounded px-2 py-1 focus:ring-emerald-500 focus:border-emerald-500"
-      value={selectedEnfant?.id || ''}
-      onChange={e => {
-        const enfant = user.enfants.find(enf => enf.id === Number(e.target.value));
-        if (enfant) setSelectedEnfant(enfant);
-      }}
-      aria-label="Sélectionner un enfant"
-    >
-      {user.enfants.map(enf => (
-        <option key={enf.id} value={enf.id}>
-          {enf.prenom} {enf.nom} ({enf.classe})
-        </option>
-      ))}
-    </select>
+    <div>
+      <div className="text-white/90 text-xs mb-1">Sélectionner un enfant :</div>
+      <select
+        className="text-sm border border-white/20 bg-white/10 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-white/30 focus:border-white/50 backdrop-blur-sm"
+        value={selectedEnfant?.id || ''}
+        onChange={e => {
+          const enfant = user.enfants.find(enf => enf.id === Number(e.target.value));
+          if (enfant) setSelectedEnfant(enfant);
+        }}
+        aria-label="Sélectionner un enfant"
+      >
+        {user.enfants.map(enf => (
+          <option key={enf.id} value={enf.id} className="text-gray-800 bg-white">
+            {enf.prenom} {enf.nom} ({enf.classe})
+          </option>
+        ))}
+      </select>
+    </div>
   );
 };
 

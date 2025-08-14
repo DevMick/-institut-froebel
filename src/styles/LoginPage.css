@@ -12,70 +12,83 @@
   color: #ef4444;
 }
 
-/* Styles RotaryManager pour le select avec icône */
-.select-with-icon {
-  position: relative;
-}
-
-.select-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1;
-  color: #3b82f6;
-  font-size: 16px;
-  pointer-events: none;
-}
-
-.select-with-icon .modern-select .ant-select-selector {
-  padding-left: 40px !important;
-}
-
-.select-with-icon .modern-select .ant-select-selection-search {
-  margin-left: 0 !important;
-}
-
-.select-with-icon .modern-select .ant-select-selection-placeholder {
-  margin-left: 0 !important;
-}
-
-.modern-select .ant-select-selector,
+/* Styles pour les inputs et select */
 .modern-input {
   border: 1px solid #e5e7eb !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
   transition: all 0.2s ease !important;
+  border-radius: 8px !important;
 }
 
-.modern-select .ant-select-selector:hover,
 .modern-input:hover {
   border-color: #3b82f6 !important;
   box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1) !important;
 }
 
-.modern-select .ant-select-focused .ant-select-selector,
 .modern-input:focus {
   border-color: #3b82f6 !important;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
 }
 
-.modern-select .ant-select-selector,
-.modern-input {
+/* Styles pour le Select Ant Design */
+.ant-select-selector {
   border: 1px solid #e5e7eb !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
   transition: all 0.2s ease !important;
+  border-radius: 8px !important;
 }
 
-.modern-select .ant-select-selector:hover,
-.modern-input:hover {
+.ant-select-selector:hover {
   border-color: #3b82f6 !important;
   box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1) !important;
 }
 
-.modern-select .ant-select-focused .ant-select-selector,
-.modern-input:focus {
+.ant-select-focused .ant-select-selector {
   border-color: #3b82f6 !important;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Styles pour le dropdown du select de login */
+.login-select-dropdown {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  z-index: 10000 !important;
+  position: fixed !important;
+}
+
+.login-select-dropdown .ant-select-item-option {
+  padding: 8px 12px !important;
+  transition: all 0.2s ease !important;
+}
+
+.login-select-dropdown .ant-select-item-option:hover {
+  background-color: #f3f4f6 !important;
+}
+
+.login-select-dropdown .ant-select-item-option-selected {
+  background-color: #eff6ff !important;
+  color: #3b82f6 !important;
+}
+
+/* Styles généraux pour les dropdowns Ant Design */
+.ant-select-dropdown {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  z-index: 9999 !important;
+}
+
+.ant-select-item-option {
+  padding: 8px 12px !important;
+  transition: all 0.2s ease !important;
+}
+
+.ant-select-item-option:hover {
+  background-color: #f3f4f6 !important;
+}
+
+.ant-select-item-option-selected {
+  background-color: #eff6ff !important;
+  color: #3b82f6 !important;
 }
 
 .modern-button:hover {
@@ -86,6 +99,63 @@
 
 .modern-button:active {
   transform: translateY(0);
+}
+
+/* Styles pour le select HTML natif */
+.select-with-icon-html {
+  position: relative;
+}
+
+.select-icon-html {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  color: #3b82f6;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.modern-select-html {
+  width: 100%;
+  height: 48px;
+  padding: 8px 12px 8px 40px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+.modern-select-html:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1);
+}
+
+.modern-select-html:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.modern-select-html:disabled {
+  background-color: #f9fafb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.modern-select-html option {
+  padding: 8px 12px;
+  font-size: 14px;
 }
 
 /* Animation pour l'apparition de la carte */

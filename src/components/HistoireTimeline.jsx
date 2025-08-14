@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaGraduationCap } from 'react-icons/fa';
+import notreHistoireImg from '../assets/images/notre histoire.jpg';
 
 const timeline = [
   {
@@ -41,6 +42,16 @@ const HistoireTimeline = () => {
               <span className="bg-green-100 p-4 rounded-full text-green-600 text-3xl shadow"><FaGraduationCap /></span>
               <span className="text-lg font-bold text-green-700">Une Vision Pédagogique Révolutionnaire</span>
             </div>
+
+            {/* Image illustrative de notre histoire */}
+            <div className="mb-6">
+              <img
+                src={notreHistoireImg}
+                alt="Notre Histoire - Institut Froebel"
+                className="w-full h-48 object-cover rounded-xl shadow-md"
+              />
+            </div>
+
             <p className="text-gray-700 mb-4">
               L'Institut Froebel est né de la passion de <span className="font-semibold">Madame Marguerite Messou épouse Kadio</span>, éducatrice visionnaire formée à l'école Froebélienne de Bruxelles. Inspirée par Friedrich Froebel, pionnier de la pédagogie préscolaire, elle a voulu transposer en Côte d'Ivoire une éducation centrée sur l'enfant, la bienveillance et le développement global.
             </p>

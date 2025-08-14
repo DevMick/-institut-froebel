@@ -1,23 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Hero.css';
+import spotEcoleVideo from '../assets/images/Spot Ecole.mp4';
 
-const slidesData = [
-  {
-    img: 'http://institutfroebel.allianceconsultants.net/wp-content/uploads/2025/05/WhatsApp-Image-2025-05-13-a-10.23.39_247153a4.jpg',
-    message: "Cultivons l'excellence ensemble"
-  },
-  {
-    img: 'http://institutfroebel.allianceconsultants.net/wp-content/uploads/2025/05/WhatsApp-Image-2025-05-13-a-10.34.58_86e6ad81.jpg',
-    message: "Épanouissement et apprentissage"
-  },
-  {
-    img: 'http://institutfroebel.allianceconsultants.net/wp-content/uploads/2025/05/WhatsApp-Image-2025-05-13-a-10.23.39_247153a4.jpg',
-    message: "Innovation pédagogique"
-  },
-  {
-    img: 'http://institutfroebel.allianceconsultants.net/wp-content/uploads/2025/05/WhatsApp-Image-2025-05-13-a-10.34.58_86e6ad81.jpg',
-    message: "Construisons l'avenir de vos enfants"
-  }
+const messagesData = [
+  "Cultivons l'excellence ensemble",
+  "Épanouissement et apprentissage",
+  "Innovation pédagogique",
+  "Construisons l'avenir de vos enfants"
 ];
 
 const Particles = () => {
@@ -38,9 +27,10 @@ const Particles = () => {
 
 
 const Hero = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [currentMessage, setCurrentMessage] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const timeoutRef = useRef(null);
+  const videoRef = useRef(null);
 
   const getTheme = () => {
     const hour = new Date().getHours();
@@ -60,8 +50,8 @@ const Hero = () => {
     if (!isPaused) {
       timeoutRef.current = setTimeout(
         () =>
-          setCurrentSlide((prevIndex) =>
-            prevIndex === slidesData.length - 1 ? 0 : prevIndex + 1
+          setCurrentMessage((prevIndex) =>
+            prevIndex === messagesData.length - 1 ? 0 : prevIndex + 1
           ),
         6000
       );
@@ -70,41 +60,45 @@ const Hero = () => {
     return () => {
       resetTimeout();
     };
-  }, [currentSlide, isPaused]);
+  }, [currentMessage, isPaused]);
   
   return (
-    <section 
-      id="heroSection" 
+    <section
+      id="heroSection"
       className={`hero-section ${getTheme()} min-h-[220px] h-[320px] md:h-[380px] flex items-center justify-center px-2 md:px-0`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {slidesData.map((slide, index) => (
-        <div
-          key={index}
-          className={`slide ${index === currentSlide ? 'active' : ''}`}
-          style={{ backgroundImage: `url('${slide.img}')` }}
-        ></div>
-      ))}
-      
+      <video
+        ref={videoRef}
+        className="hero-video"
+        autoPlay
+        muted
+        loop
+        playsInline
+      >
+        <source src={spotEcoleVideo} type="video/mp4" />
+        Votre navigateur ne supporte pas la lecture de vidéos.
+      </video>
+
       <div className="hero-overlay"></div>
       <Particles />
 
       <div className="hero-content">
         <h1 className="hero-title text-2xl sm:text-3xl md:text-5xl">L'ÉDUCATION D'AUJOURD'HUI, LES LEADERS DE DEMAIN.</h1>
-        
+
         <div className="hero-badges">
           <div className="hero-badge">
             <i className="fas fa-graduation-cap"></i>
-            <span>Maternelle • Primaire • Collège</span>
+            <span>Maternelle • Primaire • Sécondaire</span>
           </div>
           <div className="hero-badge">
             <i className="fas fa-award"></i>
             <span>Excellence Pédagogique</span>
           </div>
         </div>
-        
-        <p className="hero-message" id="heroMessage">{slidesData[currentSlide].message}</p>
+
+        <p className="hero-message" id="heroMessage">{messagesData[currentMessage]}</p>
       </div>
     </section>
   );

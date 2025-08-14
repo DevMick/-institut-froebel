@@ -5,6 +5,7 @@ import { formatDateTime } from '../../utils/dateUtils';
 const typeConfig = {
   devoirs: { color: 'text-orange-500', icon: <BookOpen size={20} /> },
   info: { color: 'text-blue-500', icon: <Info size={20} /> },
+  information: { color: 'text-blue-500', icon: <Info size={20} /> },
   comportement: { color: 'text-green-500', icon: <Smile size={20} /> },
   sante: { color: 'text-red-500', icon: <Heart size={20} /> },
 };

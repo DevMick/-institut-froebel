@@ -1,6 +1,6 @@
 import React from 'react';
 import { FaSchool, FaChalkboardTeacher, FaLaptop, FaBook, FaRunning, FaShieldAlt, FaPalette, FaMusic, FaFlask, FaUsers, FaComments } from 'react-icons/fa';
-import image6 from '../assets/images/image6.jpg';
+import ecoleImage from '../assets/images/primaire.jpg';
 
 const chiffres = [
   { valeur: '45+', label: "Années d'expérience" },
@@ -77,7 +77,7 @@ const InstallationsVieScolaire = () => {
             </div>
           </div>
           <div className="flex-1 flex flex-col items-center justify-center relative w-full max-w-md">
-            <img src={image6} alt="École primaire moderne" className="rounded-xl shadow-lg w-full object-cover" />
+            <img src={ecoleImage} alt="École primaire moderne" className="rounded-xl shadow-lg w-full object-cover" />
             <span className="absolute top-4 left-4 bg-green-600 text-white text-xs font-semibold px-4 py-1 rounded-full shadow">Excellence Primaire<br /><span className='font-normal'>Des écoles pensées pour les enfants</span></span>
           </div>
         </div>

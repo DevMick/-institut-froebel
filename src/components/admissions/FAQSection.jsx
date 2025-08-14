@@ -1,49 +1,51 @@
-import React, { useState } from 'react';
-import { FaChevronDown, FaQuestionCircle } from 'react-icons/fa';
-
-const faqData = [
-  {
-    question: "Quels sont les documents nécessaires pour l'inscription de mon enfant ?",
-    answer: "Vous trouverez la liste complète des pièces à fournir dans l'onglet « Dossier à fournir », adaptée à chaque niveau (6ème à 3ème)."
-  },
-  {
-    question: "À quel moment puis-je inscrire mon enfant ?",
-    answer: "Les inscriptions sont ouvertes chaque année à partir du mois de mai, jusqu'à épuisement des places disponibles."
-  },
-  {
-    question: "Mon enfant vient d'un autre établissement, peut-il s'inscrire ?",
-    answer: "Oui, l'admission est possible sur présentation du dossier scolaire, des bulletins de l'année précédente et après étude du dossier par la direction."
-  },
-  {
-    question: "Y a-t-il un test d'entrée ?",
-    answer: "Pour certains niveaux, un entretien ou un test de positionnement peut être demandé afin d'évaluer le niveau de l'élève."
-  },
-  {
-    question: "Les frais d'inscription sont-ils remboursables ?",
-    answer: "Non, les frais d'inscription ne sont pas remboursables, sauf cas exceptionnel (déménagement, force majeure, etc.)."
-  },
-  {
-    question: "Proposez-vous des facilités de paiement pour la scolarité ?",
-    answer: "Oui, le paiement de la scolarité peut être échelonné en plusieurs tranches. Merci de contacter le service comptabilité pour plus de détails."
-  },
-  {
-    question: "Y a-t-il une cantine et un service de transport ?",
-    answer: "Oui, une cantine et un service de transport sont proposés en option. Les tarifs sont disponibles à l'accueil."
-  },
-  {
-    question: "Comment suivre la scolarité de mon enfant ?",
-    answer: "Un espace parents en ligne est disponible pour consulter les bulletins, les annonces et échanger avec l'équipe pédagogique."
-  },
-  {
-    question: "Qui contacter pour plus d'informations ?",
-    answer: "Vous pouvez contacter le secrétariat de l'établissement par téléphone, email ou via le formulaire de contact sur notre site."
-  }
-];
+import React, { useState, useEffect } from 'react';
+import { FaChevronDown, FaQuestionCircle, FaSpinner } from 'react-icons/fa';
 
 const FAQSection = () => {
+  const [faqData, setFaqData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [openIndex, setOpenIndex] = useState(null);
 
+
+
+  useEffect(() => {
+    loadFAQ();
+  }, []);
+
+  const loadFAQ = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/ecoles/2/faq-admissions`, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const faqDataFromAPI = Array.isArray(data) ? data : data.data || [];
+        setFaqData(faqDataFromAPI);
+      } else {
+        console.error('Erreur API FAQ:', response.status, response.statusText);
+        setFaqData([]);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement de la FAQ:', error);
+      setFaqData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const toggle = idx => setOpenIndex(openIndex === idx ? null : idx);
+
+  if (loading) {
+    return (
+      <div className="max-w-3xl mx-auto flex justify-center items-center py-12">
+        <FaSpinner className="animate-spin text-emerald-600 text-3xl" />
+        <span className="ml-3 text-lg text-gray-600">Chargement de la FAQ...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -51,27 +53,36 @@ const FAQSection = () => {
         <FaQuestionCircle className="text-emerald-500" />
         Questions fréquentes (FAQ Admissions)
       </h2>
-      <div className="space-y-4">
-        {faqData.map((item, idx) => (
-          <div key={idx} className="bg-white rounded-xl shadow p-4">
-            <button
-              className="w-full flex justify-between items-center text-left font-semibold text-emerald-700 text-lg focus:outline-none"
-              onClick={() => toggle(idx)}
-            >
-              {item.question}
-              <FaChevronDown className={`ml-2 transition-transform ${openIndex === idx ? 'rotate-180' : ''}`} />
-            </button>
-            {openIndex === idx && (
-              <div className="mt-3 text-gray-700 text-base animate-fade-in">
-                {item.answer}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+
+      {faqData.length > 0 ? (
+        <div className="space-y-4">
+          {faqData.map((item, idx) => (
+            <div key={item.id || idx} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-4">
+              <button
+                className="w-full flex justify-between items-center text-left font-semibold text-emerald-700 text-lg focus:outline-none hover:text-emerald-800 transition-colors"
+                onClick={() => toggle(idx)}
+              >
+                {item.titre}
+                <FaChevronDown className={`ml-2 transition-transform duration-300 ${openIndex === idx ? 'rotate-180' : ''}`} />
+              </button>
+              {openIndex === idx && (
+                <div className="mt-4 text-gray-700 text-base animate-fade-in p-4 bg-gray-50 rounded-lg border-l-4 border-emerald-500">
+                  {item.nom}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <FaQuestionCircle className="text-gray-400 text-4xl mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Aucune question fréquente disponible pour le moment.</p>
+        </div>
+      )}
+
       <style>{`
         .animate-fade-in {
-          animation: fadeIn 0.3s;
+          animation: fadeIn 0.3s ease-out;
         }
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(-8px); }

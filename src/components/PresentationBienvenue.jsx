@@ -1,21 +1,23 @@
 import React from 'react';
-import image1 from '../assets/images/image1.jpg';
+import maternelleImg from '../assets/images/maternelle.jpg';
+import primaireImg from '../assets/images/primaire.jpg';
+import secondaireImg from '../assets/images/secondaire.jpg';
 
 const niveaux = [
   {
     titre: "ÉCOLE MATERNELLE",
     description: "Un cadre accueillant où les plus jeunes découvrent le plaisir d'apprendre à travers des activités ludiques et éducatives.",
-    image: image1,
+    image: maternelleImg,
   },
   {
     titre: "ÉCOLE PRIMAIRE",
     description: "Un programme solide qui combine apprentissage académique et développement des compétences sociales.",
-    image: image1,
+    image: primaireImg,
   },
   {
-    titre: "COLLÈGE",
+    titre: "SÉCONDAIRE",
     description: "Un environnement structuré pour renforcer les acquis et préparer les élèves aux défis du secondaire.",
-    image: image1,
+    image: secondaireImg,
   },
 ];
 

@@ -10,6 +10,18 @@
     font-family: 'Poppins', sans-serif;
 }
 
+/* Styles pour la vidéo hero */
+.hero-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
+/* Anciens styles pour les slides - conservés pour compatibilité */
 .hero-section .slide {
     position: absolute;
     top: 0;
@@ -19,7 +31,7 @@
     opacity: 0;
     transition: opacity 1.5s ease-in-out;
     background-position: center center;
-    background-size: cover; /* Maintient la proportion de l'image */
+    background-size: cover;
     background-repeat: no-repeat;
     background-attachment: scroll;
     will-change: opacity;
@@ -29,14 +41,14 @@
     opacity: 1;
 }
 
-/* Overlay supprimé - Images dans leurs couleurs naturelles */
+/* Overlay pour améliorer la lisibilité du texte sur la vidéo */
 .hero-overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: transparent;
+    background: rgba(0, 0, 0, 0.4); /* Overlay sombre léger pour la lisibilité */
     z-index: 1;
 }
 

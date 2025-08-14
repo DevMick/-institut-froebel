@@ -1,7 +1,7 @@
 import React from 'react';
 import image2 from '../assets/images/image2.jpg';
-import image3 from '../assets/images/image3.jpg';
-import image4 from '../assets/images/image4.jpg';
+import nosEcolesImg from '../assets/images/_DSC0253.jpg';
+import inscriptionImg from '../assets/images/inscription.jpg';
 
 const cartes = [
   {
@@ -13,13 +13,13 @@ const cartes = [
   {
     titre: 'NOS ÉCOLES',
     sousTitre: 'Explorez nos établissements',
-    image: image3,
+    image: nosEcolesImg,
     lien: '#ecoles',
   },
   {
     titre: 'NOTRE PROGRAMME',
     sousTitre: 'Découvrez notre pédagogie',
-    image: image4,
+    image: inscriptionImg,
     lien: '#programme',
   },
 ];

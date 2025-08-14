@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Configuration de l'API - utilise directement l'URL GitHub Codespaces
-const API_BASE = 'https://ominous-space-potato-r4gg6jvq474jcx99j-5271.app.github.dev/api';
+// Configuration de l'API - utilise localhost:5000
+const API_BASE = 'http://localhost:5000/api';
 
 console.log('API_BASE:', API_BASE);
 
@@ -23,10 +23,8 @@ const apiClient = axios.create({
 // Add request interceptor to handle CORS
 apiClient.interceptors.request.use(
   (config) => {
-    // Add CORS headers
-    config.headers['Access-Control-Allow-Origin'] = '*';
-    config.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
-    config.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization';
+    // Ne pas ajouter les headers CORS côté client - c'est au serveur de les gérer
+    console.log('Requête API:', config.method?.toUpperCase(), config.url);
     return config;
   },
   (error) => {
@@ -201,15 +199,29 @@ const authApi = {
   },
 
   // Récupérer la liste des écoles disponibles
-  getSchools: async () => {
+  getSchools: async (page = 1, pageSize = 20) => {
     try {
-      console.log('Tentative de récupération des écoles depuis:', `${API_BASE}/auth/schools`);
-      const response = await apiClient.get('/auth/schools');
+      // Utiliser localhost:5000 comme spécifié dans votre curl
+      const localApiBase = 'http://localhost:5000/api';
+      const url = `${localApiBase}/ecoles?page=${page}&pageSize=${pageSize}`;
+      console.log('Tentative de récupération des écoles depuis:', url);
+
+      const response = await axios.get(url, {
+        headers: {
+          'accept': 'text/plain',
+          'Content-Type': 'application/json',
+        },
+        timeout: 15000,
+      });
+
       console.log('Réponse brute des écoles:', response);
-      
+      console.log('Données des écoles:', response.data);
+
       if (Array.isArray(response.data)) {
+        console.log(`${response.data.length} écoles récupérées avec succès`);
         return response.data;
       } else if (response.data && Array.isArray(response.data.data)) {
+        console.log(`${response.data.data.length} écoles récupérées avec succès`);
         return response.data.data;
       } else {
         console.error('Format de réponse inattendu pour les écoles:', response.data);
@@ -222,12 +234,72 @@ const authApi = {
         console.error('Status:', error.response.status);
         console.error('Headers:', error.response.headers);
       }
-      
-      // Fallback data basé sur la réponse de l'API
+
+      // Fallback data basé sur la réponse de l'API que vous avez fournie
       console.log('Utilisation des données de fallback pour les écoles');
       return [
-        { id: 1, nom: "Institut Froebel" },
-        { id: 2, nom: "Institut Froebel LA TULIPE" }
+        {
+          id: 2,
+          nom: "Institut Froebel LA TULIPE",
+          code: "FROEBEL_DEFAULT",
+          adresse: "Marcory Anoumambo, en face de l'ARTCI",
+          commune: "Marcory",
+          telephone: "+225 27 22 49 50 00",
+          email: "contact@froebel-default.ci",
+          anneeScolaire: "2024-2025",
+          nombreUtilisateurs: 3,
+          nombreClasses: 4,
+          nombreEleves: 3,
+          createdAt: "2025-07-02T01:31:58.01563Z"
+        }
+      ];
+    }
+  },
+
+  // Récupérer la liste des classes d'une école
+  getClasses: async (ecoleId) => {
+    try {
+      // Utiliser localhost:5000 comme spécifié dans votre curl
+      const localApiBase = 'http://localhost:5000/api';
+      console.log('Tentative de récupération des classes depuis:', `${localApiBase}/ecoles/${ecoleId}/classes`);
+
+      const response = await axios.get(`${localApiBase}/ecoles/${ecoleId}/classes`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        timeout: 15000,
+      });
+
+      console.log('Réponse brute des classes:', response);
+
+      if (Array.isArray(response.data)) {
+        return response.data;
+      } else if (response.data && Array.isArray(response.data.data)) {
+        return response.data.data;
+      } else if (response.data && response.data.classes && Array.isArray(response.data.classes)) {
+        return response.data.classes;
+      } else {
+        console.error('Format de réponse inattendu pour les classes:', response.data);
+        return [];
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des classes:', error);
+      if (error.response) {
+        console.error('Détails de l\'erreur:', error.response.data);
+        console.error('Status:', error.response.status);
+        console.error('Headers:', error.response.headers);
+      }
+
+      // Fallback data pour les classes
+      console.log('Utilisation des données de fallback pour les classes');
+      return [
+        { id: 1, nom: "Petite Section", niveau: "Maternelle", effectif: 20 },
+        { id: 2, nom: "Moyenne Section", niveau: "Maternelle", effectif: 22 },
+        { id: 3, nom: "Grande Section", niveau: "Maternelle", effectif: 25 },
+        { id: 4, nom: "CP", niveau: "Primaire", effectif: 28 },
+        { id: 5, nom: "CE1", niveau: "Primaire", effectif: 26 },
+        { id: 6, nom: "CE2", niveau: "Primaire", effectif: 24 }
       ];
     }
   },

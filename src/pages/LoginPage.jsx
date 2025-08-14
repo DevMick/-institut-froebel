@@ -1,17 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import ecolesApi from '../services/ecolesApi';
 import authApi from '../services/authApi';
 import Logo from '../assets/images/Logo.png';
-import { Form, Input, Button, Typography, Alert, Select, Spin, Card, Switch } from 'antd';
-import { HomeOutlined, MailOutlined, LockOutlined, LoginOutlined, DownOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Typography, Alert, Spin, Card } from 'antd';
+import { HomeOutlined, MailOutlined, LockOutlined, LoginOutlined } from '@ant-design/icons';
 import '../styles/LoginPage.css';
 
-// Import du composant de test (optionnel)
-const LoginTest = React.lazy(() => import('../components/LoginTest'));
-
 const { Title, Text } = Typography;
-const { Option } = Select;
 
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
@@ -22,18 +19,13 @@ const LoginPage = () => {
   const [schoolsError, setSchoolsError] = useState('');
   const [form] = Form.useForm();
 
-  // États pour le select personnalisé
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // État pour l'école sélectionnée
   const [selectedSchool, setSelectedSchool] = useState(null);
-  const dropdownRef = useRef(null);
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = location.state?.from?.pathname || '/espace-parents';
-
-  const [apiDebug, setApiDebug] = useState(null);
-  const [showDevTools, setShowDevTools] = useState(false);
 
   // Vérifier si l'utilisateur est déjà connecté
   useEffect(() => {
@@ -41,7 +33,7 @@ const LoginPage = () => {
     const user = localStorage.getItem('user');
     
     if (token && user) {
-      try {
+      try {tu 
         const userData = JSON.parse(user);
         const roles = userData.roles || [];
         
@@ -64,36 +56,33 @@ const LoginPage = () => {
     }
   }, [navigate]);
 
-  // Fermer le dropdown quand on clique à l'extérieur
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   useEffect(() => {
     const fetchSchools = async () => {
       setSchoolsLoading(true);
+      setSchoolsError('');
       try {
-        const response = await authApi.getSchools();
+        console.log('Récupération des écoles depuis le nouvel endpoint...');
+        const response = await ecolesApi.getEcoles(1, 20); // page=1, pageSize=20
         console.log('Réponse écoles:', response);
+
         if (Array.isArray(response)) {
           setSchools(response);
+          console.log('Écoles définies (array):', response);
+          console.log(`${response.length} écoles chargées avec succès`);
         } else if (response && Array.isArray(response.data)) {
           setSchools(response.data);
+          console.log('Écoles définies (response.data):', response.data);
+          console.log(`${response.data.length} écoles chargées avec succès`);
         } else {
           console.error('Format de réponse inattendu pour les écoles:', response);
           setSchools([]);
+          setSchoolsError('Format de données inattendu');
         }
       } catch (e) {
         console.error('Erreur lors de la récupération des écoles:', e);
+        setSchoolsError('Erreur lors du chargement des écoles depuis localhost:5000');
         setSchools([]);
       } finally {
         setSchoolsLoading(false);
@@ -103,8 +92,70 @@ const LoginPage = () => {
   }, []);
 
   const onFinish = async (values) => {
-    // Redirection immédiate vers l'interface super admin
-    navigate("/superadmin", { replace: true });
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      console.log('Tentative de connexion avec les valeurs:', values);
+
+      // Appeler l'API de connexion avec les bons paramètres
+      const response = await authApi.login(
+        values.schoolId,  // ecoleId
+        values.email,     // email
+        values.password   // password
+      );
+
+      console.log('Réponse de connexion:', response);
+
+      if (response && response.success) {
+        // Connexion réussie
+        setSuccess('Connexion réussie !');
+
+        // Extraire les données de la réponse API
+        const userData = response.data?.user;
+        const token = response.data?.token;
+
+        console.log('Données utilisateur extraites:', userData);
+        console.log('Token extrait:', token);
+
+        if (userData && token) {
+          // Utiliser la fonction login du contexte d'authentification
+          login(userData, token);
+
+          // Rediriger selon le rôle de l'utilisateur
+          const roles = userData.roles || [];
+          console.log('Rôles utilisateur:', roles);
+
+          if (roles.includes("SuperAdmin")) {
+            console.log('Redirection vers SuperAdmin');
+            navigate("/superadmin", { replace: true });
+          } else if (roles.includes("Admin")) {
+            console.log('Redirection vers SuperAdmin (Admin)');
+            navigate("/superadmin", { replace: true });
+          } else if (roles.includes("Teacher")) {
+            console.log('Redirection vers Teacher');
+            navigate("/teacher", { replace: true });
+          } else if (roles.includes("Parent")) {
+            console.log('Redirection vers Espace Parents');
+            navigate("/espace-parents", { replace: true });
+          } else {
+            console.log('Rôle non reconnu, redirection par défaut vers Espace Parents');
+            navigate("/espace-parents", { replace: true });
+          }
+        } else {
+          setError('Données utilisateur ou token manquants dans la réponse.');
+        }
+      } else {
+        // Connexion échouée
+        setError(response?.message || 'Identifiants incorrects. Veuillez vérifier votre email et mot de passe.');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la connexion:', error);
+      setError('Erreur de connexion. Veuillez réessayer.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -138,6 +189,22 @@ const LoginPage = () => {
               <div className="mt-4 text-gray-600">
                 Chargement des écoles...
               </div>
+            </div>
+          ) : schoolsError ? (
+            <div className="text-center py-8">
+              <Alert
+                message="Erreur de chargement"
+                description={schoolsError}
+                type="error"
+                showIcon
+                className="mb-4"
+              />
+              <Button
+                onClick={() => window.location.reload()}
+                type="primary"
+              >
+                Recharger la page
+              </Button>
             </div>
           ) : (
             <div>
@@ -184,22 +251,34 @@ const LoginPage = () => {
                       <HomeOutlined className="select-icon-html" />
                       <select
                         className="modern-select-html"
-                        value={selectedSchool ? String(selectedSchool.id) : ''}
-                        onChange={e => {
-                          const school = schools.find(s => String(s.id) === e.target.value);
-                          setSelectedSchool(school);
-                          form.setFieldsValue({ schoolId: e.target.value });
-                        }}
-                        required
                         disabled={schoolsLoading}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          console.log('École sélectionnée:', value);
+                          const school = schools.find(s => String(s.id) === String(value));
+                          setSelectedSchool(school);
+                          console.log('École trouvée:', school);
+                          // Mettre à jour la valeur du formulaire
+                          form.setFieldsValue({ schoolId: value });
+                        }}
                       >
-                        <option value="" disabled>Sélectionnez votre école</option>
-                          {schools.map(school => (
-                          <option key={school.id} value={school.id}>{school.nom}</option>
-                          ))}
+                        <option value="">Sélectionnez votre école</option>
+                        {schools.length === 0 ? (
+                          <option disabled value="">
+                            Aucune école disponible
+                          </option>
+                        ) : (
+                          schools.map(school => (
+                            <option key={school.id} value={school.id}>
+                              {school.nom}
+                            </option>
+                          ))
+                        )}
                       </select>
                     </div>
                   </div>
+
+
                 </Form.Item>
                 <Form.Item
                   name="email"
@@ -275,201 +354,15 @@ const LoginPage = () => {
                   </Button>
                 </Form.Item>
               </Form>
-              {/* Affichage debug de la réponse API login */}
-              {apiDebug && (
-                <pre style={{ background: '#f3f4f6', color: '#1e293b', fontSize: 12, padding: 12, borderRadius: 8, marginTop: 16 }}>
-                  {JSON.stringify(apiDebug, null, 2)}
-                </pre>
-              )}
-              
-              {/* Bouton de test pour simuler la connexion */}
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <Text className="text-sm text-gray-500 mb-2 block">
-                  Test avec les données de l'API :
-                </Text>
-                <div className="flex gap-2">
-                  <Button
-                    type="dashed"
-                    size="small"
-                    onClick={() => {
-                      const testSchool = schools.find(s => s.id === 2);
-                      setSelectedSchool(testSchool);
-                      form.setFieldsValue({
-                        schoolId: '2',
-                        email: 'adjoua.kouassi@email.com',
-                        password: 'Adjoua2024!'
-                      });
-                    }}
-                  >
-                    Remplir formulaire test
-                  </Button>
-                  <Button
-                    type="text"
-                    size="small"
-                    onClick={() => {
-                      setSelectedSchool(null);
-                      form.resetFields();
-                      setError('');
-                      setApiDebug(null);
-                    }}
-                  >
-                    Effacer
-                  </Button>
-                </div>
-              </div>
+
             </div>
           )}
         </Card>
 
-        {/* Outils de développement */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Switch 
-                checked={showDevTools} 
-                onChange={setShowDevTools}
-                size="small"
-              />
-              <Text className="text-sm text-gray-500">
-                Afficher les outils de développement
-              </Text>
-            </div>
-            
-            {showDevTools && (
-              <React.Suspense fallback={<div>Chargement des outils de test...</div>}>
-                <LoginTest 
-                  onTestLogin={async (testData) => {
-                    try {
-                      const response = await authApi.login(
-                        testData.schoolId, 
-                        testData.email, 
-                        testData.password
-                      );
-                      return response;
-                    } catch (error) {
-                      return {
-                        success: false,
-                        message: error.message || 'Erreur de test'
-                      };
-                    }
-                  }}
-                />
-              </React.Suspense>
-            )}
-          </div>
-        )}
+
       </div>
 
-      <style jsx>{`
-        .modern-form .form-label {
-          display: block;
-          margin-bottom: 0.25rem;
-          font-size: 14px;
-          font-weight: 500;
-          color: #374151;
-        }
 
-        .modern-form .required-asterisk {
-          color: #ef4444;
-        }
-
-        .select-with-icon {
-          position: relative;
-        }
-
-        .select-icon {
-          position: absolute;
-          left: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          z-index: 1;
-          color: #3b82f6;
-          font-size: 16px;
-          pointer-events: none;
-        }
-
-        .select-with-icon .modern-select .ant-select-selector {
-          padding-left: 40px !important;
-        }
-
-        .select-with-icon .modern-select .ant-select-selection-search {
-          margin-left: 0 !important;
-        }
-
-        .select-with-icon .modern-select .ant-select-selection-placeholder {
-          margin-left: 0 !important;
-        }
-
-        .modern-select .ant-select-selector,
-        .modern-input {
-          border: 1px solid #e5e7eb !important;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-          transition: all 0.2s ease !important;
-        }
-
-        .modern-select .ant-select-selector:hover,
-        .modern-input:hover {
-          border-color: #3b82f6 !important;
-          box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1) !important;
-        }
-
-        .modern-select .ant-select-focused .ant-select-selector,
-        .modern-input:focus {
-          border-color: #3b82f6 !important;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
-        }
-
-        /* Styles pour le select HTML moderne */
-        .select-with-icon-html {
-          position: relative;
-        }
-
-        .select-icon-html {
-          position: absolute;
-          left: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          z-index: 1;
-          color: #3b82f6;
-          font-size: 16px;
-          pointer-events: none;
-        }
-
-        .modern-select-html {
-          width: 100%;
-          height: 40px;
-          padding: 8px 12px 8px 40px;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          font-size: 14px;
-          background-color: white;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          appearance: none;
-          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-          background-position: right 12px center;
-          background-repeat: no-repeat;
-          background-size: 16px;
-          padding-right: 40px;
-        }
-
-        .modern-select-html:hover {
-          border-color: #3b82f6;
-          box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .modern-select-html:focus {
-          outline: none;
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .modern-select-html option {
-          padding: 8px 12px;
-          font-size: 14px;
-        }
-      `}</style>
     </div>
   );
 };

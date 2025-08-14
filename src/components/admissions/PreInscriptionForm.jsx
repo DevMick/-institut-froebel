@@ -5,7 +5,7 @@ import dayjs from 'dayjs';
 
 const { Option } = Select;
 
-const PreInscriptionForm = () => {
+const PreInscriptionForm = ({ onSuccess }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [classes, setClasses] = useState([]);
@@ -24,7 +24,7 @@ const PreInscriptionForm = () => {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await fetch('http://localhost:5271/api/ecoles/2/classes');
+        const response = await fetch('http://localhost:5000/api/ecoles/2/classes');
         if (response.ok) {
           const classesData = await response.json();
           setClasses(classesData);
@@ -63,13 +63,12 @@ const PreInscriptionForm = () => {
           prenom: enfant.prenom,
           dateNaissance: enfant.dateNaissance ? new Date(enfant.dateNaissance).toISOString() : null,
           sexe: enfant.sexe,
-          classeId: enfant.classeId,
-          utiliseCantine: enfant.utiliseCantine || false
+          classeId: enfant.classeId
         }))
       };
 
       // Appel à l'API
-      const response = await fetch(`http://localhost:5271/api/ecoles/${selectedSchool.id}/preinscriptions`, {
+      const response = await fetch(`http://localhost:5000/api/ecoles/${selectedSchool.id}/preinscriptions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,8 +79,13 @@ const PreInscriptionForm = () => {
       if (response.ok) {
         const result = await response.json();
         message.success('Pré-inscription effectuée avec succès !');
-      form.resetFields();
+        form.resetFields();
         console.log('Pré-inscription réussie:', result);
+
+        // Appeler la fonction de callback si fournie
+        if (onSuccess) {
+          onSuccess();
+        }
       } else {
         const errorData = await response.json();
         message.error(errorData.message || 'Erreur lors de la pré-inscription');
@@ -296,13 +300,7 @@ const PreInscriptionForm = () => {
                           </select>
                         </Form.Item>
 
-                        <Form.Item
-                          {...restField}
-                          name={[name, 'utiliseCantine']}
-                          valuePropName="checked"
-                        >
-                          <Checkbox>Utilise la cantine</Checkbox>
-                        </Form.Item>
+
             </div>
                     </Card>
                   ))}

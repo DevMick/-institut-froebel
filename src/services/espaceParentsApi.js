@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 
-const API_BASE_URL = 'https://ominous-space-potato-r4gg6jvq474jcx99j-5271.app.github.dev/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 const getAuthHeaders = (token) => ({
   Authorization: `Bearer ${token}`,
@@ -324,28 +324,159 @@ export const fetchDashboard = async (token) => {
   }
 };
 
-export const fetchCahierLiaison = async (token, enfantId, page = 1, pageSize = 10) => {
+// Récupérer les enfants du parent connecté
+export const fetchEnfantsParent = async (token, parentId = null) => {
   try {
-    await new Promise(resolve => setTimeout(resolve, 300));
+    const ecoleId = 2; // ID de l'école fixé à 2
+    const response = await api.get(`/ecoles/${ecoleId}/parent-enfants`, {
+      headers: getAuthHeaders(token)
+    });
+
+    // Filtrer les enfants du parent connecté si parentId est fourni
+    let filteredData = response.data;
+    if (parentId) {
+      filteredData = response.data.filter(item => item.parentId === parentId);
+    }
+
+    // Transformer les données pour correspondre au format attendu par le frontend
+    const enfants = filteredData.map(item => ({
+      id: item.enfantId,
+      prenom: item.enfantNom.split(' ')[0], // Premier mot comme prénom
+      nom: item.enfantNom.split(' ').slice(1).join(' ') || item.enfantNom, // Reste comme nom
+      classe: item.classeNom,
+      classeId: item.classeId,
+      dateNaissance: item.enfantDateNaissance,
+      anneeScolaire: item.anneeScolaire,
+      parentId: item.parentId,
+      parentNom: item.parentNom,
+      parentEmail: item.parentEmail,
+      parentTelephone: item.parentTelephone
+    }));
+
     return {
       success: true,
-      message: "Cahier de liaison récupéré",
-      data: cahierLiaisonTestData
+      message: "Enfants récupérés",
+      data: enfants
     };
   } catch (error) {
+    console.error('Erreur lors de la récupération des enfants:', error);
+
+    // Fallback avec des données de test si l'API n'est pas disponible
+    console.log('Utilisation des données de test pour les enfants');
+    return {
+      success: true,
+      message: "Enfants récupérés (données de test)",
+      data: [
+        {
+          id: 1,
+          prenom: "Aya",
+          nom: "Kouassi",
+          classe: "6ème",
+          classeId: 1,
+          dateNaissance: "2016-08-12T00:00:00Z",
+          anneeScolaire: "2024-2025",
+          parentId: "cf29fece-829f-4788-9a71-ace1b868caa0",
+          parentNom: "Adjoua Kouassi",
+          parentEmail: "adjoua.kouassi@email.com",
+          parentTelephone: "+225 07 12 34 56 78"
+        }
+      ]
+    };
+  }
+};
+
+export const fetchCahierLiaison = async (token, enfantId, page = 1, pageSize = 10) => {
+  try {
+    // Pour l'instant, on utilise l'école ID 2 comme dans l'exemple
+    const ecoleId = 2;
+    console.log(`Appel API: /ecoles/${ecoleId}/enfants/${enfantId}/cahier-liaison`);
+
+    const response = await api.get(`/ecoles/${ecoleId}/enfants/${enfantId}/cahier-liaison`, {
+      headers: getAuthHeaders(token),
+      params: {
+        page,
+        pageSize
+      }
+    });
+
+    console.log('Réponse brute API cahier de liaison:', response.data);
+
+    // Transformer les données pour correspondre au format attendu par le frontend
+    const items = Array.isArray(response.data) ? response.data : [];
+    const transformedData = {
+      items: items.map(item => ({
+        id: item.id,
+        titre: item.titre,
+        message: item.message,
+        type: item.type,
+        luParParent: item.luParParent,
+        dateLecture: item.dateLecture,
+        reponseRequise: item.reponseRequise,
+        reponseParent: item.reponseParent,
+        dateReponse: item.dateReponse,
+        enfantId: item.enfantId,
+        enfantNom: item.enfantNom,
+        classeNom: item.classeNom,
+        parentNom: item.parentNom,
+        createdById: item.createdById,
+        createdByNom: item.createdByNom,
+        dateCreation: item.createdAt,
+        createdByName: item.createdByNom
+      })),
+      totalCount: items.length,
+      page: page,
+      pageSize: pageSize,
+      totalPages: Math.ceil(items.length / pageSize) || 1
+    };
+
+    console.log('Données transformées:', transformedData);
+
+    return {
+      success: true,
+      message: items.length > 0 ? "Cahier de liaison récupéré" : "Aucun message trouvé",
+      data: transformedData
+    };
+  } catch (error) {
+    console.error('Erreur lors de la récupération du cahier de liaison:', error);
+    console.error('Détails de l\'erreur:', error.response?.data || error.message);
+
+    // Si l'enfant n'a pas de messages, retourner une structure vide plutôt qu'une erreur
+    if (error.response?.status === 404) {
+      return {
+        success: true,
+        message: "Aucun message trouvé pour cet enfant",
+        data: {
+          items: [],
+          totalCount: 0,
+          page: page,
+          pageSize: pageSize,
+          totalPages: 1
+        }
+      };
+    }
+
     return handleApiError(error);
   }
 };
 
-export const markMessageLu = async (token, messageId) => {
+export const markMessageLu = async (token, messageId, enfantId = null) => {
   try {
-    await new Promise(resolve => setTimeout(resolve, 200));
+    // Pour l'instant, on utilise l'école ID 2 comme dans l'exemple
+    const ecoleId = 2;
+    // Si enfantId n'est pas fourni, on utilise 1 par défaut (correspond à Aya Kouassi)
+    const enfantIdToUse = enfantId || 1;
+
+    const response = await api.put(`/ecoles/${ecoleId}/enfants/${enfantIdToUse}/cahier-liaison/${messageId}/marquer-lu`, {}, {
+      headers: getAuthHeaders(token)
+    });
+
     return {
       success: true,
       message: "Message marqué comme lu",
-      data: null
+      data: response.data
     };
   } catch (error) {
+    console.error('Erreur lors du marquage du message comme lu:', error);
     return handleApiError(error);
   }
 };

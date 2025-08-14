@@ -1,14 +1,16 @@
 import React from 'react';
-import martenelle from '../assets/images/martenelle.jpg';
+import maternelleImg from '../assets/images/maternelle.jpg';
 import blio from '../assets/images/blio.jpg';
-import classe from '../assets/images/classe.jpg';
+import salleClasseImg from '../assets/images/_DSC0230.jpg';
 import cours from '../assets/images/cours.jpg';
 import eleve from '../assets/images/eleve.jpg';
-import image1 from '../assets/images/image1.jpg';
+import secondaireImg from '../assets/images/secondaire.jpg';
+import sallePolyvalenteImg from '../assets/images/salle polyvalente.jpg';
+import transportImg from '../assets/images/_DSC0278.jpg';
 
 const photos = [
   {
-    src: martenelle,
+    src: maternelleImg,
     titre: "École Maternelle",
     desc: "Nos plus jeunes élèves évoluent dans un environnement coloré et adapté à leur développement",
   },
@@ -18,7 +20,7 @@ const photos = [
     desc: "Un espace de lecture et de découverte équipé des dernières technologies pour encourager l'amour des livres",
   },
   {
-    src: classe,
+    src: salleClasseImg,
     titre: "Salles de Classe",
     desc: "Environnement d'apprentissage lumineux et technologiquement avancé",
   },
@@ -38,9 +40,19 @@ const photos = [
     desc: "Des enfants curieux et motivés qui développent leurs compétences fondamentales avec passion",
   },
   {
-    src: image1,
-    titre: "Collège",
+    src: secondaireImg,
+    titre: "Sécondaire",
     desc: "Formation secondaire d'excellence avec accompagnement personnalisé",
+  },
+  {
+    src: sallePolyvalenteImg,
+    titre: "Salle Polyvalente",
+    desc: "Nos salles informatique modernes équipées pour l'apprentissage numérique",
+  },
+  {
+    src: transportImg,
+    titre: "Moyen de Transport",
+    desc: "Service de transport scolaire sécurisé pour nos élèves",
   },
 ];
 

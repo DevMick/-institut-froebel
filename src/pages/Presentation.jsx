@@ -1,5 +1,5 @@
 import React from 'react';
-import herosectionpre from '../assets/images/herosectionpre.jpg';
+import spotEcoleVideo from '../assets/images/Spot Ecole.mp4';
 import NotrePedagogie from '../components/NotrePedagogie';
 import InstallationsVieScolaire from '../components/InstallationsVieScolaire';
 
@@ -8,11 +8,16 @@ const Presentation = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <section className="relative w-full h-[320px] md:h-[380px] flex items-center justify-center mb-12">
-        <img
-          src={herosectionpre}
-          alt="Présentation Institut Froebel"
+        <video
           className="absolute inset-0 w-full h-full object-cover object-center z-0"
-        />
+          autoPlay
+          muted
+          loop
+          playsInline
+        >
+          <source src={spotEcoleVideo} type="video/mp4" />
+          Votre navigateur ne supporte pas la lecture de vidéos.
+        </video>
         <div className="absolute inset-0 bg-black/50 z-10" />
         <div className="relative z-20 flex flex-col items-center justify-center w-full h-full text-center px-4">
           <h1 className="text-3xl md:text-5xl font-extrabold mb-4 drop-shadow-lg" style={{ color: '#00A86B' }}>Présentation de l'Institut Froebel</h1>

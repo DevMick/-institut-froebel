@@ -6,7 +6,7 @@ const menuItems = [
   { label: 'Admission & Inscription', href: '/admissions', isRoute: true },
   { label: 'Nos cycles', href: '/cycles', isRoute: true },
   { label: 'Vie scolaire', href: '/vie-scolaire', isRoute: true },
-  { label: 'Espace parents', href: '/espace-parents', isRoute: true },
+  { label: 'Espace parents', href: '/login', isRoute: true },
 ];
 
 const HeaderTulipe = () => {

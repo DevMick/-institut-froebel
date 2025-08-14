@@ -1,64 +1,74 @@
-import React from 'react';
-import { FaFolderOpen } from 'react-icons/fa';
-
-const dossiersParClasse = {
-  '6ème': [
-    "Formulaire d'inscription rempli et signé",
-    "Photocopie du Certificat de fin d'études primaires (CEPE)",
-    "Photocopie de l'extrait d'acte de naissance",
-    "2 photos d'identité récentes",
-    "Photocopie du carnet de vaccination",
-    "Frais d'inscription (reçu de paiement)"
-  ],
-  '5ème': [
-    "Formulaire d'inscription rempli et signé",
-    "Bulletin de la 6ème (photocopie)",
-    "Certificat de scolarité de l'année précédente",
-    "Photocopie de l'extrait d'acte de naissance",
-    "2 photos d'identité récentes",
-    "Photocopie du carnet de vaccination",
-    "Frais d'inscription (reçu de paiement)"
-  ],
-  '4ème': [
-    "Formulaire d'inscription rempli et signé",
-    "Bulletin de la 5ème (photocopie)",
-    "Certificat de scolarité de l'année précédente",
-    "Photocopie de l'extrait d'acte de naissance",
-    "2 photos d'identité récentes",
-    "Photocopie du carnet de vaccination",
-    "Frais d'inscription (reçu de paiement)"
-  ],
-  '3ème': [
-    "Formulaire d'inscription rempli et signé",
-    "Bulletin de la 4ème (photocopie)",
-    "Certificat de scolarité de l'année précédente",
-    "Photocopie de l'extrait d'acte de naissance",
-    "2 photos d'identité récentes",
-    "Photocopie du carnet de vaccination",
-    "Frais d'inscription (reçu de paiement)"
-  ]
-};
-
-const classes = ['6ème', '5ème', '4ème', '3ème'];
+import React, { useState, useEffect } from 'react';
+import { FaFolderOpen, FaSpinner, FaFileAlt } from 'react-icons/fa';
 
 const DossiersSection = () => {
+  const [dossiers, setDossiers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+
+
+  useEffect(() => {
+    loadDossiers();
+  }, []);
+
+  const loadDossiers = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/ecoles/2/dossier-a-fournir`, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const dossiersData = Array.isArray(data) ? data : data.data || [];
+        setDossiers(dossiersData);
+      } else {
+        console.error('Erreur API dossiers:', response.status, response.statusText);
+        setDossiers([]);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des dossiers:', error);
+      setDossiers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto flex justify-center items-center py-12">
+        <FaSpinner className="animate-spin text-emerald-600 text-3xl" />
+        <span className="ml-3 text-lg text-gray-600">Chargement des dossiers à fournir...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {classes.map(classe => (
-          <div key={classe} className="bg-white rounded-2xl shadow p-6">
+        {dossiers.map(dossier => (
+          <div key={dossier.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-6">
             <h4 className="text-xl font-bold text-emerald-700 mb-4 flex items-center gap-2">
               <FaFolderOpen className="text-emerald-500" />
-              Dossier à fournir en {classe}
+              Dossier à fournir en {dossier.classeNom}
             </h4>
-            <ul className="list-disc list-inside text-gray-700 space-y-2">
-              {dossiersParClasse[classe].map((piece, i) => (
-                <li key={i}>{piece}</li>
-              ))}
-            </ul>
+            <div className="text-gray-700 space-y-3">
+              <div className="flex items-start gap-3 p-2 bg-gray-50 rounded-lg">
+                <FaFileAlt className="text-emerald-500 mt-1 flex-shrink-0" />
+                <span>{dossier.nom}</span>
+              </div>
+            </div>
           </div>
         ))}
       </div>
+
+      {dossiers.length === 0 && (
+        <div className="text-center py-12">
+          <FaFolderOpen className="text-gray-400 text-4xl mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Aucun dossier à fournir disponible pour le moment.</p>
+        </div>
+      )}
     </div>
   );
 };

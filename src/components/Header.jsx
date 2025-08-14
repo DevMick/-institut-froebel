@@ -134,7 +134,7 @@ const Header = () => {
               </div>
             ) : (
               <button
-                onClick={() => navigate('/superadmin')}
+                onClick={() => navigate('/login')}
                 className="bg-froebel-green text-white px-6 py-3 rounded-md text-base font-medium hover:bg-froebel-dark transition-colors"
               >
                 Connexion
@@ -195,7 +195,7 @@ const Header = () => {
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    navigate('/superadmin');
+                    navigate('/login');
                   }}
                   className="w-full text-left bg-froebel-green text-white px-3 py-2 rounded-md text-sm font-medium mt-2 block"
                 >
