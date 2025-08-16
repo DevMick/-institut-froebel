@@ -1,9 +1,9 @@
 import React from 'react';
-import { FaSchool, FaChalkboardTeacher, FaLaptop, FaBook, FaRunning, FaShieldAlt, FaPalette, FaMusic, FaFlask, FaUsers, FaComments } from 'react-icons/fa';
+import { FaSchool, FaChalkboardTeacher, FaLaptop, FaBook, FaRunning, FaShieldAlt, FaPalette, FaMusic, FaFlask, FaUsers, FaComments, FaFutbol, FaLanguage, FaSwimmer, FaFistRaised } from 'react-icons/fa';
 import ecoleImage from '../assets/images/primaire.jpg';
 
 const chiffres = [
-  { valeur: '45+', label: "Années d'expérience" },
+  { valeur: '50+', label: "Années d'expérience" },
   { valeur: '30+', label: 'Salles de classe' },
   { valeur: '100%', label: 'Sécurité' },
   { valeur: 'CP à CM2', label: 'Tous niveaux' },
@@ -38,12 +38,12 @@ const infrastructures = [
 ];
 
 const activites = [
-  { icon: <FaRunning className="text-green-600 text-2xl" />, titre: 'Éducation Physique' },
-  { icon: <FaPalette className="text-green-600 text-2xl" />, titre: 'Arts Plastiques' },
-  { icon: <FaMusic className="text-green-600 text-2xl" />, titre: 'Éveil Musical' },
-  { icon: <FaFlask className="text-green-600 text-2xl" />, titre: 'Éveil Scientifique' },
-  { icon: <FaComments className="text-green-600 text-2xl" />, titre: 'Expression Orale' },
-  { icon: <FaUsers className="text-green-600 text-2xl" />, titre: 'Vie de Groupe' },
+  { icon: <FaComments className="text-green-600 text-2xl" />, titre: 'Club de Français' },
+  { icon: <FaLanguage className="text-green-600 text-2xl" />, titre: 'Club de Langues' },
+  { icon: <FaFutbol className="text-green-600 text-2xl" />, titre: 'Club de Football' },
+  { icon: <FaMusic className="text-green-600 text-2xl" />, titre: 'Club de Musique' },
+  { icon: <FaSwimmer className="text-green-600 text-2xl" />, titre: 'Natation' },
+  { icon: <FaFistRaised className="text-green-600 text-2xl" />, titre: 'Arts Martiaux' },
 ];
 
 const equipeBadges = [
@@ -102,7 +102,10 @@ const InstallationsVieScolaire = () => {
         </div>
         {/* Activités enrichissantes */}
         <div className="bg-green-50 rounded-2xl p-8 flex flex-col items-center mb-12">
-          <h3 className="text-xl md:text-2xl font-extrabold text-green-600 mb-6">Activités Enrichissantes</h3>
+          <h3 className="text-xl md:text-2xl font-extrabold text-green-600 mb-4">Clubs & Activités Sportives</h3>
+          <p className="text-gray-600 text-center mb-6 max-w-2xl">
+            Culture, Art et Sport : découvrez nos différents clubs et activités sportives qui enrichissent l'expérience éducative de nos élèves et favorisent leur épanouissement personnel.
+          </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6 w-full max-w-3xl">
             {activites.map((a, idx) => (
               <div key={a.titre} className="bg-white rounded-xl shadow flex flex-col items-center p-4">

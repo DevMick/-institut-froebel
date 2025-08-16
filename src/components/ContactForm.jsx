@@ -93,7 +93,7 @@ const ContactForm = () => {
           <div className="bg-white rounded-2xl shadow p-5 border-l-4 border-green-400">
             <h3 className="text-lg font-bold text-green-700 mb-2">Notre Excellence</h3>
             <ul className="text-gray-700 text-sm space-y-1">
-              <li>Fondé en 1979 – 45+ ans d'expérience</li>
+              <li>Fondé en 1975 – 50+ ans d'expérience</li>
               <li>Plus de 5000 anciens élèves diplômés</li>
               <li>98% de taux de réussite</li>
             </ul>

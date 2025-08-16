@@ -1,13 +1,8 @@
 import React from 'react';
-import { FaGraduationCap, FaGlobe, FaMoneyBillWave, FaUserGraduate } from 'react-icons/fa';
+import { FaGraduationCap, FaMoneyBillWave, FaUserGraduate } from 'react-icons/fa';
 import image5 from '../assets/images/image5.jpeg';
 
 const pedagogies = [
-  {
-    icon: <FaGlobe className="text-green-600 text-3xl mb-2" />,
-    titre: 'Approche Bilingue',
-    desc: "Enseignement intégré en français et en anglais qui prépare nos élèves à exceller dans un monde globalisé. Nos programmes bilingues développent une maîtrise naturelle des deux langues à travers des méthodes immersives et interactives.",
-  },
   {
     icon: <FaMoneyBillWave className="text-green-600 text-3xl mb-2" />,
     titre: 'Méthodes Innovantes',
@@ -48,7 +43,7 @@ const NotrePedagogie = () => {
           </div>
         </div>
         {/* Cartes pédagogiques */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           {pedagogies.map((p, idx) => (
             <div key={p.titre} className="bg-green-50 rounded-2xl shadow p-6 flex flex-col items-center text-center border border-green-100">
               {p.icon}

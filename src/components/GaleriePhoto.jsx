@@ -41,7 +41,7 @@ const photos = [
   },
   {
     src: secondaireImg,
-    titre: "Sécondaire",
+    titre: "Secondaire",
     desc: "Formation secondaire d'excellence avec accompagnement personnalisé",
   },
   {

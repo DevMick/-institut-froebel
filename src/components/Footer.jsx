@@ -29,7 +29,7 @@ const Footer = () => {
   }, []);
 
   return (
-    <footer className="bg-[#fff1f1] text-gray-800 pt-16 pb-4">
+    <footer className="bg-blue-50 text-gray-800 pt-16 pb-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           
@@ -39,16 +39,16 @@ const Footer = () => {
               <img src={Logo} alt="Institut Froebel Logo" className="h-14 w-auto" />
             </div>
             <p className="text-sm">
-              Ancré dans des valeurs d'excellence et d'innovation pédagogique, l'Institut Froebel se positionne comme une référence éducative à Abidjan depuis plus de 45 ans.
+              Ancré dans des valeurs d'excellence et d'innovation pédagogique, l'Institut Froebel se positionne comme une référence éducative à Abidjan depuis plus de 50 ans.
             </p>
             <div className="flex space-x-3">
-              <a href="#" className="w-9 h-9 bg-froebel-green text-white rounded-full flex items-center justify-center hover:bg-froebel-dark transition-colors">
+              <a href="#" className="w-9 h-9 bg-froebel-blue text-white rounded-full flex items-center justify-center hover:bg-froebel-blue-dark transition-colors">
                 <FaFacebookF />
               </a>
-              <a href="#" className="w-9 h-9 bg-froebel-green text-white rounded-full flex items-center justify-center hover:bg-froebel-dark transition-colors">
+              <a href="#" className="w-9 h-9 bg-froebel-blue text-white rounded-full flex items-center justify-center hover:bg-froebel-blue-dark transition-colors">
                 <FaTwitter />
               </a>
-              <a href="#" className="w-9 h-9 bg-froebel-green text-white rounded-full flex items-center justify-center hover:bg-froebel-dark transition-colors">
+              <a href="#" className="w-9 h-9 bg-froebel-blue text-white rounded-full flex items-center justify-center hover:bg-froebel-blue-dark transition-colors">
                 <FaTelegramPlane />
               </a>
             </div>
@@ -56,24 +56,24 @@ const Footer = () => {
 
           {/* Column 2: Liens Rapides */}
           <div className="space-y-4">
-            <h3 className="text-lg font-bold text-froebel-green relative pb-2">
+            <h3 className="text-lg font-bold text-froebel-blue relative pb-2">
               LIENS RAPIDES
-              <span className="absolute bottom-0 left-0 w-12 h-0.5 bg-froebel-green"></span>
+              <span className="absolute bottom-0 left-0 w-12 h-0.5 bg-froebel-blue"></span>
             </h3>
             <ul className="space-y-2">
-              <li><Link to="/accueil" className="hover:text-froebel-green transition-colors">Accueil</Link></li>
-              <li><Link to="/presentation" className="hover:text-froebel-green transition-colors">Présentation</Link></li>
-              <li><Link to="/schools" className="hover:text-froebel-green transition-colors">Nos écoles</Link></li>
-              <li><Link to="/contact" className="hover:text-froebel-green transition-colors">Contact</Link></li>
-              <li><Link to="/actualites" className="hover:text-froebel-green transition-colors">Actualités</Link></li>
+              <li><Link to="/accueil" className="hover:text-froebel-blue transition-colors">Accueil</Link></li>
+              <li><Link to="/presentation" className="hover:text-froebel-blue transition-colors">Présentation</Link></li>
+              <li><Link to="/schools" className="hover:text-froebel-blue transition-colors">Nos écoles</Link></li>
+              <li><Link to="/contact" className="hover:text-froebel-blue transition-colors">Contact</Link></li>
+              <li><Link to="/actualites" className="hover:text-froebel-blue transition-colors">Actualités</Link></li>
             </ul>
           </div>
 
           {/* Column 3: Nos Programmes */}
           <div className="space-y-4">
-            <h3 className="text-lg font-bold text-froebel-green relative pb-2">
+            <h3 className="text-lg font-bold text-froebel-blue relative pb-2">
               NOS PROGRAMMES
-              <span className="absolute bottom-0 left-0 w-12 h-0.5 bg-froebel-green"></span>
+              <span className="absolute bottom-0 left-0 w-12 h-0.5 bg-froebel-blue"></span>
             </h3>
             <ul className="space-y-4">
               <li>
@@ -93,36 +93,36 @@ const Footer = () => {
 
           {/* Column 4: Contact */}
           <div className="space-y-4">
-            <h3 className="text-lg font-bold text-froebel-green relative pb-2">
+            <h3 className="text-lg font-bold text-froebel-blue relative pb-2">
               CONTACT
-              <span className="absolute bottom-0 left-0 w-12 h-0.5 bg-froebel-green"></span>
+              <span className="absolute bottom-0 left-0 w-12 h-0.5 bg-froebel-blue"></span>
             </h3>
             <ul className="space-y-3">
               <li className="flex items-start space-x-3">
-                <div className="w-9 h-9 bg-froebel-green text-white rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-9 h-9 bg-froebel-blue text-white rounded-full flex items-center justify-center flex-shrink-0">
                   <FaMapMarkerAlt />
                 </div>
                 <div>
                   <h4 className="font-bold">Adresse</h4>
-                  <p className="text-sm">06 BP 2597 Abidjan 06<br/>Côte d'Ivoire</p>
+                  <p className="text-sm">11 BP 277 ABIDJAN 11<br/>Côte d'Ivoire</p>
                 </div>
               </li>
               <li className="flex items-start space-x-3">
-                <div className="w-9 h-9 bg-froebel-green text-white rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-9 h-9 bg-froebel-blue text-white rounded-full flex items-center justify-center flex-shrink-0">
                   <FaPhoneAlt />
                 </div>
                 <div>
                   <h4 className="font-bold">Téléphone</h4>
-                  <p className="text-sm">(225) 27 22 40 00 99<br/>(225) 01 02 90 40 02</p>
+                  <p className="text-sm">0717171718</p>
                 </div>
               </li>
               <li className="flex items-start space-x-3">
-                <div className="w-9 h-9 bg-froebel-green text-white rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-9 h-9 bg-froebel-blue text-white rounded-full flex items-center justify-center flex-shrink-0">
                   <FaEnvelope />
                 </div>
                 <div>
                   <h4 className="font-bold">Email</h4>
-                  <p className="text-sm">info@institutroebel-ci.net</p>
+                  <p className="text-sm">institutfroebel7@gmail.com</p>
                 </div>
               </li>
             </ul>

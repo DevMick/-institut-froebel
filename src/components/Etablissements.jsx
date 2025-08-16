@@ -28,6 +28,12 @@ const etablissements = [
     niveaux: ['Préscolaire', 'Primaire'],
     icon: <GiFlowerPot className="text-green-500 text-3xl mx-auto" />,
   },
+  {
+    nom: 'Les Frangipaniers',
+    adresse: 'Yopougon - Groupement Foncier',
+    niveaux: ['Préscolaire', 'Primaire'],
+    icon: <GiFlowerPot className="text-green-500 text-3xl mx-auto" />,
+  },
 ];
 
 const Etablissements = () => {
@@ -35,8 +41,8 @@ const Etablissements = () => {
     <section className="py-16 bg-gray-50">
       <div className="max-w-6xl mx-auto px-4">
         <h2 className="text-2xl md:text-3xl font-extrabold text-green-700 text-center mb-2">NOS ÉTABLISSEMENTS</h2>
-        <p className="text-gray-600 text-center mb-10">Quatre sites d'excellence répartis stratégiquement dans Abidjan, offrant un environnement sécurisé et propice à l'apprentissage.</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <p className="text-gray-600 text-center mb-10">Cinq sites d'excellence répartis stratégiquement dans Abidjan, offrant un environnement sécurisé et propice à l'apprentissage.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {etablissements.map((etab, idx) => (
             <div key={etab.nom} className="bg-white rounded-2xl shadow-md p-8 flex flex-col items-center relative border border-gray-100 hover:shadow-lg transition">
               <div className="mb-4">{etab.icon}</div>

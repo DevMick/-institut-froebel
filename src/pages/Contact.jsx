@@ -1,7 +1,7 @@
 import React from 'react';
 
 const chiffres = [
-  { valeur: '45+', label: "Années d'excellence" },
+  { valeur: '50+', label: "Années d'excellence" },
   { valeur: '5000+', label: 'Anciens élèves' },
   { valeur: '98%', label: 'Taux de réussite' },
 ];
@@ -31,7 +31,7 @@ const Contact = () => {
         <div className="relative z-10 flex flex-col items-center justify-center w-full h-full text-center px-2 md:px-4">
           <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold text-white mb-4 drop-shadow-lg">REJOIGNEZ L'EXCELLENCE</h1>
           <p className="text-white text-base sm:text-lg md:text-2xl font-medium drop-shadow max-w-2xl mx-auto mb-8">
-            Depuis 1979, l'Institut Froebel forme les leaders de demain.<br />
+            Depuis 1975, l'Institut Froebel forme les leaders de demain.<br />
             Découvrez nos écoles d'exception et rejoignez une communauté éducative qui place la réussite de chaque élève au cœur de sa mission.
           </p>
           <div className="flex flex-col md:flex-row gap-8 justify-center w-full max-w-2xl">

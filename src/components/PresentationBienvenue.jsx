@@ -15,7 +15,7 @@ const niveaux = [
     image: primaireImg,
   },
   {
-    titre: "SÉCONDAIRE",
+    titre: "SECONDAIRE",
     description: "Un environnement structuré pour renforcer les acquis et préparer les élèves aux défis du secondaire.",
     image: secondaireImg,
   },

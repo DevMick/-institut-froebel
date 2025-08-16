@@ -17,8 +17,8 @@ const sections = [
   {
     icon: <FaUserShield className="text-emerald-500 text-4xl" />,
     title: 'Cadre Sécurisé & Accessible',
-    description: 'Nos établissements sont situés dans des quartiers accessibles, avec des dispositifs de sécurité garantissant la tranquillité des parents.',
-    features: ['Agents de sécurité', 'Portails surveillés', 'Environnement fermé', 'Quartiers accessibles'],
+    description: 'Culture, Art et Sport',
+    features: ['Culture', 'Art', 'Sport'],
     color: 'from-emerald-50 to-teal-100',
     border: 'border-emerald-200',
     accentIcon: <FaShieldAlt className="text-emerald-400" />,

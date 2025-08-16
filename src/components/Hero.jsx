@@ -92,7 +92,7 @@ const Hero = () => {
         <div className="hero-badges">
           <div className="hero-badge">
             <i className="fas fa-graduation-cap"></i>
-            <span>Maternelle • Primaire • Sécondaire</span>
+            <span>Maternelle • Primaire • Secondaire</span>
           </div>
           <div className="hero-badge">
             <i className="fas fa-award"></i>

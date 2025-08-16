@@ -4,7 +4,7 @@ import notreHistoireImg from '../assets/images/notre histoire.jpg';
 
 const timeline = [
   {
-    year: '1970',
+    year: '1975',
     title: "Naissance de l'Institut",
     desc: "Ouverture de la première école à Treichville, marquant le début d'une aventure éducative exceptionnelle."
   },
@@ -56,7 +56,7 @@ const HistoireTimeline = () => {
               L'Institut Froebel est né de la passion de <span className="font-semibold">Madame Marguerite Messou épouse Kadio</span>, éducatrice visionnaire formée à l'école Froebélienne de Bruxelles. Inspirée par Friedrich Froebel, pionnier de la pédagogie préscolaire, elle a voulu transposer en Côte d'Ivoire une éducation centrée sur l'enfant, la bienveillance et le développement global.
             </p>
             <p className="text-gray-700 mb-4">
-              Depuis l'ouverture de la première école à Treichville en 1970, l'Institut n'a cessé de croître, portant toujours cette vision d'excellence éducative et d'épanouissement personnel.
+              Depuis l'ouverture de la première école à Treichville en 1975, l'Institut n'a cessé de croître, portant toujours cette vision d'excellence éducative et d'épanouissement personnel.
             </p>
             <blockquote className="bg-green-50 border-l-4 border-yellow-400 p-4 italic text-green-800 mb-2">
               En hommage à notre fondatrice : <span className="font-semibold">Une pionnière qui a révolutionné l'éducation en Côte d'Ivoire avec sa conviction que chaque enfant mérite une éducation de qualité, bienveillante et adaptée à son développement.</span>

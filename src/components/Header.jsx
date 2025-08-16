@@ -20,7 +20,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-[#fff1f1] shadow-sm sticky top-0 z-50">
+    <header className="bg-blue-50 shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
@@ -40,8 +40,8 @@ const Header = () => {
               to="/" 
               className={`px-3 py-2 text-base font-medium transition-colors ${
                 isActive('/') 
-                  ? 'text-froebel-green border-b-2 border-froebel-green' 
-                  : 'text-gray-700 hover:text-froebel-green'
+                  ? 'text-froebel-blue border-b-2 border-froebel-blue' 
+                  : 'text-gray-700 hover:text-froebel-blue'
               }`}
             >
               Accueil
@@ -50,15 +50,15 @@ const Header = () => {
               to="/presentation" 
               className={`px-3 py-2 text-base font-medium transition-colors ${
                 isActive('/presentation') 
-                  ? 'text-froebel-green border-b-2 border-froebel-green' 
-                  : 'text-gray-700 hover:text-froebel-green'
+                  ? 'text-froebel-blue border-b-2 border-froebel-blue' 
+                  : 'text-gray-700 hover:text-froebel-blue'
               }`}
             >
               Présentation
             </Link>
             {/* Menu déroulant "Nos écoles" */}
             <div className="relative group">
-              <button className="px-3 py-2 text-base font-medium text-gray-700 hover:text-froebel-green transition-colors flex items-center">
+              <button className="px-3 py-2 text-base font-medium text-gray-700 hover:text-froebel-blue transition-colors flex items-center">
                 Nos écoles
                 <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -68,27 +68,33 @@ const Header = () => {
                 <div className="py-1">
                   <Link 
                     to="/vie-scolaire" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-froebel-green"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-froebel-blue"
                   >
                     La Tulipe
                   </Link>
                   <Link 
                     to="/schools/marguerite" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-froebel-green"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-froebel-blue"
                   >
                     La Marguerite
                   </Link>
                   <Link 
                     to="/schools/rose" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-froebel-green"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-froebel-blue"
                   >
                     La Rose
                   </Link>
                   <Link 
                     to="/schools/orchidees" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-froebel-green"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-froebel-blue"
                   >
                     Les Orchidées
+                  </Link>
+                  <Link 
+                    to="/schools/frangipaniers" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-froebel-blue"
+                  >
+                    Les Frangipaniers
                   </Link>
                 </div>
               </div>
@@ -97,8 +103,8 @@ const Header = () => {
               to="/contact" 
               className={`px-3 py-2 text-base font-medium transition-colors ${
                 isActive('/contact') 
-                  ? 'text-froebel-green border-b-2 border-froebel-green' 
-                  : 'text-gray-700 hover:text-froebel-green'
+                  ? 'text-froebel-blue border-b-2 border-froebel-blue' 
+                  : 'text-gray-700 hover:text-froebel-blue'
               }`}
             >
               Contact
@@ -108,9 +114,9 @@ const Header = () => {
               <Link 
                 to="/superadmin" 
                 className={`px-3 py-2 text-base font-medium transition-colors ${
-                  isActive('/superadmin') 
-                    ? 'text-froebel-green border-b-2 border-froebel-green' 
-                    : 'text-gray-700 hover:text-froebel-green'
+                                  isActive('/superadmin') 
+                  ? 'text-froebel-blue border-b-2 border-froebel-blue' 
+                  : 'text-gray-700 hover:text-froebel-blue'
                 }`}
               >
                 Interface Super Admin
@@ -135,7 +141,7 @@ const Header = () => {
             ) : (
               <button
                 onClick={() => navigate('/login')}
-                className="bg-froebel-green text-white px-6 py-3 rounded-md text-base font-medium hover:bg-froebel-dark transition-colors"
+                className="bg-froebel-blue text-white px-6 py-3 rounded-md text-base font-medium hover:bg-froebel-blue-dark transition-colors"
               >
                 Connexion
               </button>
@@ -146,7 +152,7 @@ const Header = () => {
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-gray-700 hover:text-froebel-green focus:outline-none"
+              className="text-gray-700 hover:text-froebel-blue focus:outline-none"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isMobileMenuOpen ? (
@@ -163,18 +169,19 @@ const Header = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
-              <Link to="/" className="block px-3 py-2 text-gray-700 hover:text-froebel-green">Accueil</Link>
-              <Link to="/presentation" className="block px-3 py-2 text-gray-700 hover:text-froebel-green">Présentation</Link>
+              <Link to="/" className="block px-3 py-2 text-gray-700 hover:text-froebel-blue">Accueil</Link>
+              <Link to="/presentation" className="block px-3 py-2 text-gray-700 hover:text-froebel-blue">Présentation</Link>
               {/* Section Nos écoles avec sous-menus */}
               <div className="px-3 py-2 text-gray-700 font-medium">Nos écoles</div>
-              <Link to="/vie-scolaire" className="block px-6 py-2 text-gray-600 hover:text-froebel-green">La Tulipe</Link>
-              <Link to="/schools/marguerite" className="block px-6 py-2 text-gray-600 hover:text-froebel-green">La Marguerite</Link>
-              <Link to="/schools/rose" className="block px-6 py-2 text-gray-600 hover:text-froebel-green">La Rose</Link>
-              <Link to="/schools/orchidees" className="block px-6 py-2 text-gray-600 hover:text-froebel-green">Les Orchidées</Link>
-              <Link to="/contact" className="block px-3 py-2 text-gray-700 hover:text-froebel-green">Contact</Link>
+              <Link to="/vie-scolaire" className="block px-6 py-2 text-gray-600 hover:text-froebel-blue">La Tulipe</Link>
+              <Link to="/schools/marguerite" className="block px-6 py-2 text-gray-600 hover:text-froebel-blue">La Marguerite</Link>
+              <Link to="/schools/rose" className="block px-6 py-2 text-gray-600 hover:text-froebel-blue">La Rose</Link>
+              <Link to="/schools/orchidees" className="block px-6 py-2 text-gray-600 hover:text-froebel-blue">Les Orchidées</Link>
+              <Link to="/schools/frangipaniers" className="block px-6 py-2 text-gray-600 hover:text-froebel-blue">Les Frangipaniers</Link>
+              <Link to="/contact" className="block px-3 py-2 text-gray-700 hover:text-froebel-blue">Contact</Link>
               {/* Afficher "Interface Super Admin" seulement si l'utilisateur est connecté et a le rôle SuperAdmin */}
               {isAuthenticated && isSuperAdmin && (
-                <Link to="/superadmin" className="block px-3 py-2 text-gray-700 hover:text-froebel-green">
+                <Link to="/superadmin" className="block px-3 py-2 text-gray-700 hover:text-froebel-blue">
                   Interface Super Admin
                 </Link>
               )}
@@ -197,7 +204,7 @@ const Header = () => {
                     setIsMobileMenuOpen(false);
                     navigate('/login');
                   }}
-                  className="w-full text-left bg-froebel-green text-white px-3 py-2 rounded-md text-sm font-medium mt-2 block"
+                  className="w-full text-left bg-froebel-blue text-white px-3 py-2 rounded-md text-sm font-medium mt-2 block"
                 >
                   Connexion
                 </button>

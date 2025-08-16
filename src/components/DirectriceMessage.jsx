@@ -14,8 +14,8 @@ const DirectriceMessage = () => {
             className="w-32 h-32 object-cover rounded-full shadow-md border-4 border-white mb-4"
           />
           <h3 className="text-lg font-bold text-gray-900 text-center">KADIO Dyana Roselyne</h3>
-          <p className="text-green-600 text-center mb-4">Directrice Centrale</p>
-          <div className="w-full bg-gray-50 rounded-lg p-4 mb-4">
+          <p className="text-green-600 text-center mb-6">Directrice Centrale</p>
+          <div className="w-full bg-gray-50 rounded-lg p-4 mb-4 mt-4">
             <div className="flex justify-between text-sm mb-2">
               <span className="font-semibold text-gray-600">Expérience</span>
               <span className="text-green-700 font-bold">50+ ans</span>
