@@ -13,6 +13,8 @@ import {
   FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
 import { Member, User, Club } from '../types';
 import { ApiService } from '../services/ApiService';
 
@@ -110,60 +112,60 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
     console.log('🔧 Tentative d\'ajout de pièce jointe...');
     
     try {
-      // Simulation d'upload de fichier pour Expo Snack
-      // Dans une vraie app, cela utiliserait expo-document-picker
-      Alert.alert(
-        '📎 Ajouter une pièce jointe',
-        'Choisissez le type de fichier à simuler :',
-        [
-          { text: 'Annuler', style: 'cancel' },
-          {
-            text: '📄 Document PDF',
-            onPress: () => addSimulatedAttachment('document.pdf', 'application/pdf', 1024 * 50)
-          },
-          {
-            text: '🖼️ Image JPG',
-            onPress: () => addSimulatedAttachment('image.jpg', 'image/jpeg', 1024 * 200)
-          },
-          {
-            text: '📊 Présentation PPTX',
-            onPress: () => addSimulatedAttachment('presentation.pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 1024 * 500)
-          },
-          {
-            text: '📈 Tableur XLSX',
-            onPress: () => addSimulatedAttachment('spreadsheet.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 1024 * 100)
-          }
-        ]
-      );
+      // Utiliser expo-document-picker pour sélectionner un fichier
+      const result = await DocumentPicker.getDocumentAsync({
+        type: [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'application/vnd.ms-powerpoint',
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+          'image/*',
+          'text/*'
+        ],
+        copyToCacheDirectory: true,
+        multiple: false
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const file = result.assets[0];
+        console.log('📎 Fichier sélectionné:', file);
+        
+        // Lire le fichier et le convertir en base64
+        const fileInfo = await FileSystem.getInfoAsync(file.uri);
+        if (fileInfo.exists) {
+          const base64 = await FileSystem.readAsStringAsync(file.uri, {
+            encoding: FileSystem.EncodingType.Base64
+          });
+          
+          const newAttachment: Attachment = {
+            id: Date.now().toString(),
+            name: file.name,
+            size: `${Math.round(file.size / 1024)} KB`,
+            type: file.mimeType || 'application/octet-stream',
+            uri: file.uri,
+            base64: base64,
+          };
+          
+          setAttachments(prev => {
+            const updated = [...prev, newAttachment];
+            console.log('📎 Pièces jointes mises à jour:', updated.length);
+            return updated;
+          });
+          
+          Alert.alert(
+            '✅ Pièce jointe ajoutée',
+            `Fichier "${file.name}" ajouté avec succès`,
+            [{ text: 'OK' }]
+          );
+        }
+      }
     } catch (error: any) {
       console.error('❌ Erreur upload fichier:', error);
       Alert.alert('Erreur', 'Impossible de sélectionner le fichier');
     }
-  };
-
-  const addSimulatedAttachment = (fileName: string, fileType: string, fileSize: number) => {
-    console.log('📎 Ajout de pièce jointe simulée:', fileName);
-    
-    const newAttachment: Attachment = {
-      id: Date.now().toString(),
-      name: fileName,
-      size: `${Math.round(fileSize / 1024)} KB`,
-      type: fileType,
-      uri: `file://${Date.now()}_${fileName}`,
-      base64: 'base64_simulation_data_' + Date.now(),
-    };
-    
-    setAttachments(prev => {
-      const updated = [...prev, newAttachment];
-      console.log('📎 Pièces jointes mises à jour:', updated.length);
-      return updated;
-    });
-    
-    Alert.alert(
-      '✅ Pièce jointe ajoutée',
-      `Fichier "${fileName}" ajouté avec succès (simulation)`,
-      [{ text: 'OK' }]
-    );
   };
 
   const handleRemoveAttachment = (attachmentId: string) => {
@@ -397,13 +399,7 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
             <Ionicons name="add-circle" size={20} color="#005AA9" style={{ marginLeft: 'auto' }} />
           </TouchableOpacity>
           
-          {/* Bouton de test simple */}
-          <TouchableOpacity 
-            style={styles.testButton}
-            onPress={() => addSimulatedAttachment('test.txt', 'text/plain', 1024)}
-          >
-            <Text style={styles.testButtonText}>🧪 Test rapide - Ajouter fichier</Text>
-          </TouchableOpacity>
+
           
           {attachments.length > 0 && (
             <View style={styles.attachmentsList}>
@@ -421,7 +417,7 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
           )}
           
           <Text style={styles.attachmentNote}>
-            💡 Simulation : Choisissez le type de fichier à ajouter
+            💡 Sélectionnez des fichiers depuis votre appareil
           </Text>
         </View>
       </ScrollView>
