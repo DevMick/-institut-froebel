@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import image2 from '../assets/images/image2.jpg';
 import nosEcolesImg from '../assets/images/_DSC0253.jpg';
-import inscriptionImg from '../assets/images/inscription.jpg';
 
 const cartes = [
   {
@@ -17,19 +16,13 @@ const cartes = [
     image: nosEcolesImg,
     lien: '#ecoles',
   },
-  {
-    titre: 'NOTRE PROGRAMME',
-    sousTitre: 'Découvrez notre pédagogie',
-    image: inscriptionImg,
-    lien: '#programme',
-  },
 ];
 
 const CartesInfosAccueil = () => {
   return (
     <section className="py-12 bg-white">
       <div className="max-w-6xl mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {cartes.map((carte, idx) => {
             const CardContent = () => (
               <div

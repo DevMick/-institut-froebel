@@ -85,7 +85,7 @@ const Footer = () => {
                 <p className="text-sm text-gray-600">Apprentissage et développement</p>
               </li>
               <li>
-                <h4 className="font-bold">Collège</h4>
+                <h4 className="font-bold">Secondaire</h4>
                 <p className="text-sm text-gray-600">Excellence et préparation</p>
               </li>
             </ul>

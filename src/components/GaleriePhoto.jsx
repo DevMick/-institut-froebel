@@ -56,12 +56,7 @@ const photos = [
   },
 ];
 
-const chiffres = [
-  { valeur: '2500', label: 'Nos élèves' },
-  { valeur: '300', label: 'Nos Enseignants' },
-  { valeur: '99', label: 'Taux de réussite (%)' },
-  { valeur: '20', label: "Années d'excellence" },
-];
+
 
 const GaleriePhoto = () => {
   return (
@@ -69,7 +64,7 @@ const GaleriePhoto = () => {
       <div className="max-w-5xl mx-auto px-4">
         <h2 className="text-2xl md:text-3xl font-extrabold text-green-700 text-center mb-2">GALERIE PHOTO</h2>
         <p className="text-gray-500 text-center mb-8">Découvrez nos espaces d'apprentissage et de vie</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {photos.map((photo, idx) => (
             <div key={idx} className="relative rounded-xl overflow-hidden group shadow-lg">
               <img src={photo.src} alt={photo.titre} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -77,14 +72,6 @@ const GaleriePhoto = () => {
                 <h3 className="text-lg font-bold text-white mb-2">{photo.titre}</h3>
                 <p className="text-white text-sm">{photo.desc}</p>
               </div>
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 bg-white rounded-xl shadow p-6">
-          {chiffres.map((c, idx) => (
-            <div key={idx} className="flex flex-col items-center">
-              <div className="text-2xl md:text-3xl font-extrabold text-green-700 mb-1">{c.valeur}</div>
-              <div className="text-gray-600 text-sm md:text-base text-center">{c.label}</div>
             </div>
           ))}
         </div>

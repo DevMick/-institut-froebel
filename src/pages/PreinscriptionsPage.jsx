@@ -28,7 +28,8 @@ import {
   CalendarOutlined,
   PhoneOutlined,
   MailOutlined,
-  PlusOutlined
+  PlusOutlined,
+  BookOutlined
 } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
@@ -41,6 +42,7 @@ export default function PreinscriptionsPage() {
   const [selectedPreinscription, setSelectedPreinscription] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [classes, setClasses] = useState([]);
+  const [selectedClassFilter, setSelectedClassFilter] = useState('');
 
   // Récupérer le token depuis localStorage
   const getToken = () => localStorage.getItem('token');
@@ -95,7 +97,15 @@ export default function PreinscriptionsPage() {
             nombreEnfants: 1,
             nombreEnfantsPreInscrits: 1,
             nombreEnfantsInscrits: 0,
-            datePreinscription: '2025-07-02T03:49:49.435145Z'
+            datePreinscription: '2025-07-02T03:49:49.435145Z',
+            enfants: [
+              {
+                nom: 'Kouame',
+                prenom: 'Junior',
+                classeId: 1,
+                classeNom: '6ème'
+              }
+            ]
           },
           {
             parentId: '2',
@@ -106,7 +116,21 @@ export default function PreinscriptionsPage() {
             nombreEnfants: 2,
             nombreEnfantsPreInscrits: 2,
             nombreEnfantsInscrits: 0,
-            datePreinscription: '2025-07-02T02:44:28.109105Z'
+            datePreinscription: '2025-07-02T02:44:28.109105Z',
+            enfants: [
+              {
+                nom: 'Kouassi',
+                prenom: 'Marie',
+                classeId: 2,
+                classeNom: '5ème'
+              },
+              {
+                nom: 'Kouassi',
+                prenom: 'Paul',
+                classeId: 3,
+                classeNom: '4ème'
+              }
+            ]
           }
         ]);
         message.warning('Serveur non disponible - Mode démonstration activé');
@@ -124,7 +148,15 @@ export default function PreinscriptionsPage() {
           nombreEnfants: 1,
           nombreEnfantsPreInscrits: 1,
           nombreEnfantsInscrits: 0,
-          datePreinscription: '2025-07-02T03:49:49.435145Z'
+          datePreinscription: '2025-07-02T03:49:49.435145Z',
+          enfants: [
+            {
+              nom: 'Kouame',
+              prenom: 'Junior',
+                              classeId: 1,
+                classeNom: '6ème'
+            }
+          ]
         }
       ]);
       message.warning('Serveur non disponible - Mode démonstration activé');
@@ -175,23 +207,32 @@ export default function PreinscriptionsPage() {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Classes récupérées depuis l\'API:', data);
         setClasses(data);
       } else {
-        // Mode démonstration
+        // Mode démonstration avec les vraies classes
         setClasses([
-          { id: 1, nom: 'CP-A' },
-          { id: 2, nom: 'CP-B' },
-          { id: 3, nom: 'CE1-A' }
+          { id: 4, nom: '3ème', nombreEleves: 0, nombreEmploisDuTemps: 0 },
+          { id: 3, nom: '4ème', nombreEleves: 2, nombreEmploisDuTemps: 0 },
+          { id: 2, nom: '5ème', nombreEleves: 1, nombreEmploisDuTemps: 0 },
+          { id: 1, nom: '6ème', nombreEleves: 0, nombreEmploisDuTemps: 0 }
         ]);
       }
     } catch (error) {
       console.error('Erreur lors du chargement des classes:', error);
       setClasses([
-        { id: 1, nom: 'CP-A' },
-        { id: 2, nom: 'CP-B' },
-        { id: 3, nom: 'CE1-A' }
+        { id: 4, nom: '3ème', nombreEleves: 0, nombreEmploisDuTemps: 0 },
+        { id: 3, nom: '4ème', nombreEleves: 2, nombreEmploisDuTemps: 0 },
+        { id: 2, nom: '5ème', nombreEleves: 1, nombreEmploisDuTemps: 0 },
+        { id: 1, nom: '6ème', nombreEleves: 0, nombreEmploisDuTemps: 0 }
       ]);
     }
+  };
+
+  // Fonction utilitaire pour obtenir le nom de la classe
+  const getClassName = (classeId) => {
+    const classe = classes.find(c => c.id === classeId);
+    return classe ? classe.nom : `Classe ${classeId}`;
   };
 
   // Créer une préinscription
@@ -297,6 +338,15 @@ export default function PreinscriptionsPage() {
           <Tag color="green" style={{ fontSize: '11px' }}>
             {record.nombreEnfantsPreInscrits} pré-inscrit{record.nombreEnfantsPreInscrits > 1 ? 's' : ''}
           </Tag>
+          {record.enfants && record.enfants.length > 0 && (
+            <div style={{ marginTop: '4px' }}>
+              {record.enfants.map((enfant, index) => (
+                <div key={index} style={{ fontSize: '11px', color: '#666' }}>
+                  {enfant.prenom} {enfant.nom} - {enfant.classeNom || getClassName(enfant.classeId)}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       ),
       responsive: ['sm', 'md', 'lg', 'xl']
@@ -344,11 +394,19 @@ export default function PreinscriptionsPage() {
   ];
 
   // Filtrage des données
-  const filteredPreinscriptions = preinscriptions.filter(preinscription =>
-    preinscription.parentNom?.toLowerCase().includes(search.toLowerCase()) ||
-    preinscription.parentEmail?.toLowerCase().includes(search.toLowerCase()) ||
-    preinscription.parentTelephone?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredPreinscriptions = preinscriptions.filter(preinscription => {
+    const matchesSearch = preinscription.parentNom?.toLowerCase().includes(search.toLowerCase()) ||
+                         preinscription.parentEmail?.toLowerCase().includes(search.toLowerCase()) ||
+                         preinscription.parentTelephone?.toLowerCase().includes(search.toLowerCase());
+    
+    const matchesClassFilter = !selectedClassFilter || 
+      (preinscription.enfants && preinscription.enfants.some(enfant => 
+        enfant.classeId === parseInt(selectedClassFilter) || 
+        enfant.classeNom === selectedClassFilter
+      ));
+    
+    return matchesSearch && matchesClassFilter;
+  });
 
   if (loading) {
     return (
@@ -368,7 +426,7 @@ export default function PreinscriptionsPage() {
 
       {/* Statistiques */}
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={12} lg={4}>
           <Card style={{ textAlign: 'center' }}>
             <Statistic 
               title="Total Préinscriptions" 
@@ -377,7 +435,7 @@ export default function PreinscriptionsPage() {
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={12} lg={4}>
           <Card style={{ textAlign: 'center' }}>
             <Statistic
               title="En Attente"
@@ -386,12 +444,30 @@ export default function PreinscriptionsPage() {
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={12} lg={4}>
           <Card style={{ textAlign: 'center' }}>
             <Statistic
               title="Validées"
               value={preinscriptions.filter(p => p.estValide).length}
               prefix={<TeamOutlined style={{ color: '#52c41a' }} />}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card style={{ textAlign: 'center' }}>
+            <Statistic
+              title="Classes disponibles"
+              value={classes.length}
+              prefix={<BookOutlined style={{ color: '#722ed1' }} />}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card style={{ textAlign: 'center' }}>
+            <Statistic
+              title="Total élèves"
+              value={classes.reduce((sum, classe) => sum + classe.nombreEleves, 0)}
+              prefix={<TeamOutlined style={{ color: '#13c2c2' }} />}
             />
           </Card>
         </Col>
@@ -401,7 +477,7 @@ export default function PreinscriptionsPage() {
       <Card style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
         {/* Barre d'actions */}
         <Row gutter={[16, 16]} style={{ marginBottom: '16px' }}>
-          <Col xs={24} md={16}>
+          <Col xs={24} md={12}>
             <Input.Search
               placeholder="Rechercher par nom du parent ou de l'enfant, email..."
               value={search}
@@ -411,7 +487,31 @@ export default function PreinscriptionsPage() {
               prefix={<SearchOutlined />}
             />
           </Col>
-          <Col xs={24} md={8} style={{ textAlign: 'right' }}>
+          <Col xs={24} md={6}>
+            <select
+              value={selectedClassFilter}
+              onChange={(e) => setSelectedClassFilter(e.target.value)}
+              style={{
+                width: '100%',
+                height: '40px',
+                padding: '8px 12px',
+                border: '1px solid #d9d9d9',
+                borderRadius: '6px',
+                fontSize: '14px',
+                backgroundColor: '#fff',
+                outline: 'none',
+                transition: 'border-color 0.3s'
+              }}
+            >
+              <option value="">Toutes les classes</option>
+              {classes.map(classe => (
+                <option key={classe.id} value={classe.id}>
+                  {classe.nom} ({classe.nombreEleves} élève{classe.nombreEleves > 1 ? 's' : ''})
+                </option>
+              ))}
+            </select>
+          </Col>
+          <Col xs={24} md={6} style={{ textAlign: 'right' }}>
             <Button
               type="primary"
               icon={<PlusOutlined />}
@@ -488,6 +588,79 @@ export default function PreinscriptionsPage() {
                   <Tag color="purple">{selectedPreinscription.nombreEnfantsInscrits}</Tag>
                 </Descriptions.Item>
               </Descriptions>
+            </Card>
+
+            {/* Détails des enfants */}
+            {selectedPreinscription.enfants && selectedPreinscription.enfants.length > 0 && (
+              <Card title="Détails des enfants" size="small">
+                {selectedPreinscription.enfants.map((enfant, index) => (
+                  <Card key={index} size="small" style={{ marginBottom: '8px', border: '1px solid #f0f0f0' }}>
+                    <Descriptions bordered column={1} size="small">
+                      <Descriptions.Item label="Nom complet">
+                        <span style={{ fontWeight: 'bold' }}>
+                          {enfant.prenom} {enfant.nom}
+                        </span>
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Classe souhaitée">
+                        <Tag color="blue">
+                          {enfant.classeNom || getClassName(enfant.classeId)}
+                        </Tag>
+                      </Descriptions.Item>
+                      <Descriptions.Item label="ID Classe">
+                        {enfant.classeId}
+                      </Descriptions.Item>
+                    </Descriptions>
+                  </Card>
+                ))}
+              </Card>
+            )}
+
+            {/* Statistiques par classe */}
+            <Card title="Répartition par classe" size="small">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {classes.map(classe => {
+                  const count = selectedPreinscription.enfants ? 
+                    selectedPreinscription.enfants.filter(enfant => 
+                      enfant.classeId === classe.id || enfant.classeNom === classe.nom
+                    ).length : 0;
+                  
+                  if (count > 0) {
+                    return (
+                      <div key={classe.id} style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        padding: '4px 0'
+                      }}>
+                        <span>{classe.nom}</span>
+                        <Tag color="blue">{count} enfant{count > 1 ? 's' : ''}</Tag>
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+            </Card>
+
+            {/* Informations sur les classes */}
+            <Card title="Informations sur les classes" size="small">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {classes.map(classe => (
+                  <div key={classe.id} style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    padding: '4px 0',
+                    borderBottom: '1px solid #f0f0f0'
+                  }}>
+                    <span style={{ fontWeight: 'bold' }}>{classe.nom}</span>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <Tag color="green">{classe.nombreEleves} élève{classe.nombreEleves > 1 ? 's' : ''}</Tag>
+                      <Tag color="purple">{classe.nombreEmploisDuTemps} EDT</Tag>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </Card>
 
             {/* Informations de la demande */}
