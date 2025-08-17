@@ -107,44 +107,63 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
   };
 
   const handleAddAttachment = async () => {
+    console.log('🔧 Tentative d\'ajout de pièce jointe...');
+    
     try {
       // Simulation d'upload de fichier pour Expo Snack
       // Dans une vraie app, cela utiliserait expo-document-picker
       Alert.alert(
-        'Simulation d\'upload',
-        'Dans une vraie application, cela ouvrirait le sélecteur de fichiers. Pour la démo, nous simulons l\'ajout d\'un fichier.',
+        '📎 Ajouter une pièce jointe',
+        'Choisissez le type de fichier à simuler :',
         [
           { text: 'Annuler', style: 'cancel' },
           {
-            text: 'Simuler',
-            onPress: () => {
-              const fileTypes = [
-                { name: 'document.pdf', type: 'application/pdf', size: 1024 * 50 },
-                { name: 'image.jpg', type: 'image/jpeg', size: 1024 * 200 },
-                { name: 'presentation.pptx', type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', size: 1024 * 500 },
-                { name: 'spreadsheet.xlsx', type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', size: 1024 * 100 },
-              ];
-              
-              const randomFile = fileTypes[Math.floor(Math.random() * fileTypes.length)];
-              
-              const newAttachment: Attachment = {
-                id: Date.now().toString(),
-                name: randomFile.name,
-                size: `${Math.round(randomFile.size / 1024)} KB`,
-                type: randomFile.type,
-                uri: `file://${Date.now()}_${randomFile.name}`,
-                base64: 'base64_simulation_data',
-              };
-              
-              setAttachments(prev => [...prev, newAttachment]);
-            }
+            text: '📄 Document PDF',
+            onPress: () => addSimulatedAttachment('document.pdf', 'application/pdf', 1024 * 50)
+          },
+          {
+            text: '🖼️ Image JPG',
+            onPress: () => addSimulatedAttachment('image.jpg', 'image/jpeg', 1024 * 200)
+          },
+          {
+            text: '📊 Présentation PPTX',
+            onPress: () => addSimulatedAttachment('presentation.pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 1024 * 500)
+          },
+          {
+            text: '📈 Tableur XLSX',
+            onPress: () => addSimulatedAttachment('spreadsheet.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 1024 * 100)
           }
         ]
       );
     } catch (error: any) {
+      console.error('❌ Erreur upload fichier:', error);
       Alert.alert('Erreur', 'Impossible de sélectionner le fichier');
-      console.error('Erreur upload fichier:', error);
     }
+  };
+
+  const addSimulatedAttachment = (fileName: string, fileType: string, fileSize: number) => {
+    console.log('📎 Ajout de pièce jointe simulée:', fileName);
+    
+    const newAttachment: Attachment = {
+      id: Date.now().toString(),
+      name: fileName,
+      size: `${Math.round(fileSize / 1024)} KB`,
+      type: fileType,
+      uri: `file://${Date.now()}_${fileName}`,
+      base64: 'base64_simulation_data_' + Date.now(),
+    };
+    
+    setAttachments(prev => {
+      const updated = [...prev, newAttachment];
+      console.log('📎 Pièces jointes mises à jour:', updated.length);
+      return updated;
+    });
+    
+    Alert.alert(
+      '✅ Pièce jointe ajoutée',
+      `Fichier "${fileName}" ajouté avec succès (simulation)`,
+      [{ text: 'OK' }]
+    );
   };
 
   const handleRemoveAttachment = (attachmentId: string) => {
@@ -366,19 +385,31 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Pièces jointes</Text>
+          
+          {/* Bouton principal */}
           <TouchableOpacity 
             style={styles.attachmentButton}
             onPress={handleAddAttachment}
+            activeOpacity={0.7}
           >
-            <Ionicons name="attach" size={20} color="#005AA9" />
-            <Text style={styles.attachmentText}>Ajouter une pièce jointe (Simulation)</Text>
+            <Ionicons name="attach" size={24} color="#005AA9" />
+            <Text style={styles.attachmentText}>📎 Ajouter une pièce jointe</Text>
+            <Ionicons name="add-circle" size={20} color="#005AA9" style={{ marginLeft: 'auto' }} />
           </TouchableOpacity>
-          <Text style={styles.attachmentNote}>
-            Dans une vraie application, cela ouvrirait le sélecteur de fichiers
-          </Text>
+          
+          {/* Bouton de test simple */}
+          <TouchableOpacity 
+            style={styles.testButton}
+            onPress={() => addSimulatedAttachment('test.txt', 'text/plain', 1024)}
+          >
+            <Text style={styles.testButtonText}>🧪 Test rapide - Ajouter fichier</Text>
+          </TouchableOpacity>
           
           {attachments.length > 0 && (
             <View style={styles.attachmentsList}>
+              <Text style={styles.attachmentsTitle}>
+                Pièces jointes ({attachments.length})
+              </Text>
               <FlatList
                 data={attachments}
                 renderItem={renderAttachment}
@@ -388,6 +419,10 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
               />
             </View>
           )}
+          
+          <Text style={styles.attachmentNote}>
+            💡 Simulation : Choisissez le type de fichier à ajouter
+          </Text>
         </View>
       </ScrollView>
 
@@ -497,14 +532,15 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
+    borderWidth: 2,
+    borderColor: '#005AA9',
     borderStyle: 'dashed',
   },
   attachmentText: {
-    marginLeft: 8,
+    marginLeft: 12,
     fontSize: 16,
     color: '#005AA9',
+    fontWeight: '500',
   },
   attachmentNote: {
     fontSize: 12,
@@ -514,6 +550,13 @@ const styles = StyleSheet.create({
   },
   attachmentsList: {
     marginTop: 12,
+  },
+  attachmentsTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+    paddingHorizontal: 8,
   },
   attachmentItem: {
     backgroundColor: 'white',
@@ -676,5 +719,19 @@ const styles = StyleSheet.create({
     color: '#005AA9',
     marginTop: 2,
     fontStyle: 'italic',
+  },
+  testButton: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  testButtonText: {
+    fontSize: 14,
+    color: '#005AA9',
+    fontWeight: 'bold',
   },
 });

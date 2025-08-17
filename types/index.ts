@@ -127,17 +127,18 @@ export interface AppState {
   error: string | null;
 }
 
-export type NavigationScreen = 
-  | 'login' 
-  | 'register' 
-  | 'dashboard' 
-  | 'members' 
-  | 'reunions' 
-  | 'cotisations' 
-  | 'clubs' 
-  | 'profile' 
+export type NavigationScreen =
+  | 'login'
+  | 'register'
+  | 'dashboard'
+  | 'members'
+  | 'reunions'
+  | 'cotisations'
+  | 'clubs'
+  | 'profile'
   | 'settings'
-  | 'email';
+  | 'email'
+  | 'whatsapp';
 
 export interface NavigationState {
   currentScreen: NavigationScreen;
