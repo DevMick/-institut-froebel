@@ -8,7 +8,7 @@ const ChiffresCles = () => {
         <p className="text-lg mb-8 opacity-90">Excellence dans l'instruction, l'éducation de nos valeurs et l'orientation. Valorisation des aptitudes et talents de chacun de nos élèves</p>
         <div className="flex flex-col md:flex-row justify-center gap-8">
           <div>
-            <div className="text-4xl font-bold">49</div>
+            <div className="text-4xl font-bold">50+</div>
             <div className="text-base mt-2 opacity-80">Années d'Excellence</div>
           </div>
           <div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, BookOpen, Megaphone, Calendar, LogOut, ChevronLeft, ChevronRight, X, Menu, User } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import Logo from '../../assets/images/Logo.png';
+import Logo from '../../assets/images/Logo.jpg';
 
 const navItems = [
   { label: 'Dashboard', to: '/espace-parents', icon: <Home size={20} /> },

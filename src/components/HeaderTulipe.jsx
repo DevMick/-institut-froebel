@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Logo from '../assets/images/Logo.png';
+import Logo from '../assets/images/Logo.jpg';
 import { Link } from 'react-router-dom';
 
 const menuItems = [

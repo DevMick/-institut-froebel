@@ -15,24 +15,7 @@ const DirectriceMessage = () => {
           />
           <h3 className="text-lg font-bold text-gray-900 text-center">KADIO Dyana Roselyne</h3>
           <p className="text-green-600 text-center mb-6">Directrice Centrale</p>
-          <div className="w-full bg-gray-50 rounded-lg p-4 mb-4 mt-4">
-            <div className="flex justify-between text-sm mb-2">
-              <span className="font-semibold text-gray-600">Expérience</span>
-              <span className="text-green-700 font-bold">50+ ans</span>
-            </div>
-            <div className="flex justify-between text-sm mb-2">
-              <span className="font-semibold text-gray-600">Élèves</span>
-              <span className="text-green-700 font-bold">1700+</span>
-            </div>
-            <div className="flex justify-between text-sm mb-2">
-              <span className="font-semibold text-gray-600">École</span>
-              <span className="text-green-700 font-bold">5 écoles</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="font-semibold text-gray-600">Contact</span>
-              <span className="text-green-700 font-bold">0717171718</span>
-            </div>
-          </div>
+
           <span className="absolute top-4 right-4 bg-yellow-400 text-white rounded-full p-1 shadow"><FaCrown /></span>
         </div>
         {/* Colonne droite : message */}

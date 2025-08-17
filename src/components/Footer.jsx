@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Logo from '../assets/images/Logo.png';
+import Logo from '../assets/images/Logo.jpg';
 import { FaFacebookF, FaTwitter, FaTelegramPlane, FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaChevronUp } from 'react-icons/fa';
 
 const Footer = () => {
@@ -138,7 +138,7 @@ const Footer = () => {
       {isVisible && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-5 right-5 w-12 h-12 bg-pink-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-pink-600 transition-colors"
+          className="fixed bottom-5 right-5 w-12 h-12 bg-froebel-blue text-white rounded-full flex items-center justify-center shadow-lg hover:bg-froebel-blue-dark transition-colors"
         >
           <FaChevronUp className="w-6 h-6" />
         </button>

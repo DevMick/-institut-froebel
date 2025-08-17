@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import Logo from '../assets/images/Logo.png';
+import Logo from '../assets/images/Logo.jpg';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

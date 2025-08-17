@@ -1,6 +1,6 @@
 import React from 'react';
 import EnfantSelector from '../ui/EnfantSelector';
-import Logo from '../../assets/images/Logo.png';
+import Logo from '../../assets/images/Logo.jpg';
 
 const ParentHeader = ({ title = 'Espace Parents', onMenuClick }) => {
   return (

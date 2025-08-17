@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import ecolesApi from '../services/ecolesApi';
 import authApi from '../services/authApi';
-import Logo from '../assets/images/Logo.png';
+import Logo from '../assets/images/Logo.jpg';
 import { Form, Input, Button, Typography, Alert, Spin, Card } from 'antd';
 import { HomeOutlined, MailOutlined, LockOutlined, LoginOutlined } from '@ant-design/icons';
 import '../styles/LoginPage.css';
