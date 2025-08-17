@@ -11,6 +11,7 @@ import {
   SafeAreaView,
   Modal,
   FlatList,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
@@ -133,34 +134,58 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
         const file = result.assets[0];
         console.log('📎 Fichier sélectionné:', file);
         
-        // Lire le fichier et le convertir en base64
-        const fileInfo = await FileSystem.getInfoAsync(file.uri);
-        if (fileInfo.exists) {
-          const base64 = await FileSystem.readAsStringAsync(file.uri, {
-            encoding: FileSystem.EncodingType.Base64
-          });
-          
-          const newAttachment: Attachment = {
-            id: Date.now().toString(),
-            name: file.name,
-            size: `${Math.round(file.size / 1024)} KB`,
-            type: file.mimeType || 'application/octet-stream',
-            uri: file.uri,
-            base64: base64,
-          };
-          
-          setAttachments(prev => {
-            const updated = [...prev, newAttachment];
-            console.log('📎 Pièces jointes mises à jour:', updated.length);
-            return updated;
-          });
-          
-          Alert.alert(
-            '✅ Pièce jointe ajoutée',
-            `Fichier "${file.name}" ajouté avec succès`,
-            [{ text: 'OK' }]
-          );
+        let base64: string | undefined;
+        
+        // Gestion différente selon la plateforme
+        if (Platform.OS === 'web') {
+          // Sur web, le fichier est déjà en base64 dans l'URI
+          if (file.uri.startsWith('data:')) {
+            base64 = file.uri.split(',')[1];
+          } else {
+            // Si ce n'est pas déjà en base64, on essaie de le lire
+            try {
+              base64 = await FileSystem.readAsStringAsync(file.uri, {
+                encoding: FileSystem.EncodingType.Base64
+              });
+            } catch (readError) {
+              console.warn('Impossible de lire le fichier en base64 sur web:', readError);
+              // On continue sans base64 sur web
+            }
+          }
+        } else {
+          // Sur mobile, on vérifie d'abord si le fichier existe
+          try {
+            const fileInfo = await FileSystem.getInfoAsync(file.uri);
+            if (fileInfo.exists) {
+              base64 = await FileSystem.readAsStringAsync(file.uri, {
+                encoding: FileSystem.EncodingType.Base64
+              });
+            }
+          } catch (fileError) {
+            console.warn('Erreur lors de la lecture du fichier:', fileError);
+          }
         }
+        
+        const newAttachment: Attachment = {
+          id: Date.now().toString(),
+          name: file.name,
+          size: `${Math.round(file.size / 1024)} KB`,
+          type: file.mimeType || 'application/octet-stream',
+          uri: file.uri,
+          base64: base64,
+        };
+        
+        setAttachments(prev => {
+          const updated = [...prev, newAttachment];
+          console.log('📎 Pièces jointes mises à jour:', updated.length);
+          return updated;
+        });
+        
+        Alert.alert(
+          '✅ Pièce jointe ajoutée',
+          `Fichier "${file.name}" ajouté avec succès`,
+          [{ text: 'OK' }]
+        );
       }
     } catch (error: any) {
       console.error('❌ Erreur upload fichier:', error);
