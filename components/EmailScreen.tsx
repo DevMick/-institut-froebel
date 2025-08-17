@@ -245,8 +245,8 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
           <View style={styles.memberDetails}>
             <Text style={styles.memberName}>{member.fullName}</Text>
             <Text style={styles.memberEmail}>{member.email}</Text>
-            {member.role && (
-              <Text style={styles.memberRole}>{member.role}</Text>
+            {member.roles && member.roles.length > 0 && (
+              <Text style={styles.memberRole}>{member.roles.join(', ')}</Text>
             )}
           </View>
         </View>
