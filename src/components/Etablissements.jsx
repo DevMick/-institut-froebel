@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { FaUniversity } from 'react-icons/fa';
 import { GiFlowerPot } from 'react-icons/gi';
 
@@ -43,21 +44,39 @@ const Etablissements = () => {
         <h2 className="text-2xl md:text-3xl font-extrabold text-green-700 text-center mb-2">NOS ÉTABLISSEMENTS</h2>
         <p className="text-gray-600 text-center mb-10">Cinq sites d'excellence répartis stratégiquement dans Abidjan, offrant un environnement sécurisé et propice à l'apprentissage.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-8">
-          {etablissements.map((etab, idx) => (
-            <div key={etab.nom} className="bg-white rounded-2xl shadow-md p-8 flex flex-col items-center relative border border-gray-100 hover:shadow-lg transition">
-              <div className="mb-4">{etab.icon}</div>
-              <h3 className="text-lg font-bold text-gray-800 mb-1 text-center">{etab.nom}</h3>
-              <p className="text-gray-500 text-center mb-4">{etab.adresse}</p>
-              <div className="flex flex-wrap justify-center gap-2 mb-2">
-                <span className="bg-green-50 text-green-700 font-semibold px-4 py-1 rounded-full text-sm">
-                  {etab.niveaux.join(' • ')}
-                </span>
+          {etablissements.map((etab, idx) => {
+            const CardContent = () => (
+              <div className="bg-white rounded-2xl shadow-md p-8 flex flex-col items-center relative border border-gray-100 hover:shadow-lg transition">
+                <div className="mb-4">{etab.icon}</div>
+                <h3 className="text-lg font-bold text-gray-800 mb-1 text-center">{etab.nom}</h3>
+                <p className="text-gray-500 text-center mb-4">{etab.adresse}</p>
+                <div className="flex flex-wrap justify-center gap-2 mb-2">
+                  <span className="bg-green-50 text-green-700 font-semibold px-4 py-1 rounded-full text-sm">
+                    {etab.niveaux.join(' • ')}
+                  </span>
+                </div>
+                {etab.badge && (
+                  <span className="bg-yellow-400 text-white font-semibold px-3 py-1 rounded-full text-xs mt-2 shadow">{etab.badge}</span>
+                )}
               </div>
-              {etab.badge && (
-                <span className="bg-yellow-400 text-white font-semibold px-3 py-1 rounded-full text-xs mt-2 shadow">{etab.badge}</span>
-              )}
-            </div>
-          ))}
+            );
+
+            // Si c'est La Tulipe, rendre la carte cliquable
+            if (etab.nom === 'La Tulipe') {
+              return (
+                <Link key={etab.nom} to="/vie-scolaire" className="block hover:scale-105 transition-transform">
+                  <CardContent />
+                </Link>
+              );
+            }
+
+            // Sinon, afficher la carte normale
+            return (
+              <div key={etab.nom}>
+                <CardContent />
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
