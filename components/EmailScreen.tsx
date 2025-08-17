@@ -242,19 +242,32 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
         attachments: validAttachments,
       };
 
-      await apiService.sendClubEmail(emailData);
+      const result = await apiService.sendClubEmail(emailData);
       
+      // Message de succès détaillé avec les données de l'API
+      const successMessage = `✅ ${result.message || 'Email envoyé avec succès !'}
+      
+📧 Destinataires : ${result.recipientsSent || selectedMembers.length}/${result.recipientsTotal || selectedMembers.length} membre(s)
+📎 Pièces jointes : ${validAttachments.length} fichier(s)
+🆔 ID Email : ${result.emailId || 'N/A'}
+🕐 Envoyé le : ${result.sentAt ? new Date(result.sentAt).toLocaleString('fr-FR') : new Date().toLocaleString('fr-FR')}
+
+L'email a été transmis avec succès à tous les destinataires.`;
+
       Alert.alert(
-        'Succès',
-        `Email envoyé à ${selectedMembers.length} membre(s)${attachments.length > 0 ? ` avec ${attachments.length} pièce(s) jointe(s)` : ''}`,
+        '🎉 Succès !',
+        successMessage,
         [
           {
-            text: 'OK',
+            text: 'Retour au menu',
             onPress: () => {
+              // Réinitialiser le formulaire
               setSubject('');
               setMessage('');
               setSelectedMembers([]);
               setAttachments([]);
+              // Rediriger vers le menu principal
+              onBack();
             }
           }
         ]

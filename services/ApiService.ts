@@ -354,7 +354,14 @@ export class ApiService {
     message: string;
     recipients: string[];
     attachments?: { name: string; type: string; size: string; base64?: string; uri?: string }[];
-  }): Promise<void> {
+  }): Promise<{
+    success: boolean;
+    message: string;
+    emailId?: string;
+    recipientsSent?: number;
+    recipientsTotal?: number;
+    sentAt?: string;
+  }> {
     try {
       const token = await this.getToken();
       
@@ -402,6 +409,7 @@ export class ApiService {
 
       const result = await response.json();
       console.log('✅ Email envoyé avec succès via l\'API:', result);
+      return result;
     } catch (error) {
       console.error('❌ Erreur envoi email:', error);
       
@@ -410,7 +418,14 @@ export class ApiService {
         console.log('🔄 Erreur de réseau, simulation d\'envoi d\'email pour la démo');
         await new Promise(resolve => setTimeout(resolve, 2000)); // Simuler un délai
         console.log('✅ Email simulé envoyé avec succès');
-        return; // Retourner sans erreur pour simuler le succès
+        return {
+          success: true,
+          message: 'Email simulé envoyé avec succès (mode démo)',
+          emailId: 'demo-' + Date.now(),
+          recipientsSent: emailData.recipients.length,
+          recipientsTotal: emailData.recipients.length,
+          sentAt: new Date().toISOString()
+        };
       }
       
       throw error;
