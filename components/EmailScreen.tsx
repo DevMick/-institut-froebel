@@ -216,20 +216,30 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
     try {
       setSending(true);
       
-      // Préparer les données des pièces jointes
-      const attachmentData = attachments.map(att => ({
-        name: att.name,
-        type: att.type,
-        size: att.size,
-        base64: att.base64 || null,
-        uri: att.uri || null
-      }));
+      // Préparer les données des pièces jointes (filtrer celles sans base64)
+      const attachmentData = attachments
+        .filter(att => att.base64) // Ne garder que les pièces jointes avec du contenu base64
+        .map(att => ({
+          name: att.name,
+          type: att.type,
+          size: att.size,
+          base64: att.base64!,
+          uri: att.uri || null
+        }));
+
+      // Vérifier que toutes les pièces jointes ont du contenu base64
+      const validAttachments = attachmentData.filter(att => att.base64 && att.base64.length > 0);
+      
+      if (attachments.length > 0 && validAttachments.length === 0) {
+        Alert.alert('Erreur', 'Aucune pièce jointe valide trouvée. Veuillez réessayer d\'ajouter les fichiers.');
+        return;
+      }
 
       const emailData: EmailData = {
         subject: subject.trim(),
         message: message.trim(),
         recipients: getSelectedEmails(),
-        attachments: attachmentData,
+        attachments: validAttachments,
       };
 
       await apiService.sendClubEmail(emailData);
@@ -250,7 +260,25 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
         ]
       );
     } catch (error: any) {
-      Alert.alert('Erreur', error.message || 'Erreur lors de l\'envoi de l\'email');
+      console.error('❌ Erreur envoi email:', error);
+      
+      let errorMessage = 'Erreur lors de l\'envoi de l\'email';
+      
+      if (error.message) {
+        if (error.message.includes('FileName') || error.message.includes('Base64Content')) {
+          errorMessage = 'Erreur avec les pièces jointes. Veuillez réessayer d\'ajouter les fichiers.';
+        } else if (error.message.includes('400')) {
+          errorMessage = 'Données invalides. Veuillez vérifier les informations saisies.';
+        } else if (error.message.includes('401')) {
+          errorMessage = 'Session expirée. Veuillez vous reconnecter.';
+        } else if (error.message.includes('500')) {
+          errorMessage = 'Erreur serveur. Veuillez réessayer plus tard.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      Alert.alert('Erreur', errorMessage);
     } finally {
       setSending(false);
     }

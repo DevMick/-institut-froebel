@@ -379,7 +379,12 @@ export class ApiService {
           subject: emailData.subject,
           message: emailData.message,
           recipients: emailData.recipients,
-          attachments: emailData.attachments || [],
+          attachments: emailData.attachments?.map(att => ({
+            FileName: att.name,
+            Base64Content: att.base64 || '',
+            ContentType: att.type,
+            Size: att.size
+          })) || [],
           isUrgent: false,
           sendCopy: true
         }),
