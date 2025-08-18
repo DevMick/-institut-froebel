@@ -130,7 +130,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-12 border-t border-gray-300 pt-4 text-center text-sm text-gray-600">
-          <p>&copy; {new Date().getFullYear()} École Intl.Institut Froebel - Abidjan | Réalisation - SUPRÊME COMMUNICATION</p>
+          <p>&copy; {new Date().getFullYear()} École Intl.Institut Froebel - Abidjan | Réalisation - Agence Phi</p>
         </div>
       </div>
 
