@@ -19,6 +19,7 @@ import { ProfileScreen } from './components/ProfileScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { EmailScreen } from './components/EmailScreen';
 import { WhatsAppScreen } from './components/WhatsAppScreen';
+import { MonthlyReportScreen } from './components/MonthlyReportScreen';
 import { ApiService } from './services/ApiService';
 import { User, Club, NavigationScreen } from './types';
 
@@ -219,6 +220,18 @@ export default function App() {
           <>
             <StatusBar style="light" backgroundColor="#005AA9" />
             <WhatsAppScreen
+              user={user}
+              club={selectedClub}
+              onBack={handleBackToDashboard}
+            />
+          </>
+        );
+
+      case 'monthly-report':
+        return (
+          <>
+            <StatusBar style="light" backgroundColor="#005AA9" />
+            <MonthlyReportScreen
               user={user}
               club={selectedClub}
               onBack={handleBackToDashboard}

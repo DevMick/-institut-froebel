@@ -139,6 +139,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
       screen: 'whatsapp' as NavigationScreen,
     },
     {
+      id: 'monthly-report',
+      title: 'Rapport Mensuel',
+      subtitle: 'Envoyer le rapport du mois',
+      icon: 'document-text-outline',
+      color: '#8B5CF6',
+      screen: 'monthly-report' as NavigationScreen,
+    },
+    {
       id: 'clubs',
       title: 'Clubs',
       subtitle: 'Gérer les clubs',

@@ -158,7 +158,8 @@ export type NavigationScreen =
   | 'profile'
   | 'settings'
   | 'email'
-  | 'whatsapp';
+  | 'whatsapp'
+  | 'monthly-report';
 
 export interface NavigationState {
   currentScreen: NavigationScreen;

@@ -345,6 +345,45 @@ export class ApiService {
     }
   }
 
+  async getClubEvenements(clubId: string): Promise<any[]> {
+    try {
+      console.log('🔄 Chargement événements pour club:', clubId);
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/clubs/${clubId}/evenements`;
+      const token = await this.getToken();
+
+      if (!token) {
+        throw new Error('Token d\'authentification manquant');
+      }
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true',
+          'User-Agent': 'RotaryClubMobile/1.0',
+          'Origin': 'https://snack.expo.dev',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          await this.removeToken();
+          throw new Error('Session expirée. Veuillez vous reconnecter.');
+        }
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Événements chargés:', data);
+      return data.data || data; // Gérer les deux formats possibles
+    } catch (error) {
+      console.error('❌ Erreur chargement événements:', error);
+      return [];
+    }
+  }
+
   async logout(): Promise<void> {
     await this.removeToken();
   }
