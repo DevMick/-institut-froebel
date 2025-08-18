@@ -16,8 +16,8 @@ const sections = [
   },
   {
     icon: <FaUserShield className="text-emerald-500 text-4xl" />,
-    title: 'Cadre Sécurisé & Accessible',
-    description: 'Culture, Art et Sport',
+    title: 'Cadre sécurisé',
+    description: 'Nos établissements sont situés dans des quartiers accessibles, avec des dispositifs de sécurité (agents, portails surveillés, environnement fermé) garantissant la tranquillité des parents.',
     features: ['Culture', 'Art', 'Sport'],
     color: 'from-emerald-50 to-teal-100',
     border: 'border-emerald-200',
@@ -34,8 +34,8 @@ const sections = [
   },
   {
     icon: <FaFutbol className="text-blue-500 text-4xl" />,
-    title: 'Activités Sportives & Clubs',
-    description: 'L\'épanouissement passe aussi par le mouvement et la créativité. Nos écoles offrent un large éventail d\'activités extrascolaires.',
+    title: 'Culture, Art et sport',
+    description: 'L\'épanouissement passe aussi par le mouvement et la créativité. Nos écoles offrent un large éventail d\'activités extrascolaires',
     features: ['Danse & Théâtre', 'Musique & Cuisine', 'Football & Karaté', 'Jeux collectifs'],
     color: 'from-blue-50 to-cyan-100',
     border: 'border-blue-200',

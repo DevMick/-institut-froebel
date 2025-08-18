@@ -27,7 +27,7 @@ const ActivitesRecentes = () => {
   return (
     <section className="py-16 bg-white">
       <div className="max-w-6xl mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-green-700 text-center mb-8">NOS RÉCENTES ACTIVITÉS</h2>
+        <h2 className="text-2xl md:text-3xl font-extrabold text-froebel-blue text-center mb-8">NOS RÉCENTES ACTIVITÉS</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {activites.map((act, idx) => (
             <a

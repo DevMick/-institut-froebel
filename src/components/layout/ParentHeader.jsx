@@ -1,6 +1,6 @@
 import React from 'react';
 import EnfantSelector from '../ui/EnfantSelector';
-import Logo from '../../assets/images/Logo.jpg';
+import Logo from '../../assets/images/Logo.png';
 
 const ParentHeader = ({ title = 'Espace Parents', onMenuClick }) => {
   return (
@@ -16,6 +16,7 @@ const ParentHeader = ({ title = 'Espace Parents', onMenuClick }) => {
           </svg>
         </button>
         <img src={Logo} alt="Institut Froebel" className="h-8 w-8" />
+        <span className="ml-2 text-sm font-bold text-green-700">INSTITUT FROEBEL</span>
       </div>
       <span className="text-base font-semibold text-gray-800">{title}</span>
       <div>

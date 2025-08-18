@@ -25,7 +25,7 @@ const PresentationBienvenue = () => {
   return (
     <section className="py-16 bg-white">
       <div className="max-w-5xl mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-green-700 text-center mb-4">BIENVENUE À L'INSTITUT FROEBEL</h2>
+        <h2 className="text-2xl md:text-3xl font-extrabold text-froebel-blue text-center mb-4">BIENVENUE À L'INSTITUT FROEBEL</h2>
         <p className="text-gray-700 text-center mb-10 max-w-2xl mx-auto">
           Ancré dans des valeurs d'excellence et d'innovation pédagogique, l'Institut Froebel se positionne comme une référence éducative à Abidjan, avec des établissements dédiés à chaque étape du parcours scolaire.
         </p>

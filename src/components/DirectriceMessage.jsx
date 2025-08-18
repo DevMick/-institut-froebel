@@ -20,12 +20,12 @@ const DirectriceMessage = () => {
         </div>
         {/* Colonne droite : message */}
         <div className="md:w-2/3 bg-green-50 rounded-xl shadow-lg p-8 flex flex-col justify-between">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-green-700 mb-2 text-center md:text-left">MOT DE LA DIRECTRICE CENTRALE</h2>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-froebel-blue mb-2 text-center md:text-left">MOT DE LA DIRECTRICE CENTRALE</h2>
           <p className="italic text-gray-600 text-center md:text-left mb-4">Chers parents, chers partenaires de l'éducation</p>
           <div className="text-gray-700 space-y-4 mb-4">
-            <p>Depuis plus de cinq décennies, l'Institut Froebel s'est imposé comme une référence éducative à Abidjan. Fidèle à la vision de sa fondatrice, Madame Marguerite Kadio, notre établissement s'est bâti sur une pédagogie centrée sur l'épanouissement de l'enfant, l'excellence académique et le respect des valeurs humaines.</p>
+            <p>Depuis plus de cinq décennies, l'Institut Froebel s'est imposé comme une référence au niveau l'éducation nationale de la Côte d'Ivoire plus précisément dans la région des Lagunes. Fidèle à la vision de sa fondatrice, Madame Marguerite Kadio, notre établissement s'est bâti sur une pédagogie centrée sur l'épanouissement de l'enfant, l'excellence académique et le respect des valeurs humaines.</p>
             <p>Aujourd'hui, avec plus de 1 700 élèves répartis sur cinq sites, nous poursuivons notre mission avec passion et engagement : offrir une éducation intégrale, dans un cadre sécurisé, dynamique et bienveillant.</p>
-            <p>Que vous soyez parents d'un tout-petit ou d'un adolescent, nous vous invitons à découvrir cet établissement où chaque enfant est accompagné avec attention, rigueur et amour du savoir.</p>
+                                      <p>Que vous soyez parents d'un tout-petit ou d'un adolescent, nous vous invitons à découvrir cet établissement où chaque enfant est accompagné avec beaucoup de rigueur mais aussi une attention axée sur son potentiel dans le cadre d'un encadrement personnalisé.</p>
           </div>
           <blockquote className="bg-white border-l-4 border-green-400 p-4 italic font-semibold text-green-800 mb-6">
             Bienvenue à l'Institut Froebel. Ensemble, faisons fleurir l'avenir de nos enfants.

@@ -62,7 +62,7 @@ const GaleriePhoto = () => {
   return (
     <section className="py-16 bg-green-50">
       <div className="max-w-5xl mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-green-700 text-center mb-2">GALERIE PHOTO</h2>
+        <h2 className="text-2xl md:text-3xl font-extrabold text-froebel-blue text-center mb-2">GALERIE PHOTO</h2>
         <p className="text-gray-500 text-center mb-8">Découvrez nos espaces d'apprentissage et de vie</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {photos.map((photo, idx) => (

@@ -19,7 +19,7 @@ const NotrePedagogie = () => {
   return (
     <section className="py-16 bg-white">
       <div className="max-w-5xl mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-green-600 text-center mb-2">NOTRE PÉDAGOGIE</h2>
+        <h2 className="text-2xl md:text-3xl font-extrabold text-froebel-blue text-center mb-2">NOTRE PÉDAGOGIE</h2>
         <div className="flex items-center justify-center gap-2 mb-8">
           <FaGraduationCap className="text-green-600 text-xl" />
           <span className="text-green-700 font-medium">Ce qui nous différencie</span>
@@ -54,7 +54,7 @@ const NotrePedagogie = () => {
         </div>
         {/* Développement Complet */}
         <div className="bg-green-50 rounded-2xl p-8 flex flex-col items-center">
-          <h3 className="text-xl md:text-2xl font-extrabold text-green-600 mb-6">Développement Complet</h3>
+                     <h3 className="text-xl md:text-2xl font-extrabold text-froebel-blue mb-6">Développement Complet</h3>
           <div className="flex flex-col md:flex-row gap-6 justify-center">
             <div className="flex items-center gap-2 bg-white rounded-full px-6 py-3 shadow border-2 border-green-200">
               <span className="bg-green-500 text-white rounded-full p-2"><svg xmlns='http://www.w3.org/2000/svg' className='w-5 h-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 20v-6m0 0V4m0 10l-3-3m3 3l3-3' /></svg></span>

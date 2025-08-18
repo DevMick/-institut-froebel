@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import Logo from '../assets/images/Logo.jpg';
+import Logo from '../assets/images/Logo.png';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -29,8 +29,9 @@ const Header = () => {
               <img 
                 src={Logo} 
                 alt="Institut Froebel Logo" 
-                className="h-12 w-auto"
+                className="h-16 w-auto"
               />
+              <span className="ml-3 text-xl font-bold text-green-700">INSTITUT FROEBEL</span>
             </Link>
           </div>
 

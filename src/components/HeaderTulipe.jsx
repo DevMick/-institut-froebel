@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Logo from '../assets/images/Logo.jpg';
+import Logo from '../assets/images/Logo.png';
 import { Link } from 'react-router-dom';
 
 const menuItems = [
@@ -19,6 +19,7 @@ const HeaderTulipe = () => {
         <div className="flex items-center gap-2">
           <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
             <img src={Logo} alt="Institut Froebel Logo" className="h-10 w-auto" />
+            <span className="ml-3 text-lg font-bold text-green-700">INSTITUT FROEBEL</span>
           </Link>
         </div>
 

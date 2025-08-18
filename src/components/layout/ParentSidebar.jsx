@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, BookOpen, Megaphone, Calendar, LogOut, ChevronLeft, ChevronRight, X, Menu, User } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import Logo from '../../assets/images/Logo.jpg';
+import Logo from '../../assets/images/Logo.png';
 
 const navItems = [
   { label: 'Dashboard', to: '/espace-parents', icon: <Home size={20} /> },
@@ -47,6 +47,7 @@ const ParentSidebar = ({ mobile = false, onClose }) => {
       <div className="flex items-center justify-between px-4 py-3">
         <Link to="/espace-parents" className="flex items-center">
           <img src={Logo} alt="Institut Froebel" className="h-10 w-auto object-contain" />
+          <span className="ml-2 text-sm font-bold text-green-700">INSTITUT FROEBEL</span>
         </Link>
         
         <div className="flex items-center gap-3">

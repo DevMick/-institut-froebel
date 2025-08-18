@@ -57,7 +57,7 @@ const InstallationsVieScolaire = () => {
   return (
     <section className="py-16 bg-white">
       <div className="max-w-6xl mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-green-600 text-center mb-2">NOS INSTALLATIONS & VIE SCOLAIRE</h2>
+        <h2 className="text-2xl md:text-3xl font-extrabold text-froebel-blue text-center mb-2">NOS INSTALLATIONS & VIE SCOLAIRE</h2>
         <div className="flex items-center justify-center gap-2 mb-8">
           <FaSchool className="text-green-600 text-xl" />
           <span className="text-green-700 font-medium">Des écoles primaires modernes et accueillantes</span>
@@ -102,7 +102,7 @@ const InstallationsVieScolaire = () => {
         </div>
         {/* Activités enrichissantes */}
         <div className="bg-green-50 rounded-2xl p-8 flex flex-col items-center mb-12">
-          <h3 className="text-xl md:text-2xl font-extrabold text-green-600 mb-4">Clubs & Activités Sportives</h3>
+          <h3 className="text-xl md:text-2xl font-extrabold text-froebel-blue mb-4">Culture, Art et Sport</h3>
           <p className="text-gray-600 text-center mb-6 max-w-2xl">
             Culture, Art et Sport : découvrez nos différents clubs et activités sportives qui enrichissent l'expérience éducative de nos élèves et favorisent leur épanouissement personnel.
           </p>
@@ -117,7 +117,7 @@ const InstallationsVieScolaire = () => {
         </div>
         {/* Équipe pédagogique */}
         <div className="bg-green-50 rounded-2xl p-8 flex flex-col items-center">
-          <h3 className="text-xl md:text-2xl font-extrabold text-green-600 mb-4">Équipe Pédagogique Spécialisée</h3>
+          <h3 className="text-xl md:text-2xl font-extrabold text-froebel-blue mb-4">Équipe Pédagogique Spécialisée</h3>
           <p className="text-gray-600 text-center mb-6 max-w-2xl">Notre équipe d'instituteurs et institutrices est spécialement formée pour l'enseignement primaire. Passionnés et dévoués, ils accompagnent chaque enfant dans son développement académique et personnel avec bienveillance et professionnalisme.</p>
           <div className="flex flex-wrap gap-4 justify-center">
             {equipeBadges.map((badge, idx) => (

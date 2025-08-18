@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import ecolesApi from '../services/ecolesApi';
 import authApi from '../services/authApi';
-import Logo from '../assets/images/Logo.jpg';
+import Logo from '../assets/images/Logo.png';
 import { Form, Input, Button, Typography, Alert, Spin, Card } from 'antd';
 import { HomeOutlined, MailOutlined, LockOutlined, LoginOutlined } from '@ant-design/icons';
 import '../styles/LoginPage.css';
@@ -164,11 +164,14 @@ const LoginPage = () => {
         {/* Logo et titre */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <img
-              src={Logo}
-              alt="Institut Froebel"
-              className="w-16 h-16 object-contain"
-            />
+            <div className="flex items-center">
+              <img
+                src={Logo}
+                alt="Institut Froebel"
+                className="w-16 h-16 object-contain"
+              />
+              <span className="ml-3 text-2xl font-bold text-green-700">INSTITUT FROEBEL</span>
+            </div>
           </div>
           <Title level={2} className="text-gray-800 mb-2">
             Connexion à votre espace

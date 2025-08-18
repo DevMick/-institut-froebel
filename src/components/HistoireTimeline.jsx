@@ -34,7 +34,7 @@ const HistoireTimeline = () => {
   return (
     <section className="py-16 bg-white">
       <div className="max-w-5xl mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-green-700 text-center mb-10">NOTRE HISTOIRE</h2>
+        <h2 className="text-2xl md:text-3xl font-extrabold text-froebel-blue text-center mb-10">NOTRE HISTOIRE</h2>
         <div className="flex flex-col md:flex-row gap-8 items-start">
           {/* Bloc vision */}
           <div className="md:w-1/2 bg-white rounded-xl shadow p-6 border-t-4 border-green-400">
