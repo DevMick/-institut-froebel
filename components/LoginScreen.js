@@ -85,19 +85,41 @@ export const LoginScreen = ({
             </TouchableOpacity>
           </View>
           <ScrollView style={styles.clubList}>
-            {clubs.map((club) => (
-              <TouchableOpacity
-                key={club.id}
-                style={styles.clubItem}
-                onPress={() => {
-                  setSelectedClubId(club.id);
-                  setShowClubModal(false);
-                }}
-              >
-                <Text style={styles.clubItemText}>{club.name}</Text>
-                <Text style={styles.clubItemSubtext}>{club.city}</Text>
-              </TouchableOpacity>
-            ))}
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#005AA9" />
+                <Text style={styles.loadingText}>Chargement des clubs...</Text>
+              </View>
+            ) : clubs && clubs.length > 0 ? (
+              clubs.map((club) => (
+                <TouchableOpacity
+                  key={club.id}
+                  style={styles.clubItem}
+                  onPress={() => {
+                    setSelectedClubId(club.id);
+                    setShowClubModal(false);
+                  }}
+                >
+                  <Text style={styles.clubItemText}>{club.name}</Text>
+                  <Text style={styles.clubItemSubtext}>{club.city || 'Ville non spécifiée'}</Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={styles.noClubsContainer}>
+                <Ionicons name="alert-circle" size={48} color="#FF9800" />
+                <Text style={styles.noClubsText}>Aucun club disponible</Text>
+                <Text style={styles.noClubsSubtext}>
+                  Vérifiez votre connexion ou contactez l'administrateur
+                </Text>
+                <TouchableOpacity
+                  style={styles.retryButton}
+                  onPress={onLoadClubs}
+                >
+                  <Ionicons name="refresh" size={16} color="white" />
+                  <Text style={styles.retryButtonText}>Réessayer</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </ScrollView>
         </View>
       </View>
@@ -319,5 +341,46 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginTop: 2,
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 16,
+    color: '#666',
+  },
+  noClubsContainer: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  noClubsText: {
+    marginTop: 15,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  noClubsSubtext: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#005AA9',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 20,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });

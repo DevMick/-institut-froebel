@@ -164,10 +164,22 @@ export class ApiService {
 
   async getClubs() {
     try {
+      console.log('🔄 Tentative de récupération des clubs...');
       const response = await this.makeRequest('/Clubs');
-      return response.data || [];
+      console.log('📊 Réponse API clubs:', response);
+      
+      if (response && response.data) {
+        console.log('✅ Clubs récupérés:', response.data.length);
+        return response.data;
+      } else if (Array.isArray(response)) {
+        console.log('✅ Clubs récupérés (format array):', response.length);
+        return response;
+      } else {
+        console.log('⚠️ Format de réponse inattendu:', response);
+        return [];
+      }
     } catch (error) {
-      console.error('Erreur getClubs:', error);
+      console.error('❌ Erreur getClubs:', error);
       throw error;
     }
   }
