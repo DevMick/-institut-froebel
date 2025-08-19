@@ -86,15 +86,22 @@ export const WhatsAppScreen: React.FC<WhatsAppScreenProps> = ({ user, club, onBa
 
   const sendWhatsAppMessage = async (phoneNumber: string, messageText: string) => {
     try {
-      // Utiliser l'API Twilio pour envoyer le message WhatsApp
-      const result = await apiService.sendWhatsAppMessage({
-        phoneNumber: phoneNumber,
-        message: messageText
-      });
+      // Format du numéro de téléphone
+      const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
+      const url = `whatsapp://send?phone=${formattedPhone}&text=${encodeURIComponent(messageText)}`;
       
-      return result.success;
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+        return true;
+      } else {
+        // Fallback vers WhatsApp Web
+        const webUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(messageText)}`;
+        await Linking.openURL(webUrl);
+        return true;
+      }
     } catch (error) {
-      console.error('Erreur envoi WhatsApp via API:', error);
+      console.error('Erreur ouverture WhatsApp:', error);
       return false;
     }
   };
@@ -126,28 +133,10 @@ export const WhatsAppScreen: React.FC<WhatsAppScreenProps> = ({ user, club, onBa
         await new Promise(resolve => setTimeout(resolve, 500));
       }
 
-      // Message de succès détaillé
-      const successMessage = `✅ Messages WhatsApp envoyés avec succès !
-      
-📱 Destinataires : ${selectedPhones.length} membre(s)
-📝 Message : ${message.length} caractères
-🕐 Envoyé le : ${new Date().toLocaleString('fr-FR')}
-
-Les messages ont été transmis via l'API Twilio.`;
-
       Alert.alert(
-        '🎉 Succès !',
-        successMessage,
-        [
-          {
-            text: 'Retour au menu',
-            onPress: () => {
-              setMessage('');
-              setSelectedMembers([]);
-              onBack();
-            }
-          }
-        ]
+        'Succès',
+        `WhatsApp ouvert pour ${selectedPhones.length} membre(s). Veuillez confirmer l'envoi dans WhatsApp.`,
+        [{ text: 'OK', onPress: () => { setMessage(''); setSelectedMembers([]); } }]
       );
     } catch (error: any) {
       Alert.alert('Erreur', error.message || 'Erreur lors de l\'ouverture de WhatsApp');

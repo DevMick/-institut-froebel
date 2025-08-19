@@ -44,49 +44,7 @@ interface Member {
   roles: string[];
 }
 
-// Données de démonstration
-const demoUser: User = {
-  id: '1',
-  email: 'jean.dupont@rotary.fr',
-  firstName: 'Jean',
-  lastName: 'Dupont',
-  fullName: 'Jean Dupont',
-  clubId: '1'
-};
-
-const demoClub: Club = {
-  id: '1',
-  name: 'Rotary Club Paris Centre',
-  city: 'Paris',
-  country: 'France'
-};
-
-const demoMembers: Member[] = [
-  {
-    id: '1',
-    email: 'john.doe@rotary.fr',
-    firstName: 'John',
-    lastName: 'Doe',
-    fullName: 'John Doe',
-    roles: ['Membre']
-  },
-  {
-    id: '2',
-    email: 'jane.smith@rotary.fr',
-    firstName: 'Jane',
-    lastName: 'Smith',
-    fullName: 'Jane Smith',
-    roles: ['Président']
-  },
-  {
-    id: '3',
-    email: 'pierre.martin@rotary.fr',
-    firstName: 'Pierre',
-    lastName: 'Martin',
-    fullName: 'Pierre Martin',
-    roles: ['Secrétaire']
-  }
-];
+// Données de démonstration supprimées - utilisation de l'API uniquement
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<'dashboard' | 'members' | 'calendar-email'>('dashboard');
@@ -94,6 +52,9 @@ export default function App() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [messagePersonnalise, setMessagePersonnalise] = useState('');
   const [sending, setSending] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [club, setClub] = useState<Club | null>(null);
+  const [members, setMembers] = useState<Member[]>([]);
 
   const getMonthName = (month: number) => {
     const months = [
@@ -149,7 +110,7 @@ Le calendrier a été transmis à tous les destinataires.`;
   };
 
   const selectAllMembers = () => {
-    const allMemberIds = demoMembers.map(member => member.id);
+    const allMemberIds = members.map(member => member.id);
     setSelectedMembers(allMemberIds);
   };
 
@@ -162,23 +123,23 @@ Le calendrier a été transmis à tous les destinataires.`;
       <StatusBar style="light" backgroundColor="#005AA9" />
       
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <Text style={styles.title}>Rotary Club Mobile</Text>
-          <Text style={styles.clubName}>{demoClub.name}</Text>
+              <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <Text style={styles.title}>Rotary Club Mobile</Text>
+            <Text style={styles.clubName}>{club?.name || 'Club'}</Text>
+          </View>
         </View>
-      </View>
 
-      <ScrollView style={styles.content}>
-        {/* Welcome Card */}
-        <View style={styles.welcomeCard}>
-          <Text style={styles.welcomeText}>
-            Bienvenue, {demoUser.fullName}
-          </Text>
-          <Text style={styles.clubInfo}>
-            {demoClub.city}, {demoClub.country}
-          </Text>
-        </View>
+        <ScrollView style={styles.content}>
+          {/* Welcome Card */}
+          <View style={styles.welcomeCard}>
+            <Text style={styles.welcomeText}>
+              Bienvenue, {user?.fullName || 'Utilisateur'}
+            </Text>
+            <Text style={styles.clubInfo}>
+              {club?.city}, {club?.country}
+            </Text>
+          </View>
 
         {/* Menu Items */}
         <View style={styles.menuContainer}>
@@ -228,7 +189,7 @@ Le calendrier a été transmis à tous les destinataires.`;
       </View>
 
       <ScrollView style={styles.content}>
-        {demoMembers.map((member) => (
+        {members.map((member) => (
           <View key={member.id} style={styles.memberCard}>
             <View style={styles.avatarContainer}>
               <Text style={styles.avatarText}>
@@ -302,7 +263,7 @@ Le calendrier a été transmis à tous les destinataires.`;
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Destinataires sélectionnés</Text>
           <View style={styles.recipientsContainer}>
-            {demoMembers.map((member) => (
+            {members.map((member) => (
               <TouchableOpacity
                 key={member.id}
                 style={[

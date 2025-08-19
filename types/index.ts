@@ -13,21 +13,9 @@ export interface Club {
   heureReunion?: string; // TimeSpan sera converti en string par l'API
   frequence?: string;
   adresse?: string;
-  // Propriétés supplémentaires pour les données de démonstration
   city?: string;
   country?: string;
   district?: string;
-  president?: string;
-  secretary?: string;
-  treasurer?: string;
-  membersCount?: number;
-  foundedYear?: number;
-  meetingDay?: string;
-  meetingTime?: string;
-  meetingLocation?: string;
-  phone?: string;
-  website?: string;
-  description?: string;
 }
 
 export interface User {
@@ -47,7 +35,6 @@ export interface Member {
   lastName: string;
   fullName: string;
   phoneNumber?: string;
-  phone?: string; // Alias pour compatibilité
   profilePictureUrl?: string;
   isActive: boolean;
   roles: string[];
@@ -60,10 +47,6 @@ export interface Member {
   departement?: string;
   poste?: string;
   dateAdhesion?: string;
-  joinDate?: string; // Alias pour compatibilité
-  status?: string; // Alias pour compatibilité
-  role?: string; // Alias pour compatibilité
-  avatar?: string | null; // Alias pour compatibilité
   fonctions?: {
     comiteId: string;
     comiteNom: string;
@@ -158,9 +141,7 @@ export type NavigationScreen =
   | 'profile'
   | 'settings'
   | 'email'
-  | 'whatsapp'
-  | 'monthly-report'
-  | 'calendar-email';
+  | 'whatsapp';
 
 export interface NavigationState {
   currentScreen: NavigationScreen;

@@ -11,11 +11,8 @@ import {
   SafeAreaView,
   Modal,
   FlatList,
-  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
 import { Member, User, Club } from '../types';
 import { ApiService } from '../services/ApiService';
 
@@ -113,84 +110,60 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
     console.log('🔧 Tentative d\'ajout de pièce jointe...');
     
     try {
-      // Utiliser expo-document-picker pour sélectionner un fichier
-      const result = await DocumentPicker.getDocumentAsync({
-        type: [
-          'application/pdf',
-          'application/msword',
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          'application/vnd.ms-excel',
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          'application/vnd.ms-powerpoint',
-          'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-          'image/*',
-          'text/*'
-        ],
-        copyToCacheDirectory: true,
-        multiple: false
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const file = result.assets[0];
-        console.log('📎 Fichier sélectionné:', file);
-        
-        let base64: string | undefined;
-        
-        // Gestion différente selon la plateforme
-        if (Platform.OS === 'web') {
-          // Sur web, le fichier est déjà en base64 dans l'URI
-          if (file.uri.startsWith('data:')) {
-            base64 = file.uri.split(',')[1];
-          } else {
-            // Si ce n'est pas déjà en base64, on essaie de le lire
-            try {
-              base64 = await FileSystem.readAsStringAsync(file.uri, {
-                encoding: FileSystem.EncodingType.Base64
-              });
-            } catch (readError) {
-              console.warn('Impossible de lire le fichier en base64 sur web:', readError);
-              // On continue sans base64 sur web
-            }
+      // Simulation d'upload de fichier pour Expo Snack
+      // Dans une vraie app, cela utiliserait expo-document-picker
+      Alert.alert(
+        '📎 Ajouter une pièce jointe',
+        'Choisissez le type de fichier à simuler :',
+        [
+          { text: 'Annuler', style: 'cancel' },
+          {
+            text: '📄 Document PDF',
+            onPress: () => addSimulatedAttachment('document.pdf', 'application/pdf', 1024 * 50)
+          },
+          {
+            text: '🖼️ Image JPG',
+            onPress: () => addSimulatedAttachment('image.jpg', 'image/jpeg', 1024 * 200)
+          },
+          {
+            text: '📊 Présentation PPTX',
+            onPress: () => addSimulatedAttachment('presentation.pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 1024 * 500)
+          },
+          {
+            text: '📈 Tableur XLSX',
+            onPress: () => addSimulatedAttachment('spreadsheet.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 1024 * 100)
           }
-        } else {
-          // Sur mobile, on vérifie d'abord si le fichier existe
-          try {
-            const fileInfo = await FileSystem.getInfoAsync(file.uri);
-            if (fileInfo.exists) {
-              base64 = await FileSystem.readAsStringAsync(file.uri, {
-                encoding: FileSystem.EncodingType.Base64
-              });
-            }
-          } catch (fileError) {
-            console.warn('Erreur lors de la lecture du fichier:', fileError);
-          }
-        }
-        
-        const newAttachment: Attachment = {
-          id: Date.now().toString(),
-          name: file.name,
-          size: `${Math.round(file.size / 1024)} KB`,
-          type: file.mimeType || 'application/octet-stream',
-          uri: file.uri,
-          base64: base64,
-        };
-        
-        setAttachments(prev => {
-          const updated = [...prev, newAttachment];
-          console.log('📎 Pièces jointes mises à jour:', updated.length);
-          return updated;
-        });
-        
-        Alert.alert(
-          '✅ Pièce jointe ajoutée',
-          `Fichier "${file.name}" ajouté avec succès`,
-          [{ text: 'OK' }]
-        );
-      }
+        ]
+      );
     } catch (error: any) {
       console.error('❌ Erreur upload fichier:', error);
       Alert.alert('Erreur', 'Impossible de sélectionner le fichier');
     }
+  };
+
+  const addSimulatedAttachment = (fileName: string, fileType: string, fileSize: number) => {
+    console.log('📎 Ajout de pièce jointe simulée:', fileName);
+    
+    const newAttachment: Attachment = {
+      id: Date.now().toString(),
+      name: fileName,
+      size: `${Math.round(fileSize / 1024)} KB`,
+      type: fileType,
+      uri: `file://${Date.now()}_${fileName}`,
+      base64: 'base64_simulation_data_' + Date.now(),
+    };
+    
+    setAttachments(prev => {
+      const updated = [...prev, newAttachment];
+      console.log('📎 Pièces jointes mises à jour:', updated.length);
+      return updated;
+    });
+    
+    Alert.alert(
+      '✅ Pièce jointe ajoutée',
+      `Fichier "${fileName}" ajouté avec succès (simulation)`,
+      [{ text: 'OK' }]
+    );
   };
 
   const handleRemoveAttachment = (attachmentId: string) => {
@@ -216,82 +189,41 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
     try {
       setSending(true);
       
-      // Préparer les données des pièces jointes (filtrer celles sans base64)
-      const attachmentData = attachments
-        .filter(att => att.base64) // Ne garder que les pièces jointes avec du contenu base64
-        .map(att => ({
-          name: att.name,
-          type: att.type,
-          size: att.size,
-          base64: att.base64!,
-          uri: att.uri || null
-        }));
-
-      // Vérifier que toutes les pièces jointes ont du contenu base64
-      const validAttachments = attachmentData.filter(att => att.base64 && att.base64.length > 0);
-      
-      if (attachments.length > 0 && validAttachments.length === 0) {
-        Alert.alert('Erreur', 'Aucune pièce jointe valide trouvée. Veuillez réessayer d\'ajouter les fichiers.');
-        return;
-      }
+      // Préparer les données des pièces jointes
+      const attachmentData = attachments.map(att => ({
+        name: att.name,
+        type: att.type,
+        size: att.size,
+        base64: att.base64 || null,
+        uri: att.uri || null
+      }));
 
       const emailData: EmailData = {
         subject: subject.trim(),
         message: message.trim(),
         recipients: getSelectedEmails(),
-        attachments: validAttachments,
+        attachments: attachmentData,
       };
 
-      const result = await apiService.sendClubEmail(emailData);
+      await apiService.sendClubEmail(emailData);
       
-      // Message de succès détaillé avec les données de l'API
-      const successMessage = `✅ ${result.message || 'Email envoyé avec succès !'}
-      
-📧 Destinataires : ${result.recipientsSent || selectedMembers.length}/${result.recipientsTotal || selectedMembers.length} membre(s)
-📎 Pièces jointes : ${validAttachments.length} fichier(s)
-🆔 ID Email : ${result.emailId || 'N/A'}
-🕐 Envoyé le : ${result.sentAt ? new Date(result.sentAt).toLocaleString('fr-FR') : new Date().toLocaleString('fr-FR')}
-
-L'email a été transmis avec succès à tous les destinataires.`;
-
       Alert.alert(
-        '🎉 Succès !',
-        successMessage,
+        'Succès',
+        `Email envoyé à ${selectedMembers.length} membre(s)${attachments.length > 0 ? ` avec ${attachments.length} pièce(s) jointe(s)` : ''}`,
         [
           {
-            text: 'Retour au menu',
+            text: 'OK',
             onPress: () => {
-              // Réinitialiser le formulaire
               setSubject('');
               setMessage('');
               setSelectedMembers([]);
               setAttachments([]);
-              // Rediriger vers le menu principal
-              onBack();
             }
           }
         ]
       );
     } catch (error: any) {
-      console.error('❌ Erreur envoi email:', error);
-      
-      let errorMessage = 'Erreur lors de l\'envoi de l\'email';
-      
-      if (error.message) {
-        if (error.message.includes('FileName') || error.message.includes('Base64Content')) {
-          errorMessage = 'Erreur avec les pièces jointes. Veuillez réessayer d\'ajouter les fichiers.';
-        } else if (error.message.includes('400')) {
-          errorMessage = 'Données invalides. Veuillez vérifier les informations saisies.';
-        } else if (error.message.includes('401')) {
-          errorMessage = 'Session expirée. Veuillez vous reconnecter.';
-        } else if (error.message.includes('500')) {
-          errorMessage = 'Erreur serveur. Veuillez réessayer plus tard.';
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      Alert.alert('Erreur', errorMessage);
+      Alert.alert('Erreur', error.message || 'Erreur lors de l\'envoi de l\'email');
     } finally {
       setSending(false);
     }
@@ -313,8 +245,8 @@ L'email a été transmis avec succès à tous les destinataires.`;
           <View style={styles.memberDetails}>
             <Text style={styles.memberName}>{member.fullName}</Text>
             <Text style={styles.memberEmail}>{member.email}</Text>
-            {member.roles && member.roles.length > 0 && (
-              <Text style={styles.memberRole}>{member.roles.join(', ')}</Text>
+            {member.role && (
+              <Text style={styles.memberRole}>{member.role}</Text>
             )}
           </View>
         </View>
@@ -465,7 +397,13 @@ L'email a été transmis avec succès à tous les destinataires.`;
             <Ionicons name="add-circle" size={20} color="#005AA9" style={{ marginLeft: 'auto' }} />
           </TouchableOpacity>
           
-
+          {/* Bouton de test simple */}
+          <TouchableOpacity 
+            style={styles.testButton}
+            onPress={() => addSimulatedAttachment('test.txt', 'text/plain', 1024)}
+          >
+            <Text style={styles.testButtonText}>🧪 Test rapide - Ajouter fichier</Text>
+          </TouchableOpacity>
           
           {attachments.length > 0 && (
             <View style={styles.attachmentsList}>
@@ -483,7 +421,7 @@ L'email a été transmis avec succès à tous les destinataires.`;
           )}
           
           <Text style={styles.attachmentNote}>
-            💡 Sélectionnez des fichiers depuis votre appareil
+            💡 Simulation : Choisissez le type de fichier à ajouter
           </Text>
         </View>
       </ScrollView>
