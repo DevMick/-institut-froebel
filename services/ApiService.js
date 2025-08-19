@@ -1,19 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
-
-// Configuration API (version JS)
-const API_CONFIG = {
-  // Essayer d'abord l'URL locale, puis ngrok en fallback
-  BASE_URL: 'http://localhost:5265', // URL locale directe
-  API_PREFIX: '/api',
-  TIMEOUT: 10000,
-};
-
-// Configuration de fallback pour ngrok
-const NGROK_CONFIG = {
-  BASE_URL: 'https://eb341d744645.ngrok-free.app',
-  API_PREFIX: '/api',
-  TIMEOUT: 10000,
-};
+import { API_CONFIG, DEMO_DATA } from '../config/api-config';
 
 export class ApiService {
   async getToken() {
@@ -171,9 +157,15 @@ export class ApiService {
   }
 
   async getClubs() {
+    // Vérifier si le mode démo est forcé
+    if (API_CONFIG.FORCE_DEMO_MODE) {
+      console.log('🧪 Mode démo forcé - Utilisation des données de test');
+      return DEMO_DATA.clubs;
+    }
+
     const urlsToTry = [
-      `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/Clubs`,
-      `${NGROK_CONFIG.BASE_URL}${NGROK_CONFIG.API_PREFIX}/Clubs`,
+      `${API_CONFIG.LOCAL_URL}${API_CONFIG.API_PREFIX}/Clubs`,
+      `${API_CONFIG.NGROK_URL}${API_CONFIG.API_PREFIX}/Clubs`,
     ];
 
     for (let i = 0; i < urlsToTry.length; i++) {
@@ -186,20 +178,14 @@ export class ApiService {
         const testResponse = await fetch(url, { 
           method: 'HEAD',
           mode: 'cors',
-          headers: {
-            'ngrok-skip-browser-warning': 'true',
-          }
+          headers: API_CONFIG.DEFAULT_HEADERS
         });
         console.log('📡 Status de connectivité:', testResponse.status);
         
         const response = await fetch(url, {
           method: 'GET',
           mode: 'cors',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'ngrok-skip-browser-warning': 'true',
-          },
+          headers: API_CONFIG.DEFAULT_HEADERS,
         });
 
         console.log('📊 Status de la réponse:', response.status);
@@ -231,7 +217,7 @@ export class ApiService {
           // C'est la dernière tentative, on utilise les données de test
           console.error('❌ Toutes les URLs ont échoué, utilisation des données de test');
           console.log('⚠️ Mode démo activé - Utilisation de données de test');
-          return this.getTestClubs();
+          return DEMO_DATA.clubs;
         }
         console.log('🔄 Tentative de l\'URL suivante...');
       }
@@ -310,28 +296,4 @@ export class ApiService {
     }
   }
 
-  // Méthode pour obtenir des données de test si l'API n'est pas disponible
-  getTestClubs() {
-    console.log('🧪 Utilisation des données de test...');
-    return [
-      {
-        id: 1,
-        name: 'Rotary Club de Paris',
-        city: 'Paris',
-        description: 'Club principal de Paris'
-      },
-      {
-        id: 2,
-        name: 'Rotary Club de Lyon',
-        city: 'Lyon',
-        description: 'Club de Lyon'
-      },
-      {
-        id: 3,
-        name: 'Rotary Club de Marseille',
-        city: 'Marseille',
-        description: 'Club de Marseille'
-      }
-    ];
-  }
 }
