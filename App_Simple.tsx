@@ -10,42 +10,15 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  FlatList,
   SafeAreaView,
   Alert,
   ActivityIndicator,
   TextInput,
-  Modal,
-  Platform
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';
+import { StatusBar } from 'expo-status-bar';
 
-// Configuration API
-const API_CONFIG = {
-  BASE_URL: 'https://4a45-102-212-189-1.ngrok-free.app',
-  API_PREFIX: '/api',
-  TIMEOUT: 10000,
-};
-
-// Types de base
-interface Club {
-  id: string;
-  name: string;
-  code: string;
-  description: string;
-  address: string;
-  city: string;
-  country: string;
-  phoneNumber: string;
-  email: string;
-  website: string;
-  logoUrl: string;
-  foundedDate: string;
-  isActive: boolean;
-}
-
+// Types simplifiés
 interface User {
   id: string;
   email: string;
@@ -53,311 +26,346 @@ interface User {
   lastName: string;
   fullName: string;
   clubId?: string;
-  clubName?: string;
 }
 
-interface ApiResponse<T> {
-  success: boolean;
-  message?: string;
-  data?: T;
+interface Club {
+  id: string;
+  name: string;
+  city?: string;
+  country?: string;
 }
 
-// Service API simplifié
-class ApiService {
-  private async getToken(): Promise<string | null> {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        return window.localStorage.getItem('authToken');
-      }
-      return await SecureStore.getItemAsync('authToken');
-    } catch (error) {
-      console.error('Erreur token:', error);
-      return null;
-    }
-  }
-
-  private async setToken(token: string): Promise<void> {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.setItem('authToken', token);
-        return;
-      }
-      await SecureStore.setItemAsync('authToken', token);
-    } catch (error) {
-      console.error('Erreur sauvegarde token:', error);
-    }
-  }
-
-  async login(email: string, password: string, clubId: string): Promise<User> {
-    const loginData = { email, password, clubId };
-    
-    try {
-      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/Auth/login`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'ngrok-skip-browser-warning': 'true',
-        },
-        body: JSON.stringify(loginData),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Erreur ${response.status}: ${errorText}`);
-      }
-
-      const result = await response.json();
-
-      if (result.token) {
-        await this.setToken(result.token);
-        return {
-          id: 'user-id',
-          email: email,
-          firstName: 'Utilisateur',
-          lastName: 'Connecté',
-          fullName: 'Utilisateur Connecté',
-          clubId: clubId
-        };
-      }
-
-      throw new Error(result.message || 'Erreur de connexion');
-    } catch (error) {
-      console.error('Erreur login:', error);
-      throw error;
-    }
-  }
-
-  async getClubs(): Promise<Club[]> {
-    try {
-      const url = `${API_CONFIG.BASE_URL}/api/Clubs`;
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return Array.isArray(data) ? data : data.data || [];
-    } catch (error) {
-      console.error('Erreur chargement clubs:', error);
-      throw error;
-    }
-  }
+interface Member {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  roles: string[];
 }
 
-// Composant principal
+// Données de démonstration
+const demoUser: User = {
+  id: '1',
+  email: 'jean.dupont@rotary.fr',
+  firstName: 'Jean',
+  lastName: 'Dupont',
+  fullName: 'Jean Dupont',
+  clubId: '1'
+};
+
+const demoClub: Club = {
+  id: '1',
+  name: 'Rotary Club Paris Centre',
+  city: 'Paris',
+  country: 'France'
+};
+
+const demoMembers: Member[] = [
+  {
+    id: '1',
+    email: 'john.doe@rotary.fr',
+    firstName: 'John',
+    lastName: 'Doe',
+    fullName: 'John Doe',
+    roles: ['Membre']
+  },
+  {
+    id: '2',
+    email: 'jane.smith@rotary.fr',
+    firstName: 'Jane',
+    lastName: 'Smith',
+    fullName: 'Jane Smith',
+    roles: ['Président']
+  },
+  {
+    id: '3',
+    email: 'pierre.martin@rotary.fr',
+    firstName: 'Pierre',
+    lastName: 'Martin',
+    fullName: 'Pierre Martin',
+    roles: ['Secrétaire']
+  }
+];
+
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [clubs, setClubs] = useState<Club[]>([]);
-  const [selectedClub, setSelectedClub] = useState<Club | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [showLogin, setShowLogin] = useState(true);
-  
-  // États du formulaire de connexion
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [selectedClubId, setSelectedClubId] = useState('');
-  const [showClubModal, setShowClubModal] = useState(false);
+  const [currentScreen, setCurrentScreen] = useState<'dashboard' | 'members' | 'calendar-email'>('dashboard');
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [messagePersonnalise, setMessagePersonnalise] = useState('');
+  const [sending, setSending] = useState(false);
 
-  const apiService = new ApiService();
-
-  useEffect(() => {
-    loadClubs();
-  }, []);
-
-  const loadClubs = async () => {
-    try {
-      setLoading(true);
-      const clubsData = await apiService.getClubs();
-      setClubs(clubsData);
-    } catch (error) {
-      Alert.alert('Erreur', 'Impossible de charger les clubs');
-    } finally {
-      setLoading(false);
-    }
+  const getMonthName = (month: number) => {
+    const months = [
+      'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+      'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+    ];
+    return months[month - 1] || 'Mois inconnu';
   };
 
-  const handleLogin = async () => {
-    if (!email || !password || !selectedClubId) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+  const handleSendCalendar = async () => {
+    if (selectedMembers.length === 0) {
+      Alert.alert('Erreur', 'Veuillez sélectionner au moins un destinataire');
       return;
     }
 
-    try {
-      setLoading(true);
-      const userData = await apiService.login(email, password, selectedClubId);
-      setUser(userData);
-      setIsAuthenticated(true);
-      setShowLogin(false);
+    setSending(true);
+    
+    // Simulation d'envoi
+    setTimeout(() => {
+      const successMessage = `✅ Calendrier envoyé avec succès !
       
-      const club = clubs.find(c => c.id === selectedClubId);
-      setSelectedClub(club || null);
-      
-      Alert.alert('Succès', 'Connexion réussie !');
-    } catch (error) {
-      Alert.alert('Erreur', error.message || 'Erreur de connexion');
-    } finally {
-      setLoading(false);
-    }
+📧 Destinataires : ${selectedMembers.length} membre(s)
+📅 Mois : ${getMonthName(selectedMonth)}
+📊 Événements : 5
+🕐 Envoyé le : ${new Date().toLocaleString('fr-FR')}
+
+Le calendrier a été transmis à tous les destinataires.`;
+
+      Alert.alert(
+        '🎉 Succès !',
+        successMessage,
+        [
+          {
+            text: 'Retour au menu',
+            onPress: () => {
+              setSelectedMembers([]);
+              setMessagePersonnalise('');
+              setCurrentScreen('dashboard');
+            }
+          }
+        ]
+      );
+      setSending(false);
+    }, 2000);
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setUser(null);
-    setSelectedClub(null);
-    setShowLogin(true);
-    setEmail('');
-    setPassword('');
-    setSelectedClubId('');
-  };
-
-  const renderClubSelector = () => (
-    <TouchableOpacity
-      style={styles.clubSelector}
-      onPress={() => setShowClubModal(true)}
-    >
-      <Text style={styles.clubSelectorText}>
-        {selectedClubId ? clubs.find(c => c.id === selectedClubId)?.name || 'Sélectionner un club' : 'Sélectionner un club'}
-      </Text>
-      <Ionicons name="chevron-down" size={20} color="#666" />
-    </TouchableOpacity>
-  );
-
-  const renderClubModal = () => (
-    <Modal
-      visible={showClubModal}
-      transparent={true}
-      animationType="slide"
-      onRequestClose={() => setShowClubModal(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Sélectionner un club</Text>
-            <TouchableOpacity onPress={() => setShowClubModal(false)}>
-              <Ionicons name="close" size={24} color="#666" />
-            </TouchableOpacity>
-          </View>
-          <ScrollView style={styles.clubList}>
-            {clubs.map((club) => (
-              <TouchableOpacity
-                key={club.id}
-                style={styles.clubItem}
-                onPress={() => {
-                  setSelectedClubId(club.id);
-                  setShowClubModal(false);
-                }}
-              >
-                <Text style={styles.clubName}>{club.name}</Text>
-                <Text style={styles.clubCity}>{club.city}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      </View>
-    </Modal>
-  );
-
-  if (showLogin) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar style="light" backgroundColor="#005AA9" />
-        <View style={styles.loginContainer}>
-          <View style={styles.header}>
-            <Ionicons name="people-circle" size={80} color="#005AA9" />
-            <Text style={styles.title}>Rotary Club Mobile</Text>
-            <Text style={styles.subtitle}>Connexion</Text>
-          </View>
-
-          <View style={styles.form}>
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            
-            <TextInput
-              style={styles.input}
-              placeholder="Mot de passe"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
-
-            {renderClubSelector()}
-
-            <TouchableOpacity
-              style={[styles.loginButton, loading && styles.loginButtonDisabled]}
-              onPress={handleLogin}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text style={styles.loginButtonText}>Se connecter</Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.refreshButton}
-              onPress={loadClubs}
-              disabled={loading}
-            >
-              <Text style={styles.refreshButtonText}>
-                {loading ? 'Chargement...' : 'Actualiser les clubs'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {renderClubModal()}
-      </SafeAreaView>
+  const toggleMemberSelection = (memberId: string) => {
+    setSelectedMembers(prev => 
+      prev.includes(memberId)
+        ? prev.filter(id => id !== memberId)
+        : [...prev, memberId]
     );
-  }
+  };
 
-  return (
+  const selectAllMembers = () => {
+    const allMemberIds = demoMembers.map(member => member.id);
+    setSelectedMembers(allMemberIds);
+  };
+
+  const deselectAllMembers = () => {
+    setSelectedMembers([]);
+  };
+
+  const renderDashboard = () => (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" backgroundColor="#005AA9" />
       
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Rotary Club Mobile</Text>
-        {selectedClub && (
-          <Text style={styles.clubHeader}>{selectedClub.name}</Text>
-        )}
+        <View style={styles.headerContent}>
+          <Text style={styles.title}>Rotary Club Mobile</Text>
+          <Text style={styles.clubName}>{demoClub.name}</Text>
+        </View>
       </View>
 
       <ScrollView style={styles.content}>
+        {/* Welcome Card */}
         <View style={styles.welcomeCard}>
           <Text style={styles.welcomeText}>
-            Bienvenue, {user?.fullName || 'Utilisateur'}
+            Bienvenue, {demoUser.fullName}
           </Text>
-          {selectedClub && (
-            <Text style={styles.clubInfo}>
-              {selectedClub.city}, {selectedClub.country}
-            </Text>
-          )}
+          <Text style={styles.clubInfo}>
+            {demoClub.city}, {demoClub.country}
+          </Text>
         </View>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out" size={20} color="white" />
-          <Text style={styles.logoutButtonText}>Déconnexion</Text>
+        {/* Menu Items */}
+        <View style={styles.menuContainer}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => setCurrentScreen('members')}
+          >
+            <View style={[styles.menuIcon, { backgroundColor: '#005AA9' }]}>
+              <Ionicons name="people-outline" size={24} color="white" />
+            </View>
+            <View style={styles.menuContent}>
+              <Text style={styles.menuTitle}>Membres</Text>
+              <Text style={styles.menuSubtitle}>Gérer les membres du club</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#666" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => setCurrentScreen('calendar-email')}
+          >
+            <View style={[styles.menuIcon, { backgroundColor: '#FF6B35' }]}>
+              <Ionicons name="calendar-outline" size={24} color="white" />
+            </View>
+            <View style={styles.menuContent}>
+              <Text style={styles.menuTitle}>Envoi Calendrier</Text>
+              <Text style={styles.menuSubtitle}>Envoyer le calendrier du mois</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#666" />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+
+  const renderMembers = () => (
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="light" backgroundColor="#005AA9" />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => setCurrentScreen('dashboard')} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Membres</Text>
+        <View style={styles.placeholder} />
+      </View>
+
+      <ScrollView style={styles.content}>
+        {demoMembers.map((member) => (
+          <View key={member.id} style={styles.memberCard}>
+            <View style={styles.avatarContainer}>
+              <Text style={styles.avatarText}>
+                {member.firstName.charAt(0)}{member.lastName.charAt(0)}
+              </Text>
+            </View>
+            <View style={styles.memberInfo}>
+              <Text style={styles.memberName}>{member.fullName}</Text>
+              <Text style={styles.memberEmail}>{member.email}</Text>
+              <Text style={styles.memberRole}>{member.roles.join(', ')}</Text>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+    </SafeAreaView>
+  );
+
+  const renderCalendarEmail = () => (
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="light" backgroundColor="#FF6B35" />
+      
+      {/* Header */}
+      <View style={[styles.header, { backgroundColor: '#FF6B35' }]}>
+        <TouchableOpacity onPress={() => setCurrentScreen('dashboard')} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Envoi Calendrier</Text>
+        <View style={styles.placeholder} />
+      </View>
+
+      <ScrollView style={styles.content}>
+        {/* Sélection du mois */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Mois sélectionné</Text>
+          <View style={styles.monthGrid}>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((month) => (
+              <TouchableOpacity
+                key={month}
+                style={[
+                  styles.monthButton,
+                  selectedMonth === month && styles.monthButtonSelected
+                ]}
+                onPress={() => setSelectedMonth(month)}
+              >
+                <Text style={[
+                  styles.monthButtonText,
+                  selectedMonth === month && styles.monthButtonTextSelected
+                ]}>
+                  {getMonthName(month)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Message personnalisé */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Message personnalisé (optionnel)</Text>
+          <TextInput
+            style={styles.messageInput}
+            placeholder="Ajouter un message personnalisé au calendrier..."
+            value={messagePersonnalise}
+            onChangeText={setMessagePersonnalise}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+        </View>
+
+        {/* Destinataires */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Destinataires sélectionnés</Text>
+          <View style={styles.recipientsContainer}>
+            {demoMembers.map((member) => (
+              <TouchableOpacity
+                key={member.id}
+                style={[
+                  styles.recipientItem,
+                  selectedMembers.includes(member.id) && styles.recipientItemSelected
+                ]}
+                onPress={() => toggleMemberSelection(member.id)}
+              >
+                <View style={styles.recipientInfo}>
+                  <Text style={styles.recipientName}>{member.fullName}</Text>
+                  <Text style={styles.recipientEmail}>{member.email}</Text>
+                </View>
+                <Ionicons
+                  name={selectedMembers.includes(member.id) ? 'checkmark-circle' : 'ellipse-outline'}
+                  size={24}
+                  color={selectedMembers.includes(member.id) ? '#FF6B35' : '#ccc'}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+          
+          <View style={styles.recipientActions}>
+            <TouchableOpacity style={styles.actionButton} onPress={selectAllMembers}>
+              <Text style={styles.actionButtonText}>Tout sélectionner</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton} onPress={deselectAllMembers}>
+              <Text style={styles.actionButtonText}>Tout désélectionner</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Bouton d'envoi */}
+        <TouchableOpacity
+          style={[
+            styles.sendButton, 
+            selectedMembers.length === 0 && styles.sendButtonDisabled
+          ]}
+          onPress={handleSendCalendar}
+          disabled={selectedMembers.length === 0 || sending}
+        >
+          {sending ? (
+            <ActivityIndicator color="white" size="small" />
+          ) : (
+            <>
+              <Ionicons name="calendar" size={20} color="white" />
+              <Text style={styles.sendButtonText}>
+                Envoyer le calendrier
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
+
+  switch (currentScreen) {
+    case 'members':
+      return renderMembers();
+    case 'calendar-email':
+      return renderCalendarEmail();
+    default:
+      return renderDashboard();
+  }
 }
 
 const styles = StyleSheet.create({
@@ -365,132 +373,47 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
-  loginContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-  },
   header: {
-    alignItems: 'center',
-    marginBottom: 40,
     backgroundColor: '#005AA9',
-    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 50,
+    paddingBottom: 16,
+  },
+  headerContent: {
+    flex: 1,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
     color: 'white',
-    marginTop: 10,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: 'white',
-    marginTop: 5,
-  },
-  clubHeader: {
-    fontSize: 14,
-    color: 'white',
-    marginTop: 5,
-  },
-  form: {
-    width: '100%',
-  },
-  input: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    fontSize: 16,
-  },
-  clubSelector: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  clubSelectorText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  loginButton: {
-    backgroundColor: '#005AA9',
-    borderRadius: 8,
-    padding: 15,
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  loginButtonDisabled: {
-    opacity: 0.6,
-  },
-  loginButtonText: {
-    color: 'white',
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
   },
-  refreshButton: {
-    alignItems: 'center',
-    padding: 10,
-  },
-  refreshButtonText: {
-    color: '#005AA9',
+  clubName: {
+    color: 'white',
     fontSize: 14,
+    opacity: 0.8,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  backButton: {
+    padding: 8,
   },
-  modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 20,
-    width: '90%',
-    maxHeight: '80%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  modalTitle: {
+  headerTitle: {
+    color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
   },
-  clubList: {
-    maxHeight: 400,
-  },
-  clubItem: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  clubName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  clubCity: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 2,
+  placeholder: {
+    width: 40,
   },
   content: {
     flex: 1,
-    padding: 20,
+    padding: 16,
   },
   welcomeCard: {
     backgroundColor: 'white',
-    borderRadius: 10,
     padding: 20,
+    borderRadius: 12,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -502,24 +425,201 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 5,
+    marginBottom: 4,
   },
   clubInfo: {
     fontSize: 14,
     color: '#666',
   },
-  logoutButton: {
-    backgroundColor: '#dc3545',
+  menuContainer: {
+    gap: 12,
+  },
+  menuItem: {
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  menuIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  menuContent: {
+    flex: 1,
+  },
+  menuTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+  },
+  menuSubtitle: {
+    fontSize: 14,
+    color: '#666',
+  },
+  memberCard: {
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  avatarContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#005AA9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  avatarText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  memberInfo: {
+    flex: 1,
+  },
+  memberName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+  },
+  memberEmail: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
+  },
+  memberRole: {
+    fontSize: 12,
+    color: '#999',
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+  },
+  monthGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  monthButton: {
+    width: '30%',
+    backgroundColor: 'white',
+    padding: 12,
     borderRadius: 8,
-    padding: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginBottom: 8,
+    alignItems: 'center',
+  },
+  monthButtonSelected: {
+    backgroundColor: '#FF6B35',
+    borderColor: '#FF6B35',
+  },
+  monthButtonText: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
+  },
+  monthButtonTextSelected: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  messageInput: {
+    backgroundColor: 'white',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    fontSize: 16,
+    minHeight: 100,
+  },
+  recipientsContainer: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginBottom: 12,
+  },
+  recipientItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  recipientItemSelected: {
+    backgroundColor: '#fff3f0',
+  },
+  recipientInfo: {
+    flex: 1,
+  },
+  recipientName: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+  },
+  recipientEmail: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
+  },
+  recipientActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButton: {
+    flex: 1,
+    backgroundColor: '#FF6B35',
+    padding: 8,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  sendButton: {
+    backgroundColor: '#FF6B35',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 16,
+    borderRadius: 8,
+    marginTop: 16,
   },
-  logoutButtonText: {
+  sendButtonDisabled: {
+    backgroundColor: '#ccc',
+  },
+  sendButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-    marginLeft: 10,
+    marginLeft: 8,
   },
 });
