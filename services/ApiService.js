@@ -2,7 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 
 // Configuration API (version JS)
 const API_CONFIG = {
-  BASE_URL: 'https://your-ngrok-url.ngrok.io', // À remplacer par votre URL ngrok
+  BASE_URL: 'https://75e4479bf59c.ngrok-free.app', // URL ngrok mise à jour
   API_PREFIX: '/api',
   TIMEOUT: 10000,
 };
