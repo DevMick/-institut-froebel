@@ -2,7 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 
 // Configuration API (version JS)
 const API_CONFIG = {
-  BASE_URL: 'http://localhost:5265', // URL locale directe
+  BASE_URL: 'https://eb341d744645.ngrok-free.app', // URL ngrok mise à jour
   API_PREFIX: '/api',
   TIMEOUT: 10000,
 };
@@ -173,6 +173,7 @@ export class ApiService {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
         },
       });
 
