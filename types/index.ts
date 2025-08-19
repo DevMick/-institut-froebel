@@ -47,6 +47,7 @@ export interface Member {
   departement?: string;
   poste?: string;
   dateAdhesion?: string;
+  dateAnniversaire?: string;
   fonctions?: {
     comiteId: string;
     comiteNom: string;

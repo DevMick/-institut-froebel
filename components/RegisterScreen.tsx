@@ -92,20 +92,16 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       
       const payload = {
         clubId: formData.clubId,
-        LastName: formData.lastName,
-        FirstName: formData.firstName,
-        Email: formData.email,
-        Password: formData.password,
-        PhoneNumber: formData.phoneNumber,
+        lastName: formData.lastName,
+        firstName: formData.firstName,
+        email: formData.email,
+        password: formData.password,
       };
 
       const apiService = new ApiService();
-      const response = await apiService.makeRequest('/Auth/register', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
+      const response = await apiService.register(payload);
 
-      if (response.success || response.Success) {
+      if (response.success) {
         Alert.alert(
           '🎉 Bienvenue dans la famille Rotary !',
           `Félicitations ${formData.firstName} ${formData.lastName} !\n\nVotre compte a été créé avec succès pour le club "${selectedClub?.name}".\n\nVous pouvez maintenant vous connecter et découvrir toutes les fonctionnalités de l'application.`,
@@ -115,8 +111,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
             style: 'default'
           }]
         );
-      } else if (response.errors) {
-        setErrors(response.errors);
+      } else if (response.message) {
+        Alert.alert('Erreur', response.message);
       } else {
         Alert.alert('Erreur', 'Une erreur est survenue lors de l\'inscription');
       }

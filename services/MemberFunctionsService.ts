@@ -488,7 +488,7 @@ export class MemberFunctionsService {
             estResponsable: f.estResponsable,
             estActif: f.estActif,
             dateNomination: f.dateNomination,
-            mandatAnnee: f.mandatAnnee
+            mandatAnnee: f.anneeMandat
           }));
 
           const mappedCommissions = commissions.map(c => ({

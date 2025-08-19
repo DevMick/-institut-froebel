@@ -12,15 +12,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { ApiService } from '../services/ApiService';
-
-interface Member {
-  id: string;
-  nom: string;
-  prenom: string;
-  email: string;
-  telephone?: string;
-  photo?: string;
-}
+import { Member } from '../types';
 
 interface WhatsAppScreenProps {
   user: any;
@@ -80,8 +72,8 @@ export const WhatsAppScreen: React.FC<WhatsAppScreenProps> = ({ user, club, onBa
 
   const getSelectedPhones = () => {
     return getSelectedMembers()
-      .filter(member => member.telephone)
-      .map(member => member.telephone!.replace(/\s/g, ''));
+      .filter(member => member.phoneNumber)
+      .map(member => member.phoneNumber!.replace(/\s/g, ''));
   };
 
   const sendWhatsAppMessage = async (phoneNumber: string, messageText: string) => {
@@ -260,10 +252,10 @@ export const WhatsAppScreen: React.FC<WhatsAppScreenProps> = ({ user, club, onBa
                     </View>
                     <View style={styles.memberDetails}>
                       <Text style={styles.memberName}>
-                        {member.prenom} {member.nom}
+                        {member.firstName} {member.lastName}
                       </Text>
                       <Text style={styles.memberPhone}>
-                        {member.telephone || 'Aucun numéro'}
+                        {member.phoneNumber || 'Aucun numéro'}
                       </Text>
                     </View>
                   </View>

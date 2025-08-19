@@ -108,19 +108,24 @@ export const CalendarEmailScreen: React.FC<CalendarEmailScreenProps> = ({
       setSending(true);
       
       const calendarData = {
-        clubId: club.id,
-        mois: selectedMonth,
-        messagePersonnalise: messagePersonnalise.trim() || undefined,
-        emailsDestinataires: getSelectedEmails(),
+        subject: `Calendrier Rotary - ${getMonthName(selectedMonth)}`,
+        message: messagePersonnalise.trim() || `Calendrier des événements du Rotary Club pour le mois de ${getMonthName(selectedMonth)}.`,
+        recipients: getSelectedEmails(),
+        calendarEvent: {
+          title: `Calendrier Rotary - ${getMonthName(selectedMonth)}`,
+          description: messagePersonnalise.trim() || `Calendrier des événements du Rotary Club pour le mois de ${getMonthName(selectedMonth)}.`,
+          startDate: new Date(new Date().getFullYear(), selectedMonth - 1, 1).toISOString(),
+          endDate: new Date(new Date().getFullYear(), selectedMonth, 0).toISOString(),
+          location: club.name
+        }
       };
 
-      const result = await apiService.sendCalendarEmail(calendarData);
+      await apiService.sendCalendarEmail(calendarData);
       
       const successMessage = `✅ Calendrier envoyé avec succès !
       
-📧 Destinataires : ${result.nombreDestinataires || selectedMembers.length} membre(s)
-📅 Mois : ${result.nomMois || getMonthName(selectedMonth)}
-📊 Événements : ${result.nombreEvenements || 'N/A'}
+📧 Destinataires : ${selectedMembers.length} membre(s)
+📅 Mois : ${getMonthName(selectedMonth)}
 🕐 Envoyé le : ${new Date().toLocaleString('fr-FR')}
 
 Le calendrier a été transmis à tous les destinataires.`;

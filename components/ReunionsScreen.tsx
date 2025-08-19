@@ -583,7 +583,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingText: {
+  loadingTextModal: {
     marginTop: 10,
     fontSize: 16,
     color: '#666',

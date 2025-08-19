@@ -132,7 +132,7 @@ export const MembersScreen: React.FC<MembersScreenProps> = ({ club, onBack }) =>
             <View style={styles.functionsContainer}>
               <Text style={styles.functionText}>
                 <Text style={styles.functionsTitle}>Fonction: </Text>
-                {item.fonctions[0].nomFonction || item.fonctions[0].comiteNom}
+                {item.fonctions[0].comiteNom}
                 {item.fonctions[0].estResponsable ? ' (Responsable)' : ''}
               </Text>
             </View>
