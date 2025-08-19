@@ -167,6 +167,12 @@ export class ApiService {
       console.log('🔄 Tentative de récupération des clubs...');
       const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/Clubs`;
       console.log('🌐 URL appelée:', url);
+      console.log('🔧 Configuration API:', API_CONFIG);
+      
+      // Test de connectivité d'abord
+      console.log('🔍 Test de connectivité...');
+      const testResponse = await fetch(url, { method: 'HEAD' });
+      console.log('📡 Status de connectivité:', testResponse.status);
       
       const response = await fetch(url, {
         method: 'GET',
@@ -177,19 +183,32 @@ export class ApiService {
         },
       });
 
+      console.log('📊 Status de la réponse:', response.status);
+      console.log('📊 Headers de la réponse:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ Erreur HTTP:', response.status, errorText);
+        throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      console.log('📊 Réponse API clubs:', data);
+      console.log('📊 Réponse API clubs (brute):', data);
+      console.log('📊 Type de données:', typeof data);
+      console.log('📊 Est un tableau?', Array.isArray(data));
       
       // S'assurer que data est un tableau
       const clubs = Array.isArray(data) ? data : [];
       console.log('✅ Clubs récupérés:', clubs.length);
+      
+      if (clubs.length > 0) {
+        console.log('📋 Premier club:', clubs[0]);
+      }
+      
       return clubs;
     } catch (error) {
       console.error('❌ Erreur getClubs:', error);
+      console.error('❌ Stack trace:', error.stack);
       throw error;
     }
   }

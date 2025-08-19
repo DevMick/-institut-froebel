@@ -21,6 +21,13 @@ export const LoginScreen = ({
   onLoadClubs,
   onNavigateToRegister,
 }) => {
+  // Logs de débogage pour les clubs
+  console.log('🔍 LoginScreen - Props reçues:');
+  console.log('📊 clubs:', clubs);
+  console.log('📊 loading:', loading);
+  console.log('📊 Nombre de clubs:', clubs?.length || 0);
+  console.log('📊 Type de clubs:', typeof clubs);
+  console.log('📊 Est un tableau?', Array.isArray(clubs));
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [selectedClubId, setSelectedClubId] = useState('');
@@ -55,18 +62,31 @@ export const LoginScreen = ({
   };
 
   const renderClubSelector = () => (
-    <TouchableOpacity
-      style={styles.clubSelector}
-      onPress={() => setShowClubModal(true)}
-    >
-      <Text style={styles.clubSelectorText}>
-        {selectedClubId 
-          ? clubs.find(c => c.id === selectedClubId)?.name || 'Sélectionner un club'
-          : 'Sélectionner un club'
-        }
-      </Text>
-      <Ionicons name="chevron-down" size={20} color="#666" />
-    </TouchableOpacity>
+    <View>
+      <TouchableOpacity
+        style={styles.clubSelector}
+        onPress={() => setShowClubModal(true)}
+      >
+        <Text style={styles.clubSelectorText}>
+          {selectedClubId 
+            ? clubs.find(c => c.id === selectedClubId)?.name || 'Sélectionner un club'
+            : 'Sélectionner un club'
+          }
+        </Text>
+        <Ionicons name="chevron-down" size={20} color="#666" />
+      </TouchableOpacity>
+      
+      {/* Bouton de test pour forcer le rechargement */}
+      <TouchableOpacity
+        style={styles.testButton}
+        onPress={() => {
+          console.log('🧪 Test de rechargement des clubs...');
+          onLoadClubs();
+        }}
+      >
+        <Text style={styles.testButtonText}>🔄 Recharger les clubs</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   const renderClubModal = () => (
@@ -85,13 +105,23 @@ export const LoginScreen = ({
             </TouchableOpacity>
           </View>
           <ScrollView style={styles.clubList}>
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#005AA9" />
-                <Text style={styles.loadingText}>Chargement des clubs...</Text>
-              </View>
-            ) : clubs && clubs.length > 0 ? (
-              clubs.map((club) => (
+            {(() => {
+              console.log('🔍 Rendu modal - État actuel:');
+              console.log('📊 loading:', loading);
+              console.log('📊 clubs:', clubs);
+              console.log('📊 clubs.length:', clubs?.length);
+              
+              if (loading) {
+                console.log('⏳ Affichage du loader...');
+                return (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#005AA9" />
+                    <Text style={styles.loadingText}>Chargement des clubs...</Text>
+                  </View>
+                );
+              } else if (clubs && clubs.length > 0) {
+                console.log('✅ Affichage des clubs:', clubs.length);
+                return clubs.map((club) => (
                 <TouchableOpacity
                   key={club.id}
                   style={styles.clubItem}
@@ -382,5 +412,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginLeft: 8,
+  },
+  testButton: {
+    backgroundColor: '#FF9800',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  testButtonText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
