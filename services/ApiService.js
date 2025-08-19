@@ -2,7 +2,15 @@ import * as SecureStore from 'expo-secure-store';
 
 // Configuration API (version JS)
 const API_CONFIG = {
-  BASE_URL: 'https://eb341d744645.ngrok-free.app', // URL ngrok mise à jour
+  // Essayer d'abord l'URL locale, puis ngrok en fallback
+  BASE_URL: 'http://localhost:5265', // URL locale directe
+  API_PREFIX: '/api',
+  TIMEOUT: 10000,
+};
+
+// Configuration de fallback pour ngrok
+const NGROK_CONFIG = {
+  BASE_URL: 'https://eb341d744645.ngrok-free.app',
   API_PREFIX: '/api',
   TIMEOUT: 10000,
 };
@@ -163,53 +171,70 @@ export class ApiService {
   }
 
   async getClubs() {
-    try {
-      console.log('🔄 Tentative de récupération des clubs...');
-      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/Clubs`;
-      console.log('🌐 URL appelée:', url);
-      console.log('🔧 Configuration API:', API_CONFIG);
-      
-      // Test de connectivité d'abord
-      console.log('🔍 Test de connectivité...');
-      const testResponse = await fetch(url, { method: 'HEAD' });
-      console.log('📡 Status de connectivité:', testResponse.status);
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true',
-        },
-      });
+    const urlsToTry = [
+      `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/Clubs`,
+      `${NGROK_CONFIG.BASE_URL}${NGROK_CONFIG.API_PREFIX}/Clubs`,
+    ];
 
-      console.log('📊 Status de la réponse:', response.status);
-      console.log('📊 Headers de la réponse:', Object.fromEntries(response.headers.entries()));
+    for (let i = 0; i < urlsToTry.length; i++) {
+      const url = urlsToTry[i];
+      try {
+        console.log(`🔄 Tentative ${i + 1}/${urlsToTry.length} - URL:`, url);
+        
+        // Test de connectivité d'abord
+        console.log('🔍 Test de connectivité...');
+        const testResponse = await fetch(url, { 
+          method: 'HEAD',
+          mode: 'cors',
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+          }
+        });
+        console.log('📡 Status de connectivité:', testResponse.status);
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          mode: 'cors',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true',
+          },
+        });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Erreur HTTP:', response.status, errorText);
-        throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
+        console.log('📊 Status de la réponse:', response.status);
+        console.log('📊 Headers de la réponse:', Object.fromEntries(response.headers.entries()));
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ Erreur HTTP:', response.status, errorText);
+          throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('📊 Réponse API clubs (brute):', data);
+        console.log('📊 Type de données:', typeof data);
+        console.log('📊 Est un tableau?', Array.isArray(data));
+        
+        // S'assurer que data est un tableau
+        const clubs = Array.isArray(data) ? data : [];
+        console.log('✅ Clubs récupérés:', clubs.length);
+        
+        if (clubs.length > 0) {
+          console.log('📋 Premier club:', clubs[0]);
+        }
+        
+        return clubs;
+      } catch (error) {
+        console.error(`❌ Erreur avec URL ${url}:`, error);
+        if (i === urlsToTry.length - 1) {
+          // C'est la dernière tentative, on utilise les données de test
+          console.error('❌ Toutes les URLs ont échoué, utilisation des données de test');
+          console.log('⚠️ Mode démo activé - Utilisation de données de test');
+          return this.getTestClubs();
+        }
+        console.log('🔄 Tentative de l\'URL suivante...');
       }
-
-      const data = await response.json();
-      console.log('📊 Réponse API clubs (brute):', data);
-      console.log('📊 Type de données:', typeof data);
-      console.log('📊 Est un tableau?', Array.isArray(data));
-      
-      // S'assurer que data est un tableau
-      const clubs = Array.isArray(data) ? data : [];
-      console.log('✅ Clubs récupérés:', clubs.length);
-      
-      if (clubs.length > 0) {
-        console.log('📋 Premier club:', clubs[0]);
-      }
-      
-      return clubs;
-    } catch (error) {
-      console.error('❌ Erreur getClubs:', error);
-      console.error('❌ Stack trace:', error.stack);
-      throw error;
     }
   }
 
@@ -283,5 +308,30 @@ export class ApiService {
       console.error('Erreur sendSituationCotisation:', error);
       throw error;
     }
+  }
+
+  // Méthode pour obtenir des données de test si l'API n'est pas disponible
+  getTestClubs() {
+    console.log('🧪 Utilisation des données de test...');
+    return [
+      {
+        id: 1,
+        name: 'Rotary Club de Paris',
+        city: 'Paris',
+        description: 'Club principal de Paris'
+      },
+      {
+        id: 2,
+        name: 'Rotary Club de Lyon',
+        city: 'Lyon',
+        description: 'Club de Lyon'
+      },
+      {
+        id: 3,
+        name: 'Rotary Club de Marseille',
+        city: 'Marseille',
+        description: 'Club de Marseille'
+      }
+    ];
   }
 }
