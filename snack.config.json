@@ -1,0 +1,6 @@
+{
+  "name": "Rotary Club Mobile",
+  "description": "Application mobile pour les clubs Rotary",
+  "sdkVersion": "52.0.0",
+  "entryPoint": "App.tsx"
+}
