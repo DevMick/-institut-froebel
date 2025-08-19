@@ -38,6 +38,13 @@ export const Dashboard = ({
       description: 'Suivre les cotisations',
     },
     {
+      id: 'situation-cotisation',
+      title: 'Situation',
+      icon: 'document-text',
+      color: '#E91E63',
+      description: 'Envoyer situation cotisation',
+    },
+    {
       id: 'email',
       title: 'Email',
       icon: 'mail',

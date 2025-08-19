@@ -14,6 +14,7 @@ import { Dashboard } from './components/Dashboard';
 import { MembersScreen } from './components/MembersScreen';
 import { ReunionsScreen } from './components/ReunionsScreen';
 import CotisationsScreen from './components/CotisationsScreen';
+import { SituationCotisationScreen } from './components/SituationCotisationScreen';
 import { ClubsScreen } from './components/ClubsScreen';
 import { ProfileScreen } from './components/ProfileScreen';
 import { SettingsScreen } from './components/SettingsScreen';
@@ -196,6 +197,18 @@ export default function App() {
             <CotisationsScreen
               club={selectedClub}
               user={user}
+              onBack={handleBackToDashboard}
+            />
+          </>
+        );
+
+      case 'situation-cotisation':
+        return (
+          <>
+            <StatusBar style="light" backgroundColor="#005AA9" />
+            <SituationCotisationScreen
+              user={user}
+              club={selectedClub}
               onBack={handleBackToDashboard}
             />
           </>

@@ -227,4 +227,20 @@ export class ApiService {
       throw error;
     }
   }
+
+  async sendSituationCotisation(emailData) {
+    try {
+      const response = await this.makeRequest('/EmailCotisation/send-to-multiple-members', {
+        method: 'POST',
+        body: JSON.stringify({
+          clubId: emailData.clubId,
+          membresIds: emailData.membresIds
+        }),
+      });
+      return response;
+    } catch (error) {
+      console.error('Erreur sendSituationCotisation:', error);
+      throw error;
+    }
+  }
 }
