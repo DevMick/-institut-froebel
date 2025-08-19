@@ -2,7 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 
 // Configuration API (version JS)
 const API_CONFIG = {
-  BASE_URL: 'https://75e4479bf59c.ngrok-free.app', // URL ngrok mise à jour
+  BASE_URL: 'http://localhost:5265', // URL locale directe
   API_PREFIX: '/api',
   TIMEOUT: 10000,
 };
@@ -165,19 +165,28 @@ export class ApiService {
   async getClubs() {
     try {
       console.log('🔄 Tentative de récupération des clubs...');
-      const response = await this.makeRequest('/Clubs');
-      console.log('📊 Réponse API clubs:', response);
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/Clubs`;
+      console.log('🌐 URL appelée:', url);
       
-      if (response && response.data) {
-        console.log('✅ Clubs récupérés:', response.data.length);
-        return response.data;
-      } else if (Array.isArray(response)) {
-        console.log('✅ Clubs récupérés (format array):', response.length);
-        return response;
-      } else {
-        console.log('⚠️ Format de réponse inattendu:', response);
-        return [];
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
       }
+
+      const data = await response.json();
+      console.log('📊 Réponse API clubs:', data);
+      
+      // S'assurer que data est un tableau
+      const clubs = Array.isArray(data) ? data : [];
+      console.log('✅ Clubs récupérés:', clubs.length);
+      return clubs;
     } catch (error) {
       console.error('❌ Erreur getClubs:', error);
       throw error;

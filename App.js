@@ -42,7 +42,7 @@ export default function App() {
     try {
       setLoading(true);
       console.log('🔄 Chargement des clubs...');
-      console.log('🌐 URL API:', `https://75e4479bf59c.ngrok-free.app/api/Clubs`);
+      console.log('🌐 URL API:', `http://localhost:5265/api/Clubs`);
       
       const clubsData = await apiService.getClubs();
       console.log('✅ Clubs chargés:', clubsData);
