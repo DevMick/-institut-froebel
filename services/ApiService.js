@@ -296,4 +296,57 @@ export class ApiService {
     }
   }
 
+  // Alias pour getMembers (pour compatibilité)
+  async getClubMembers(clubId) {
+    return this.getMembers(clubId);
+  }
+
+  // Méthode pour envoyer des emails de club
+  async sendClubEmail(emailData) {
+    try {
+      // En mode démo, simuler l'envoi d'email
+      if (API_CONFIG.FORCE_DEMO_MODE) {
+        console.log('🧪 Mode démo - Simulation envoi email:', emailData);
+        return {
+          success: true,
+          message: 'Email envoyé avec succès (mode démo)',
+          sentTo: emailData.recipients?.length || 0
+        };
+      }
+
+      const response = await this.makeRequest('/Email/send', {
+        method: 'POST',
+        body: JSON.stringify(emailData),
+      });
+      return response;
+    } catch (error) {
+      console.error('Erreur sendClubEmail:', error);
+      throw error;
+    }
+  }
+
+  // Méthode pour envoyer des messages WhatsApp
+  async sendWhatsAppMessage(messageData) {
+    try {
+      // En mode démo, simuler l'envoi WhatsApp
+      if (API_CONFIG.FORCE_DEMO_MODE) {
+        console.log('🧪 Mode démo - Simulation envoi WhatsApp:', messageData);
+        return {
+          success: true,
+          message: 'Message WhatsApp envoyé avec succès (mode démo)',
+          sentTo: messageData.recipients?.length || 0
+        };
+      }
+
+      const response = await this.makeRequest('/WhatsApp/send', {
+        method: 'POST',
+        body: JSON.stringify(messageData),
+      });
+      return response;
+    } catch (error) {
+      console.error('Erreur sendWhatsAppMessage:', error);
+      throw error;
+    }
+  }
+
 }
