@@ -159,7 +159,8 @@ export type NavigationScreen =
   | 'settings'
   | 'email'
   | 'whatsapp'
-  | 'monthly-report';
+  | 'monthly-report'
+  | 'calendar-email';
 
 export interface NavigationState {
   currentScreen: NavigationScreen;

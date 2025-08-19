@@ -147,6 +147,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
       screen: 'monthly-report' as NavigationScreen,
     },
     {
+      id: 'calendar-email',
+      title: 'Envoi Calendrier',
+      subtitle: 'Envoyer le calendrier du mois',
+      icon: 'calendar-outline',
+      color: '#FF6B35',
+      screen: 'calendar-email' as NavigationScreen,
+    },
+    {
       id: 'clubs',
       title: 'Clubs',
       subtitle: 'Gérer les clubs',
