@@ -5,7 +5,7 @@ export const API_CONFIG = {
   
   // URLs de l'API
   LOCAL_URL: 'http://localhost:5265',
-  NGROK_URL: 'https://db090c28e5f5.ngrok-free.app',
+  NGROK_URL: 'https://7cfff0472a57.ngrok-free.app',
   
   // Configuration par défaut
   API_PREFIX: '/api',
