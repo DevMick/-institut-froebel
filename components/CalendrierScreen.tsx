@@ -351,16 +351,16 @@ export const CalendrierScreen: React.FC<CalendrierScreenProps> = ({ user, club, 
           </View>
 
           {/* Sélection de membres spécifiques */}
-          <View style={styles.section}>
+            <View style={styles.section}>
             <Text style={styles.sectionTitle}>
               {envoyerATousLesMembres ? 'Membres spécifiques (optionnel)' : 'Membres spécifiques'}
             </Text>
-            <TouchableOpacity
+              <TouchableOpacity
               style={[
                 styles.recipientsButton,
                 envoyerATousLesMembres && styles.recipientsButtonDisabled
               ]}
-              onPress={() => setShowMembersModal(true)}
+                onPress={() => setShowMembersModal(true)}
               disabled={envoyerATousLesMembres}
             >
               <Ionicons 
@@ -372,22 +372,22 @@ export const CalendrierScreen: React.FC<CalendrierScreenProps> = ({ user, club, 
                 styles.recipientsText,
                 envoyerATousLesMembres && styles.recipientsTextDisabled
               ]}>
-                {selectedMembers.length > 0 
-                  ? `${selectedMembers.length} membre(s) sélectionné(s)`
-                  : 'Sélectionner les membres'
-                }
-              </Text>
+                  {selectedMembers.length > 0 
+                    ? `${selectedMembers.length} membre(s) sélectionné(s)`
+                    : 'Sélectionner les membres'
+                  }
+                </Text>
               <Ionicons 
                 name="chevron-right" 
                 size={20} 
                 color={envoyerATousLesMembres ? "#ccc" : "#666"} 
               />
-            </TouchableOpacity>
+              </TouchableOpacity>
             {envoyerATousLesMembres && (
               <Text style={styles.helpText}>
                 Désactivez l'option ci-dessus pour sélectionner des membres spécifiques
               </Text>
-            )}
+          )}
           </View>
         </View>
       </ScrollView>
