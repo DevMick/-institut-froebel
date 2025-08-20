@@ -175,13 +175,18 @@ export class ApiService {
         
         // Test de connectivité d'abord
         console.log('🔍 Test de connectivité...');
-        const testResponse = await fetch(url, { 
-          method: 'HEAD',
-          mode: 'cors',
-          headers: API_CONFIG.DEFAULT_HEADERS
-        });
-        console.log('📡 Status de connectivité:', testResponse.status);
+        try {
+          const testResponse = await fetch(url, { 
+            method: 'HEAD',
+            mode: 'cors',
+            headers: API_CONFIG.DEFAULT_HEADERS
+          });
+          console.log('📡 Status de connectivité:', testResponse.status);
+        } catch (testError) {
+          console.log('⚠️ Test de connectivité échoué, continuation avec GET:', testError.message);
+        }
         
+        console.log('🌐 Tentative de requête GET...');
         const response = await fetch(url, {
           method: 'GET',
           mode: 'cors',
