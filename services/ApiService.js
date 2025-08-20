@@ -177,29 +177,21 @@ export class ApiService {
       try {
         console.log(`🔄 Tentative ${i + 1}/${urlsToTry.length} - URL:`, url);
         
-        // Test de connectivité d'abord
-        console.log('🔍 Test de connectivité...');
-        try {
-          const testResponse = await fetch(url, { 
-            method: 'HEAD',
-            mode: 'cors',
-            headers: API_CONFIG.DEFAULT_HEADERS
-          });
-          console.log('📡 Status de connectivité:', testResponse.status);
-        } catch (testError) {
-          console.log('⚠️ Test de connectivité échoué, continuation avec GET:', testError.message);
-        }
-        
+        // Lancer directement la requête GET (évite un pré-test qui peut être bloqué)
         console.log('🌐 Tentative de requête GET...');
         
-        // Ajouter un timeout de 15 secondes (plus généreux)
+        // Ajouter un timeout de 20 secondes (plus généreux)
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
         
         const response = await fetch(url, {
           method: 'GET',
           mode: 'cors',
-          headers: API_CONFIG.DEFAULT_HEADERS,
+          // En-têtes minimaux pour éviter une préflight CORS
+          headers: {
+            Accept: 'application/json',
+            'ngrok-skip-browser-warning': 'true',
+          },
           signal: controller.signal,
         });
         
