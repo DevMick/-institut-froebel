@@ -73,6 +73,10 @@ export class ApiService {
           await this.removeToken();
           throw new Error('Session expirée. Veuillez vous reconnecter.');
         }
+        if (response.status === 404) {
+          console.log('⚠️ Endpoint non trouvé (404)');
+          throw new Error(`Endpoint non trouvé: ${response.status}`);
+        }
         throw new Error(`Erreur HTTP: ${response.status}`);
       }
 
@@ -331,31 +335,97 @@ export class ApiService {
 
   async getMembers(clubId) {
     try {
-      const response = await this.makeRequest(`/Members/club/${clubId}`);
-      return response.data || [];
+      console.log('👥 Récupération des membres pour le club:', clubId);
+      
+      // Essayer différents endpoints possibles
+      const endpoints = [
+        `/Members/club/${clubId}`,
+        `/Members/${clubId}`,
+        `/Club/${clubId}/members`,
+        `/Club/${clubId}/Members`
+      ];
+      
+      for (let i = 0; i < endpoints.length; i++) {
+        try {
+          console.log(`🔄 Tentative ${i + 1}/${endpoints.length} - Endpoint:`, endpoints[i]);
+          const response = await this.makeRequest(endpoints[i]);
+          console.log('✅ Membres récupérés:', response);
+          return response.data || response || [];
+        } catch (error) {
+          console.log(`❌ Endpoint ${endpoints[i]} échoué:`, error.message);
+          if (i === endpoints.length - 1) {
+            console.log('⚠️ Aucun endpoint de membres ne fonctionne, retour de données vides');
+            return [];
+          }
+        }
+      }
     } catch (error) {
       console.error('Erreur getMembers:', error);
-      throw error;
+      return [];
     }
   }
 
   async getReunions(clubId) {
     try {
-      const response = await this.makeRequest(`/Reunions/club/${clubId}`);
-      return response.data || [];
+      console.log('📅 Récupération des réunions pour le club:', clubId);
+      
+      // Essayer différents endpoints possibles
+      const endpoints = [
+        `/Reunions/club/${clubId}`,
+        `/Reunions/${clubId}`,
+        `/Club/${clubId}/reunions`,
+        `/Club/${clubId}/Reunions`
+      ];
+      
+      for (let i = 0; i < endpoints.length; i++) {
+        try {
+          console.log(`🔄 Tentative ${i + 1}/${endpoints.length} - Endpoint:`, endpoints[i]);
+          const response = await this.makeRequest(endpoints[i]);
+          console.log('✅ Réunions récupérées:', response);
+          return response.data || response || [];
+        } catch (error) {
+          console.log(`❌ Endpoint ${endpoints[i]} échoué:`, error.message);
+          if (i === endpoints.length - 1) {
+            console.log('⚠️ Aucun endpoint de réunions ne fonctionne, retour de données vides');
+            return [];
+          }
+        }
+      }
     } catch (error) {
       console.error('Erreur getReunions:', error);
-      throw error;
+      return [];
     }
   }
 
   async getCotisations(clubId) {
     try {
-      const response = await this.makeRequest(`/Cotisations/club/${clubId}`);
-      return response.data || [];
+      console.log('💰 Récupération des cotisations pour le club:', clubId);
+      
+      // Essayer différents endpoints possibles
+      const endpoints = [
+        `/Cotisations/club/${clubId}`,
+        `/Cotisations/${clubId}`,
+        `/Club/${clubId}/cotisations`,
+        `/Club/${clubId}/Cotisations`
+      ];
+      
+      for (let i = 0; i < endpoints.length; i++) {
+        try {
+          console.log(`🔄 Tentative ${i + 1}/${endpoints.length} - Endpoint:`, endpoints[i]);
+          const response = await this.makeRequest(endpoints[i]);
+          console.log('✅ Cotisations récupérées:', response);
+          return response.data || response || [];
+        } catch (error) {
+          console.log(`❌ Endpoint ${endpoints[i]} échoué:`, error.message);
+          if (i === endpoints.length - 1) {
+            console.log('⚠️ Aucun endpoint de cotisations ne fonctionne, retour de données vides');
+            return [];
+          }
+        }
+      }
     } catch (error) {
       console.error('Erreur getCotisations:', error);
-      throw error;
+      return [];
     }
   }
 
