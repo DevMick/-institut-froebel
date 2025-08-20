@@ -123,6 +123,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
       screen: 'cotisations' as NavigationScreen,
     },
     {
+      id: 'situation-cotisation',
+      title: 'Situation Cotisation',
+      subtitle: 'Envoyer situation de cotisation',
+      icon: 'document-text',
+      color: '#E91E63',
+      screen: 'situation-cotisation' as NavigationScreen,
+    },
+    {
       id: 'email',
       title: 'Envoyer un email',
       subtitle: 'Contacter les membres du club',
