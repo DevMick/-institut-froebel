@@ -1,11 +1,11 @@
 // Configuration API pour l'application Rotary Club Mobile
 export const API_CONFIG = {
   // Mode de développement - forcer les données de test
-  FORCE_DEMO_MODE: true, // Temporairement réactivé pour débloquer l'app
+  FORCE_DEMO_MODE: false, // Test avec la nouvelle URL ngrok
   
   // URLs de l'API
   LOCAL_URL: 'http://localhost:5265',
-  NGROK_URL: 'https://eb341d744645.ngrok-free.app',
+  NGROK_URL: 'https://d55a417629d3.ngrok-free.app',
   
   // Configuration par défaut
   API_PREFIX: '/api',
