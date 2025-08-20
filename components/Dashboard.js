@@ -81,6 +81,15 @@ export const Dashboard = ({
     },
   ];
 
+  // Debug: Afficher le nombre de menus
+  console.log('🎯 Dashboard - Nombre de menus:', menuItems.length);
+  console.log('🎯 Dashboard - Menus disponibles:', menuItems.map(item => item.title));
+
+  const handleMenuPress = (menuId) => {
+    console.log('🎯 Dashboard - Menu cliqué:', menuId);
+    onNavigate(menuId);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -98,13 +107,17 @@ export const Dashboard = ({
       </View>
 
       {/* Menu Grid */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={true}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.menuGrid}>
           {menuItems.map((item) => (
             <TouchableOpacity
               key={item.id}
               style={styles.menuItem}
-              onPress={() => onNavigate(item.id)}
+              onPress={() => handleMenuPress(item.id)}
             >
               <View style={[styles.menuIcon, { backgroundColor: item.color }]}>
                 <Ionicons name={item.icon} size={24} color="white" />
@@ -113,6 +126,13 @@ export const Dashboard = ({
               <Text style={styles.menuDescription}>{item.description}</Text>
             </TouchableOpacity>
           ))}
+        </View>
+        
+        {/* Debug: Afficher le nombre total de menus */}
+        <View style={styles.debugInfo}>
+          <Text style={styles.debugText}>
+            Total: {menuItems.length} menus disponibles
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -160,7 +180,10 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  scrollContent: {
     padding: 20,
+    paddingBottom: 40,
   },
   menuGrid: {
     flexDirection: 'row',
@@ -203,5 +226,17 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     lineHeight: 16,
+  },
+  debugInfo: {
+    backgroundColor: '#E3F2FD',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  debugText: {
+    fontSize: 12,
+    color: '#1976D2',
+    fontWeight: '500',
   },
 });
