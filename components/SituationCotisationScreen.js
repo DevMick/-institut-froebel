@@ -96,18 +96,27 @@ export const SituationCotisationScreen = ({ user, club, onBack }) => {
       const result = await apiService.sendSituationCotisation(emailData);
       
       if (result.success) {
-        const successMessage = `✅ Situation de cotisation envoyée avec succès !
+        // Message de succès personnalisé
+        const selectedMembersInfo = members
+          .filter(member => selectedMembers.includes(member.id))
+          .map(member => `• ${member.firstName} ${member.lastName}`)
+          .join('\n');
 
-📧 Destinataires : ${result.statistiques.emailsEnvoyes} membre(s)
-❌ Échecs : ${result.statistiques.emailsEchoues}
-📊 Taux de réussite : ${result.statistiques.tauxReussite}%
+        const successMessage = `🎉 **Situation de cotisation envoyée avec succès !**
 
-🕐 Envoyé le : ${new Date().toLocaleString('fr-FR')}
+📧 **Destinataires :** ${result.statistiques.emailsEnvoyes} membre(s)
+❌ **Échecs :** ${result.statistiques.emailsEchoues}
+📊 **Taux de réussite :** ${result.statistiques.tauxReussite}%
 
-Les situations ont été transmises aux destinataires.`;
+👥 **Membres contactés :**
+${selectedMembersInfo}
+
+🕐 **Envoyé le :** ${new Date().toLocaleString('fr-FR')}
+
+✅ Les situations de cotisation ont été transmises avec succès aux destinataires sélectionnés.`;
 
         Alert.alert(
-          '🎉 Succès !',
+          '✅ Succès !',
           successMessage,
           [
             {
@@ -253,7 +262,7 @@ Les situations ont été transmises aux destinataires.`;
         {/* Carte d'information */}
         <View style={styles.infoCard}>
           <View style={styles.infoHeader}>
-            <Ionicons name="card" size={24} color="#FF9800" />
+            <Ionicons name="card" size={24} color="#005AA9" />
             <Text style={styles.infoTitle}>Envoi Situation de Cotisation</Text>
           </View>
           <Text style={styles.infoDescription}>
@@ -283,7 +292,7 @@ Les situations ont été transmises aux destinataires.`;
             style={styles.recipientsButton}
             onPress={() => setShowMembersModal(true)}
           >
-            <Ionicons name="people" size={20} color="#FF9800" />
+            <Ionicons name="people" size={20} color="#005AA9" />
             <Text style={styles.recipientsText}>
               {selectedMembers.length > 0 
                 ? `${selectedMembers.length} membre(s) sélectionné(s)`
@@ -294,14 +303,7 @@ Les situations ont été transmises aux destinataires.`;
           </TouchableOpacity>
         </View>
 
-        {/* Informations importantes */}
-        <View style={styles.warningCard}>
-          <Ionicons name="information-circle" size={20} color="#FF9800" />
-          <Text style={styles.warningText}>
-            Seuls les membres avec une adresse email valide recevront la situation.
-            Les autres membres seront automatiquement exclus de l'envoi.
-          </Text>
-        </View>
+
       </ScrollView>
 
       {/* Footer avec bouton d'envoi */}
@@ -335,7 +337,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
-    backgroundColor: '#FF9800',
+    backgroundColor: '#005AA9',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -421,22 +423,7 @@ const styles = StyleSheet.create({
     color: '#333',
     marginLeft: 10,
   },
-  warningCard: {
-    backgroundColor: '#FFF3E0',
-    borderRadius: 8,
-    padding: 15,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    borderLeftWidth: 4,
-    borderLeftColor: '#FF9800',
-  },
-  warningText: {
-    flex: 1,
-    fontSize: 13,
-    color: '#E65100',
-    marginLeft: 10,
-    lineHeight: 18,
-  },
+
   footer: {
     backgroundColor: 'white',
     padding: 20,
@@ -444,7 +431,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#e0e0e0',
   },
   sendButton: {
-    backgroundColor: '#FF9800',
+    backgroundColor: '#005AA9',
     borderRadius: 8,
     padding: 15,
     flexDirection: 'row',
@@ -550,7 +537,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FF9800',
+    backgroundColor: '#005AA9',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -574,7 +561,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   memberEmailDisabled: {
-    color: '#FF9800',
+    color: '#005AA9',
     fontStyle: 'italic',
   },
   checkbox: {
