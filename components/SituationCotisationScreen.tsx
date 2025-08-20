@@ -8,21 +8,27 @@ import {
   Alert,
   ActivityIndicator,
   SafeAreaView,
+  TextInput,
   Modal,
   FlatList,
-  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ApiService } from '../services/ApiService';
+import { User, Club, Member } from '../types';
 
-export const SituationCotisationScreen = ({ user, club, onBack }) => {
-  const [members, setMembers] = useState([]);
-  const [selectedMembers, setSelectedMembers] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [showMembersModal, setShowMembersModal] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [messagePersonnalise, setMessagePersonnalise] = useState('');
+interface SituationCotisationScreenProps {
+  user: User;
+  club: Club;
+  onBack: () => void;
+}
+
+export const SituationCotisationScreen: React.FC<SituationCotisationScreenProps> = ({ user, club, onBack }) => {
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [messagePersonnalise, setMessagePersonnalise] = useState<string>('');
+  const [sending, setSending] = useState<boolean>(false);
+  const [showMembersModal, setShowMembersModal] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const apiService = new ApiService();
 
@@ -30,9 +36,8 @@ export const SituationCotisationScreen = ({ user, club, onBack }) => {
     loadMembers();
   }, []);
 
-  const loadMembers = async () => {
+  const loadMembers = async (): Promise<void> => {
     try {
-      setLoading(true);
       const membersData = await apiService.getClubMembers(club.id);
       // Filtrer pour exclure l'utilisateur connecté
       const otherMembers = membersData.filter(member => member.id !== user.id);
@@ -40,12 +45,10 @@ export const SituationCotisationScreen = ({ user, club, onBack }) => {
     } catch (error) {
       console.error('Erreur chargement membres:', error);
       Alert.alert('Erreur', 'Impossible de charger les membres');
-    } finally {
-      setLoading(false);
     }
   };
 
-  const toggleMemberSelection = (memberId) => {
+  const toggleMemberSelection = (memberId: string): void => {
     setSelectedMembers(prev => 
       prev.includes(memberId)
         ? prev.filter(id => id !== memberId)
@@ -53,22 +56,16 @@ export const SituationCotisationScreen = ({ user, club, onBack }) => {
     );
   };
 
-  const selectAllMembers = () => {
+  const selectAllMembers = (): void => {
     const allMemberIds = members.map(member => member.id);
     setSelectedMembers(allMemberIds);
   };
 
-  const deselectAllMembers = () => {
+  const deselectAllMembers = (): void => {
     setSelectedMembers([]);
   };
 
-  const getSelectedEmails = () => {
-    return members
-      .filter(member => selectedMembers.includes(member.id))
-      .map(member => member.email);
-  };
-
-  const getFilteredMembers = () => {
+  const getFilteredMembers = (): Member[] => {
     if (!searchQuery.trim()) return members;
     return members.filter(member =>
       `${member.firstName} ${member.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -76,32 +73,28 @@ export const SituationCotisationScreen = ({ user, club, onBack }) => {
     );
   };
 
-  const handleSendSituation = async () => {
+  const handleSendSituation = async (): Promise<void> => {
     if (selectedMembers.length === 0) {
-      Alert.alert('Erreur', 'Veuillez sélectionner au moins un destinataire');
+      Alert.alert('Erreur', 'Veuillez sélectionner au moins un membre');
       return;
     }
 
     try {
       setSending(true);
-      
-      // Préparer les données pour l'envoi
+
       const emailData = {
         clubId: club.id,
-        membresIds: selectedMembers,
-        messagePersonnalise: messagePersonnalise.trim()
+        membresIds: selectedMembers
       };
 
-      // Appel à l'API pour envoyer les situations
       const result = await apiService.sendSituationCotisation(emailData);
       
       if (result.success) {
-        // Message de succès personnalisé
         const selectedMembersInfo = members
           .filter(member => selectedMembers.includes(member.id))
           .map(member => `• ${member.firstName} ${member.lastName}`)
           .join('\n');
-
+      
         const successMessage = `🎉 **Situation de cotisation envoyée avec succès !**
 
 📧 **Destinataires :** ${result.statistiques.emailsEnvoyes} membre(s)
@@ -122,25 +115,25 @@ ${selectedMembersInfo}
             {
               text: 'Retour au menu',
               onPress: () => {
-                setSelectedMembers([]);
                 setMessagePersonnalise('');
+                setSelectedMembers([]);
                 onBack();
               }
             }
           ]
         );
       } else {
-        Alert.alert('Erreur', result.message || 'Erreur lors de l\'envoi des situations');
+        Alert.alert('Erreur', result.message || 'Erreur lors de l\'envoi de la situation');
       }
     } catch (error) {
-      console.error('❌ Erreur envoi situation cotisation:', error);
-      Alert.alert('Erreur', error.message || 'Erreur lors de l\'envoi des situations');
+      console.error('❌ Erreur envoi situation:', error);
+      Alert.alert('Erreur', error instanceof Error ? error.message : 'Erreur lors de l\'envoi de la situation');
     } finally {
       setSending(false);
     }
   };
 
-  const renderMemberItem = ({ item: member }) => {
+  const renderMemberItem = ({ item: member }: { item: Member }) => {
     const isSelected = selectedMembers.includes(member.id);
     const hasEmail = member.email && member.email.trim() !== '';
 
@@ -262,11 +255,11 @@ ${selectedMembersInfo}
         {/* Carte d'information */}
         <View style={styles.infoCard}>
           <View style={styles.infoHeader}>
-            <Ionicons name="card" size={24} color="#005AA9" />
+            <Ionicons name="document-text" size={24} color="#005AA9" />
             <Text style={styles.infoTitle}>Envoi Situation de Cotisation</Text>
           </View>
           <Text style={styles.infoDescription}>
-            Envoyez automatiquement la situation de cotisation par email aux membres sélectionnés.
+            Envoyez la situation de cotisation par email aux membres sélectionnés.
             Chaque membre recevra un relevé détaillé de ses cotisations et paiements.
           </Text>
         </View>
@@ -302,8 +295,6 @@ ${selectedMembersInfo}
             <Ionicons name="chevron-right" size={20} color="#666" />
           </TouchableOpacity>
         </View>
-
-
       </ScrollView>
 
       {/* Footer avec bouton d'envoi */}
@@ -319,7 +310,7 @@ ${selectedMembersInfo}
             <>
               <Ionicons name="mail" size={20} color="white" />
               <Text style={styles.sendButtonText}>
-                Envoyer Situation ({selectedMembers.length})
+                Envoyer Situation
               </Text>
             </>
           )}

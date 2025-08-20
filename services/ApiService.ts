@@ -1,8 +1,67 @@
 import * as SecureStore from 'expo-secure-store';
 import { API_CONFIG, DEMO_DATA } from '../config/api-config';
 
+// Types pour les données
+interface LoginData {
+  email: string;
+  password: string;
+  clubId: string;
+}
+
+interface UserData {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  clubId: string;
+  clubName: string;
+  numeroMembre: string;
+  roles: string[];
+  dateAnniversaire?: string;
+}
+
+interface Member {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber?: string;
+  isActive: boolean;
+  roles: string[];
+  profilePictureUrl?: string;
+  fullName: string;
+  numeroMembre: string;
+  dateAnniversaire?: string;
+  userJoinedDate?: string;
+  clubJoinedDate?: string;
+  clubId: string;
+  clubName: string;
+}
+
+interface EmailData {
+  clubId: string;
+  membresIds: string[];
+  messagePersonnalise?: string;
+}
+
+interface CalendrierData {
+  clubId: string;
+  mois: number;
+  messagePersonnalise?: string;
+  membresIds: string[];
+  envoyerATousLesMembres: boolean;
+}
+
+interface ApiResponse<T = any> {
+  success: boolean;
+  message?: string;
+  data?: T;
+  [key: string]: any;
+}
+
 export class ApiService {
-  async getToken() {
+  async getToken(): Promise<string | null> {
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         return window.localStorage.getItem('authToken');
@@ -17,7 +76,7 @@ export class ApiService {
     }
   }
 
-  async setToken(token) {
+  async setToken(token: string): Promise<void> {
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         window.localStorage.setItem('authToken', token);
@@ -32,7 +91,7 @@ export class ApiService {
     }
   }
 
-  async removeToken() {
+  async removeToken(): Promise<void> {
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         window.localStorage.removeItem('authToken');
@@ -47,7 +106,7 @@ export class ApiService {
     }
   }
 
-  async makeRequest(endpoint, options = {}) {
+  async makeRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
     try {
       const token = await this.getToken();
       const url = `${API_CONFIG.NGROK_URL}${API_CONFIG.API_PREFIX}${endpoint}`;
@@ -88,7 +147,7 @@ export class ApiService {
     }
   }
 
-  async login(loginData) {
+  async login(loginData: LoginData): Promise<UserData> {
     try {
       console.log('🔐 Tentative de connexion...');
       console.log('📧 Email:', loginData.email);
@@ -150,7 +209,7 @@ export class ApiService {
       }
 
       // Construire l'objet utilisateur à partir de la réponse
-      const userData = {
+      const userData: UserData = {
         id: data.userId,
         email: data.email,
         firstName: data.firstName,
@@ -171,7 +230,7 @@ export class ApiService {
     }
   }
 
-  async register(userData) {
+  async register(userData: any): Promise<UserData> {
     try {
       console.log('📝 Tentative d\'inscription...');
       
@@ -221,7 +280,7 @@ export class ApiService {
       }
 
       // Construire l'objet utilisateur à partir de la réponse
-      const userData = {
+      const userDataResult: UserData = {
         id: data.userId,
         email: data.email,
         firstName: data.firstName,
@@ -234,15 +293,15 @@ export class ApiService {
         dateAnniversaire: data.dateAnniversaire
       };
 
-      console.log('👤 Données utilisateur formatées:', userData);
-      return userData;
+      console.log('👤 Données utilisateur formatées:', userDataResult);
+      return userDataResult;
     } catch (error) {
       console.error('❌ Erreur register:', error);
       throw error;
     }
   }
 
-  async logout() {
+  async logout(): Promise<{ success: boolean }> {
     try {
       await this.removeToken();
       return { success: true };
@@ -252,7 +311,7 @@ export class ApiService {
     }
   }
 
-  async getClubs() {
+  async getClubs(): Promise<any[]> {
     // Vérifier si le mode démo est forcé
     if (API_CONFIG.FORCE_DEMO_MODE) {
       console.log('🧪 Mode démo forcé - Utilisation des données de test');
@@ -279,14 +338,14 @@ export class ApiService {
         // Ajouter un timeout de 20 secondes (plus généreux)
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 20000);
-        
-        const response = await fetch(url, {
-          method: 'GET',
+
+      const response = await fetch(url, {
+        method: 'GET',
           mode: 'cors',
           // En-têtes minimaux pour éviter une préflight CORS
-          headers: {
+        headers: {
             Accept: 'application/json',
-            'ngrok-skip-browser-warning': 'true',
+          'ngrok-skip-browser-warning': 'true',
           },
           signal: controller.signal,
         });
@@ -297,7 +356,7 @@ export class ApiService {
         console.log('📊 Status de la réponse:', response.status);
         console.log('📊 Headers de la réponse:', Object.fromEntries(response.headers.entries()));
 
-        if (!response.ok) {
+      if (!response.ok) {
           const errorText = await response.text();
           console.error('❌ Erreur HTTP:', response.status, errorText);
           throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
@@ -319,11 +378,11 @@ export class ApiService {
         return clubs;
       } catch (error) {
         console.error(`❌ Erreur avec URL ${url}:`, error);
-                        if (i === urlsToTry.length - 1) {
-                  // C'est la dernière tentative, on lance une erreur
-                  console.error('❌ Toutes les URLs ont échoué');
-                  throw new Error('Impossible de se connecter à l\'API. Vérifiez votre connexion internet et que le serveur backend est démarré.');
-                }
+        if (i === urlsToTry.length - 1) {
+          // C'est la dernière tentative, on lance une erreur
+          console.error('❌ Toutes les URLs ont échoué');
+          throw new Error('Impossible de se connecter à l\'API. Vérifiez votre connexion internet et que le serveur backend est démarré.');
+        }
         console.log('🔄 Tentative de l\'URL suivante...');
       }
     }
@@ -333,7 +392,7 @@ export class ApiService {
     throw new Error('Impossible de se connecter à l\'API. Vérifiez votre connexion internet et que le serveur backend est démarré.');
   }
 
-  async getMembers(clubId) {
+  async getMembers(clubId: string): Promise<Member[]> {
     try {
       console.log('👥 Récupération des membres pour le club:', clubId);
       
@@ -361,7 +420,7 @@ export class ApiService {
     }
   }
 
-  async getReunions(clubId) {
+  async getReunions(clubId: string): Promise<any[]> {
     try {
       console.log('📅 Récupération des réunions pour le club:', clubId);
       
@@ -404,7 +463,7 @@ export class ApiService {
     }
   }
 
-  async getCotisations(clubId) {
+  async getCotisations(clubId: string): Promise<any[]> {
     try {
       console.log('💰 Récupération des cotisations pour le club:', clubId);
       
@@ -447,7 +506,7 @@ export class ApiService {
     }
   }
 
-  async updateProfile(userData) {
+  async updateProfile(userData: any): Promise<any> {
     try {
       const response = await this.makeRequest('/Users/profile', {
         method: 'PUT',
@@ -460,7 +519,7 @@ export class ApiService {
     }
   }
 
-  async changePassword(passwordData) {
+  async changePassword(passwordData: any): Promise<any> {
     try {
       const response = await this.makeRequest('/Users/change-password', {
         method: 'PUT',
@@ -473,7 +532,7 @@ export class ApiService {
     }
   }
 
-  async sendSituationCotisation(emailData) {
+  async sendSituationCotisation(emailData: EmailData): Promise<ApiResponse> {
     try {
       const response = await this.makeRequest('/EmailCotisation/send-to-multiple-members', {
         method: 'POST',
@@ -489,7 +548,7 @@ export class ApiService {
     }
   }
 
-  async sendCalendrier(emailData) {
+  async sendCalendrier(emailData: CalendrierData): Promise<ApiResponse> {
     try {
       console.log('📅 Envoi du calendrier pour le mois:', emailData.mois);
       
@@ -499,7 +558,7 @@ export class ApiService {
           clubId: emailData.clubId,
           mois: emailData.mois,
           messagePersonnalise: emailData.messagePersonnalise,
-          emailsDestinataires: emailData.emailsDestinataires,
+          membresIds: emailData.membresIds,
           envoyerATousLesMembres: emailData.envoyerATousLesMembres
         }),
       });
@@ -513,12 +572,12 @@ export class ApiService {
   }
 
   // Alias pour getMembers (pour compatibilité)
-  async getClubMembers(clubId) {
+  async getClubMembers(clubId: string): Promise<Member[]> {
     return this.getMembers(clubId);
   }
 
   // Méthode pour envoyer des emails de club
-  async sendClubEmail(emailData) {
+  async sendClubEmail(emailData: any): Promise<ApiResponse> {
     try {
       // En mode démo, simuler l'envoi d'email
       if (API_CONFIG.FORCE_DEMO_MODE) {
@@ -542,7 +601,7 @@ export class ApiService {
   }
 
   // Méthode pour envoyer des messages WhatsApp
-  async sendWhatsAppMessage(messageData) {
+  async sendWhatsAppMessage(messageData: any): Promise<ApiResponse> {
     try {
       // En mode démo, simuler l'envoi WhatsApp
       if (API_CONFIG.FORCE_DEMO_MODE) {
