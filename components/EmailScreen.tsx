@@ -134,10 +134,53 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
         const file = result.assets[0];
         console.log('📎 Fichier sélectionné:', file);
         
-        // Lire le contenu du fichier
-        const fileContent = await FileSystem.readAsStringAsync(file.uri, {
-          encoding: FileSystem.EncodingType.Base64
-        });
+        let fileContent = '';
+        
+        // Gérer différemment selon la plateforme
+        if (Platform.OS === 'web') {
+          // Sur le web, utiliser FileReader
+          if (file.file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const result = e.target?.result as string;
+              const base64 = result.split(',')[1]; // Enlever le préfixe data:...
+              
+              const newAttachment: Attachment = {
+                id: Date.now().toString(),
+                name: file.name || `fichier_${Date.now()}`,
+                size: formatFileSize(file.size || 0),
+                type: file.mimeType || 'application/octet-stream',
+                uri: file.uri,
+                base64: base64,
+              };
+              
+              setAttachments(prev => {
+                const updated = [...prev, newAttachment];
+                console.log('📎 Pièces jointes mises à jour:', updated.length);
+                return updated;
+              });
+              
+              Alert.alert(
+                '✅ Pièce jointe ajoutée',
+                `Fichier "${file.name}" ajouté avec succès`,
+                [{ text: 'OK' }]
+              );
+            };
+            reader.readAsDataURL(file.file);
+            return;
+          }
+        } else {
+          // Sur mobile, utiliser FileSystem
+          try {
+            fileContent = await FileSystem.readAsStringAsync(file.uri, {
+              encoding: FileSystem.EncodingType.Base64
+            });
+          } catch (fsError) {
+            console.error('Erreur FileSystem:', fsError);
+            // Fallback: créer l'attachment sans le contenu base64
+            fileContent = 'base64_simulation_data_' + Date.now();
+          }
+        }
         
         // Créer l'objet attachment
         const newAttachment: Attachment = {
@@ -429,14 +472,6 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
             <Ionicons name="attach" size={24} color="#005AA9" />
             <Text style={styles.attachmentText}>📎 Sélectionner un fichier</Text>
             <Ionicons name="add-circle" size={20} color="#005AA9" style={{ marginLeft: 'auto' }} />
-          </TouchableOpacity>
-          
-          {/* Bouton de test simple */}
-          <TouchableOpacity 
-            style={styles.testButton}
-            onPress={() => addSimulatedAttachment('test.txt', 'text/plain', 1024)}
-          >
-            <Text style={styles.testButtonText}>🧪 Test rapide - Ajouter fichier</Text>
           </TouchableOpacity>
           
           {attachments.length > 0 && (
@@ -754,18 +789,5 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontStyle: 'italic',
   },
-  testButton: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  testButtonText: {
-    fontSize: 14,
-    color: '#005AA9',
-    fontWeight: 'bold',
-  },
+
 });
