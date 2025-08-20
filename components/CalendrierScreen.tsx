@@ -110,7 +110,7 @@ export const CalendrierScreen: React.FC<CalendrierScreenProps> = ({ user, club, 
       };
 
       // Appel à l'API pour envoyer le calendrier
-      const result = await apiService.sendCalendrier(emailData);
+      const result: any = await apiService.sendCalendrier(emailData);
       
       if (result.success) {
         const successMessage = `🎉 **Calendrier envoyé avec succès !**
@@ -345,24 +345,44 @@ export const CalendrierScreen: React.FC<CalendrierScreenProps> = ({ user, club, 
           </View>
 
           {/* Sélection de membres spécifiques */}
-          {!envoyerATousLesMembres && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Membres spécifiques</Text>
-              <TouchableOpacity
-                style={styles.recipientsButton}
-                onPress={() => setShowMembersModal(true)}
-              >
-                <Ionicons name="people" size={20} color="#005AA9" />
-                <Text style={styles.recipientsText}>
-                  {selectedMembers.length > 0 
-                    ? `${selectedMembers.length} membre(s) sélectionné(s)`
-                    : 'Sélectionner les membres'
-                  }
-                </Text>
-                <Ionicons name="chevron-right" size={20} color="#666" />
-              </TouchableOpacity>
-            </View>
-          )}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {envoyerATousLesMembres ? 'Membres spécifiques (optionnel)' : 'Membres spécifiques'}
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.recipientsButton,
+                envoyerATousLesMembres && styles.recipientsButtonDisabled
+              ]}
+              onPress={() => setShowMembersModal(true)}
+              disabled={envoyerATousLesMembres}
+            >
+              <Ionicons 
+                name="people" 
+                size={20} 
+                color={envoyerATousLesMembres ? "#ccc" : "#005AA9"} 
+              />
+              <Text style={[
+                styles.recipientsText,
+                envoyerATousLesMembres && styles.recipientsTextDisabled
+              ]}>
+                {selectedMembers.length > 0 
+                  ? `${selectedMembers.length} membre(s) sélectionné(s)`
+                  : 'Sélectionner les membres'
+                }
+              </Text>
+              <Ionicons 
+                name="chevron-right" 
+                size={20} 
+                color={envoyerATousLesMembres ? "#ccc" : "#666"} 
+              />
+            </TouchableOpacity>
+            {envoyerATousLesMembres && (
+              <Text style={styles.helpText}>
+                Désactivez l'option ci-dessus pour sélectionner des membres spécifiques
+              </Text>
+            )}
+          </View>
         </View>
       </ScrollView>
 
@@ -528,6 +548,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
     marginLeft: 10,
+  },
+  recipientsTextDisabled: {
+    color: '#ccc',
+  },
+  recipientsButtonDisabled: {
+    opacity: 0.6,
+  },
+  helpText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 5,
+    fontStyle: 'italic',
   },
   footer: {
     backgroundColor: 'white',
