@@ -561,6 +561,8 @@ export class ApiService {
   // Méthode pour envoyer des emails de club
   async sendClubEmail(emailData: any): Promise<any> {
     try {
+      console.log('📧 Envoi email avec données:', emailData);
+      
       // En mode démo, simuler l'envoi d'email
       if (API_CONFIG.FORCE_DEMO_MODE) {
         console.log('🧪 Mode démo - Simulation envoi email:', emailData);
@@ -571,13 +573,30 @@ export class ApiService {
         };
       }
 
-      const response = await this.makeRequest('/Email/send', {
+      // Préparer les données selon la structure attendue par l'API
+      const requestData = {
+        subject: emailData.subject,
+        message: emailData.message,
+        recipients: emailData.recipients,
+        attachments: emailData.attachments?.map((att: any) => ({
+          fileName: att.name,
+          contentType: att.type,
+          contentSize: parseInt(att.size) || 0,
+          content: att.base64
+        })) || []
+      };
+
+      console.log('📧 Données envoyées à l\'API:', requestData);
+
+      const response = await this.makeRequest('/email/send', {
         method: 'POST',
-        body: JSON.stringify(emailData),
+        body: JSON.stringify(requestData),
       });
+      
+      console.log('✅ Réponse envoi email:', response);
       return response;
     } catch (error) {
-      console.error('Erreur sendClubEmail:', error);
+      console.error('❌ Erreur sendClubEmail:', error);
       throw error;
     }
   }
