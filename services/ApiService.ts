@@ -26,7 +26,8 @@ interface CalendrierData {
   clubId: string;
   mois: number;
   messagePersonnalise?: string;
-  membresIds: string[];
+  membresIds?: string[];
+  emailsDestinataires?: string[];
   envoyerATousLesMembres: boolean;
 }
 
@@ -522,15 +523,26 @@ export class ApiService {
     try {
       console.log('📅 Envoi du calendrier pour le mois:', emailData.mois);
       
+      const requestBody: any = {
+        clubId: emailData.clubId,
+        mois: emailData.mois,
+        messagePersonnalise: emailData.messagePersonnalise,
+        envoyerATousLesMembres: emailData.envoyerATousLesMembres
+      };
+
+      // Si on a des emails spécifiques, les ajouter
+      if (emailData.emailsDestinataires && emailData.emailsDestinataires.length > 0) {
+        requestBody.emailsDestinataires = emailData.emailsDestinataires;
+      }
+
+      // Si on a des IDs de membres, les ajouter (pour compatibilité)
+      if (emailData.membresIds && emailData.membresIds.length > 0) {
+        requestBody.membresIds = emailData.membresIds;
+      }
+      
       const response = await this.makeRequest('/CalendrierEmail/envoyer-calendrier', {
         method: 'POST',
-        body: JSON.stringify({
-          clubId: emailData.clubId,
-          mois: emailData.mois,
-          messagePersonnalise: emailData.messagePersonnalise,
-          membresIds: emailData.membresIds,
-          envoyerATousLesMembres: emailData.envoyerATousLesMembres
-        }),
+        body: JSON.stringify(requestBody),
       });
       
       console.log('✅ Réponse envoi calendrier:', response);

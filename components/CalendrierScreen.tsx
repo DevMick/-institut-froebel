@@ -100,13 +100,19 @@ export const CalendrierScreen: React.FC<CalendrierScreenProps> = ({ user, club, 
     try {
       setSending(true);
 
+      // Récupérer les emails des membres sélectionnés
+      const selectedMembersEmails = members
+        .filter(member => selectedMembers.includes(member.id))
+        .map(member => member.email)
+        .filter(email => email && email.trim() !== '');
+
       // Préparer les données pour l'envoi
       const emailData = {
         clubId: club.id,
         mois: selectedMonth,
         messagePersonnalise: messagePersonnalise.trim(),
         envoyerATousLesMembres: envoyerATousLesMembres,
-        membresIds: selectedMembers
+        emailsDestinataires: selectedMembersEmails
       };
 
       // Appel à l'API pour envoyer le calendrier
