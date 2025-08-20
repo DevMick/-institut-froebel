@@ -489,6 +489,29 @@ export class ApiService {
     }
   }
 
+  async sendCalendrier(emailData) {
+    try {
+      console.log('📅 Envoi du calendrier pour le mois:', emailData.mois);
+      
+      const response = await this.makeRequest('/CalendrierEmail/envoyer-calendrier', {
+        method: 'POST',
+        body: JSON.stringify({
+          clubId: emailData.clubId,
+          mois: emailData.mois,
+          messagePersonnalise: emailData.messagePersonnalise,
+          emailsDestinataires: emailData.emailsDestinataires,
+          envoyerATousLesMembres: emailData.envoyerATousLesMembres
+        }),
+      });
+      
+      console.log('✅ Réponse envoi calendrier:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Erreur sendCalendrier:', error);
+      throw error;
+    }
+  }
+
   // Alias pour getMembers (pour compatibilité)
   async getClubMembers(clubId) {
     return this.getMembers(clubId);

@@ -15,6 +15,7 @@ import { MembersScreen } from './components/MembersScreen';
 import { ReunionsScreen } from './components/ReunionsScreen';
 import CotisationsScreen from './components/CotisationsScreen';
 import { SituationCotisationScreen } from './components/SituationCotisationScreen';
+import { CalendrierScreen } from './components/CalendrierScreen';
 import { ClubsScreen } from './components/ClubsScreen';
 import { ProfileScreen } from './components/ProfileScreen';
 import { SettingsScreen } from './components/SettingsScreen';
@@ -203,19 +204,31 @@ export default function App() {
           </>
         );
 
-      case 'situation-cotisation':
-        return (
-          <>
-            <StatusBar style="light" backgroundColor="#005AA9" />
-            <SituationCotisationScreen
-              club={selectedClub}
-              user={user}
-              onBack={handleBackToDashboard}
-            />
-          </>
-        );
+              case 'situation-cotisation':
+          return (
+            <>
+              <StatusBar style="light" backgroundColor="#005AA9" />
+              <SituationCotisationScreen
+                club={selectedClub}
+                user={user}
+                onBack={handleBackToDashboard}
+              />
+            </>
+          );
 
-      case 'email':
+        case 'calendrier':
+          return (
+            <>
+              <StatusBar style="light" backgroundColor="#005AA9" />
+              <CalendrierScreen
+                club={selectedClub}
+                user={user}
+                onBack={handleBackToDashboard}
+              />
+            </>
+          );
+
+        case 'email':
         return (
           <>
             <StatusBar style="light" backgroundColor="#005AA9" />
