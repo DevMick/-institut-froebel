@@ -50,7 +50,7 @@ export class ApiService {
   async makeRequest(endpoint, options = {}) {
     try {
       const token = await this.getToken();
-      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}${endpoint}`;
+      const url = `${API_CONFIG.NGROK_URL}${API_CONFIG.API_PREFIX}${endpoint}`;
 
       const headers = {
         'Content-Type': 'application/json',
@@ -86,7 +86,14 @@ export class ApiService {
 
   async login(loginData) {
     try {
-      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/Auth/login`;
+      console.log('🔐 Tentative de connexion...');
+      console.log('📧 Email:', loginData.email);
+      console.log('🏢 Club ID:', loginData.clubId);
+      
+      // Utiliser l'URL ngrok pour la connexion
+      const url = `${API_CONFIG.NGROK_URL}${API_CONFIG.API_PREFIX}/Auth/login`;
+      console.log('🌐 URL de connexion:', url);
+      
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -97,27 +104,77 @@ export class ApiService {
         body: JSON.stringify(loginData),
       });
 
+      console.log('📊 Status de la réponse:', response.status);
+      console.log('📊 Headers de la réponse:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erreur de connexion');
+        // Essayer de lire le contenu de l'erreur
+        const contentType = response.headers.get('content-type');
+        let errorMessage = 'Erreur de connexion';
+        
+        try {
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorData.error || 'Erreur de connexion';
+          } else {
+            const errorText = await response.text();
+            console.error('❌ Réponse d\'erreur (non-JSON):', errorText);
+            errorMessage = `Erreur serveur (${response.status}): ${errorText.substring(0, 100)}`;
+          }
+        } catch (parseError) {
+          console.error('❌ Erreur lors du parsing de la réponse:', parseError);
+          errorMessage = `Erreur de connexion (${response.status})`;
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      // Vérifier le type de contenu de la réponse
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const responseText = await response.text();
+        console.error('❌ Réponse non-JSON reçue:', responseText);
+        throw new Error('Le serveur a retourné une réponse invalide. Vérifiez que l\'API backend est correctement configurée.');
       }
 
       const data = await response.json();
+      console.log('✅ Données de connexion reçues:', data);
       
       if (data.token) {
         await this.setToken(data.token);
+        console.log('🔑 Token sauvegardé');
       }
 
-      return data.user;
+      // Construire l'objet utilisateur à partir de la réponse
+      const userData = {
+        id: data.userId,
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        fullName: `${data.firstName} ${data.lastName}`,
+        clubId: data.clubId,
+        clubName: data.clubName,
+        numeroMembre: data.numeroMembre,
+        roles: data.roles || [],
+        dateAnniversaire: data.dateAnniversaire
+      };
+
+      console.log('👤 Données utilisateur formatées:', userData);
+      return userData;
     } catch (error) {
-      console.error('Erreur login:', error);
+      console.error('❌ Erreur login:', error);
       throw error;
     }
   }
 
   async register(userData) {
     try {
-      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.API_PREFIX}/Auth/register`;
+      console.log('📝 Tentative d\'inscription...');
+      
+      // Utiliser l'URL ngrok pour l'inscription
+      const url = `${API_CONFIG.NGROK_URL}${API_CONFIG.API_PREFIX}/Auth/register`;
+      console.log('🌐 URL d\'inscription:', url);
+      
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -128,20 +185,55 @@ export class ApiService {
         body: JSON.stringify(userData),
       });
 
+      console.log('📊 Status de la réponse:', response.status);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erreur d\'inscription');
+        const contentType = response.headers.get('content-type');
+        let errorMessage = 'Erreur d\'inscription';
+        
+        try {
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorData.error || 'Erreur d\'inscription';
+          } else {
+            const errorText = await response.text();
+            console.error('❌ Réponse d\'erreur (non-JSON):', errorText);
+            errorMessage = `Erreur serveur (${response.status}): ${errorText.substring(0, 100)}`;
+          }
+        } catch (parseError) {
+          console.error('❌ Erreur lors du parsing de la réponse:', parseError);
+          errorMessage = `Erreur d'inscription (${response.status})`;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
+      console.log('✅ Données d\'inscription reçues:', data);
       
       if (data.token) {
         await this.setToken(data.token);
+        console.log('🔑 Token sauvegardé');
       }
 
-      return data.user;
+      // Construire l'objet utilisateur à partir de la réponse
+      const userData = {
+        id: data.userId,
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        fullName: `${data.firstName} ${data.lastName}`,
+        clubId: data.clubId,
+        clubName: data.clubName,
+        numeroMembre: data.numeroMembre,
+        roles: data.roles || [],
+        dateAnniversaire: data.dateAnniversaire
+      };
+
+      console.log('👤 Données utilisateur formatées:', userData);
+      return userData;
     } catch (error) {
-      console.error('Erreur register:', error);
+      console.error('❌ Erreur register:', error);
       throw error;
     }
   }
