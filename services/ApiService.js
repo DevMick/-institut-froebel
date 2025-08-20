@@ -337,30 +337,26 @@ export class ApiService {
     try {
       console.log('👥 Récupération des membres pour le club:', clubId);
       
-      // Essayer différents endpoints possibles
-      const endpoints = [
-        `/Members/club/${clubId}`,
-        `/Members/${clubId}`,
-        `/Club/${clubId}/members`,
-        `/Club/${clubId}/Members`
-      ];
+      // Endpoint correct pour récupérer les membres d'un club
+      const endpoint = `/Auth/club/${clubId}/members`;
+      console.log('🌐 Endpoint membres:', endpoint);
       
-      for (let i = 0; i < endpoints.length; i++) {
-        try {
-          console.log(`🔄 Tentative ${i + 1}/${endpoints.length} - Endpoint:`, endpoints[i]);
-          const response = await this.makeRequest(endpoints[i]);
-          console.log('✅ Membres récupérés:', response);
-          return response.data || response || [];
-        } catch (error) {
-          console.log(`❌ Endpoint ${endpoints[i]} échoué:`, error.message);
-          if (i === endpoints.length - 1) {
-            console.log('⚠️ Aucun endpoint de membres ne fonctionne, retour de données vides');
-            return [];
-          }
-        }
+      const response = await this.makeRequest(endpoint);
+      console.log('✅ Réponse API membres:', response);
+      
+      // Vérifier la structure de réponse
+      if (response && response.success && Array.isArray(response.members)) {
+        console.log('✅ Membres récupérés:', response.members.length);
+        return response.members;
+      } else if (Array.isArray(response)) {
+        console.log('✅ Membres récupérés (format tableau):', response.length);
+        return response;
+      } else {
+        console.log('⚠️ Structure de réponse inattendue:', response);
+        return [];
       }
     } catch (error) {
-      console.error('Erreur getMembers:', error);
+      console.error('❌ Erreur getMembers:', error);
       return [];
     }
   }
@@ -369,20 +365,31 @@ export class ApiService {
     try {
       console.log('📅 Récupération des réunions pour le club:', clubId);
       
-      // Essayer différents endpoints possibles
+      // Essayer différents endpoints possibles pour les réunions
       const endpoints = [
+        `/Auth/club/${clubId}/reunions`,
         `/Reunions/club/${clubId}`,
         `/Reunions/${clubId}`,
-        `/Club/${clubId}/reunions`,
-        `/Club/${clubId}/Reunions`
+        `/Club/${clubId}/reunions`
       ];
       
       for (let i = 0; i < endpoints.length; i++) {
         try {
           console.log(`🔄 Tentative ${i + 1}/${endpoints.length} - Endpoint:`, endpoints[i]);
           const response = await this.makeRequest(endpoints[i]);
-          console.log('✅ Réunions récupérées:', response);
-          return response.data || response || [];
+          console.log('✅ Réponse API réunions:', response);
+          
+          // Vérifier la structure de réponse
+          if (response && response.success && Array.isArray(response.reunions)) {
+            console.log('✅ Réunions récupérées:', response.reunions.length);
+            return response.reunions;
+          } else if (Array.isArray(response)) {
+            console.log('✅ Réunions récupérées (format tableau):', response.length);
+            return response;
+          } else {
+            console.log('⚠️ Structure de réponse inattendue:', response);
+            return [];
+          }
         } catch (error) {
           console.log(`❌ Endpoint ${endpoints[i]} échoué:`, error.message);
           if (i === endpoints.length - 1) {
@@ -392,7 +399,7 @@ export class ApiService {
         }
       }
     } catch (error) {
-      console.error('Erreur getReunions:', error);
+      console.error('❌ Erreur getReunions:', error);
       return [];
     }
   }
@@ -401,20 +408,31 @@ export class ApiService {
     try {
       console.log('💰 Récupération des cotisations pour le club:', clubId);
       
-      // Essayer différents endpoints possibles
+      // Essayer différents endpoints possibles pour les cotisations
       const endpoints = [
+        `/Auth/club/${clubId}/cotisations`,
         `/Cotisations/club/${clubId}`,
         `/Cotisations/${clubId}`,
-        `/Club/${clubId}/cotisations`,
-        `/Club/${clubId}/Cotisations`
+        `/Club/${clubId}/cotisations`
       ];
       
       for (let i = 0; i < endpoints.length; i++) {
         try {
           console.log(`🔄 Tentative ${i + 1}/${endpoints.length} - Endpoint:`, endpoints[i]);
           const response = await this.makeRequest(endpoints[i]);
-          console.log('✅ Cotisations récupérées:', response);
-          return response.data || response || [];
+          console.log('✅ Réponse API cotisations:', response);
+          
+          // Vérifier la structure de réponse
+          if (response && response.success && Array.isArray(response.cotisations)) {
+            console.log('✅ Cotisations récupérées:', response.cotisations.length);
+            return response.cotisations;
+          } else if (Array.isArray(response)) {
+            console.log('✅ Cotisations récupérées (format tableau):', response.length);
+            return response;
+          } else {
+            console.log('⚠️ Structure de réponse inattendue:', response);
+            return [];
+          }
         } catch (error) {
           console.log(`❌ Endpoint ${endpoints[i]} échoué:`, error.message);
           if (i === endpoints.length - 1) {
@@ -424,7 +442,7 @@ export class ApiService {
         }
       }
     } catch (error) {
-      console.error('Erreur getCotisations:', error);
+      console.error('❌ Erreur getCotisations:', error);
       return [];
     }
   }
