@@ -1,13 +1,8 @@
 import * as SecureStore from 'expo-secure-store';
 import { API_CONFIG, DEMO_DATA } from '../config/api-config';
+import { User, Club, Member, LoginData, ApiResponse } from '../types';
 
-// Types pour les données
-interface LoginData {
-  email: string;
-  password: string;
-  clubId: string;
-}
-
+// Types pour les données spécifiques à l'API
 interface UserData {
   id: string;
   email: string;
@@ -19,24 +14,6 @@ interface UserData {
   numeroMembre: string;
   roles: string[];
   dateAnniversaire?: string;
-}
-
-interface Member {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber?: string;
-  isActive: boolean;
-  roles: string[];
-  profilePictureUrl?: string;
-  fullName: string;
-  numeroMembre: string;
-  dateAnniversaire?: string;
-  userJoinedDate?: string;
-  clubJoinedDate?: string;
-  clubId: string;
-  clubName: string;
 }
 
 interface EmailData {
@@ -51,13 +28,6 @@ interface CalendrierData {
   messagePersonnalise?: string;
   membresIds: string[];
   envoyerATousLesMembres: boolean;
-}
-
-interface ApiResponse<T = any> {
-  success: boolean;
-  message?: string;
-  data?: T;
-  [key: string]: any;
 }
 
 export class ApiService {
@@ -532,7 +502,7 @@ export class ApiService {
     }
   }
 
-  async sendSituationCotisation(emailData: EmailData): Promise<ApiResponse> {
+  async sendSituationCotisation(emailData: EmailData): Promise<ApiResponse<any>> {
     try {
       const response = await this.makeRequest('/EmailCotisation/send-to-multiple-members', {
         method: 'POST',
@@ -548,7 +518,7 @@ export class ApiService {
     }
   }
 
-  async sendCalendrier(emailData: CalendrierData): Promise<ApiResponse> {
+  async sendCalendrier(emailData: CalendrierData): Promise<ApiResponse<any>> {
     try {
       console.log('📅 Envoi du calendrier pour le mois:', emailData.mois);
       
@@ -577,7 +547,7 @@ export class ApiService {
   }
 
   // Méthode pour envoyer des emails de club
-  async sendClubEmail(emailData: any): Promise<ApiResponse> {
+  async sendClubEmail(emailData: any): Promise<any> {
     try {
       // En mode démo, simuler l'envoi d'email
       if (API_CONFIG.FORCE_DEMO_MODE) {
@@ -601,7 +571,7 @@ export class ApiService {
   }
 
   // Méthode pour envoyer des messages WhatsApp
-  async sendWhatsAppMessage(messageData: any): Promise<ApiResponse> {
+  async sendWhatsAppMessage(messageData: any): Promise<any> {
     try {
       // En mode démo, simuler l'envoi WhatsApp
       if (API_CONFIG.FORCE_DEMO_MODE) {
