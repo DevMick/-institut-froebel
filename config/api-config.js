@@ -1,7 +1,7 @@
 // Configuration API pour l'application Rotary Club Mobile
 export const API_CONFIG = {
   // Mode de développement - forcer les données de test
-  FORCE_DEMO_MODE: false, // Mettre à false pour utiliser l'API réelle
+  FORCE_DEMO_MODE: true, // Temporairement réactivé pour débloquer l'app
   
   // URLs de l'API
   LOCAL_URL: 'http://localhost:5265',

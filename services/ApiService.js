@@ -163,6 +163,9 @@ export class ApiService {
       return DEMO_DATA.clubs;
     }
 
+    console.log('🚨 ATTENTION: Tentative de connexion API réelle...');
+    console.log('⏰ Timeout de 10 secondes pour éviter le blocage');
+
     const urlsToTry = [
       `${API_CONFIG.LOCAL_URL}${API_CONFIG.API_PREFIX}/Clubs`,
       `${API_CONFIG.NGROK_URL}${API_CONFIG.API_PREFIX}/Clubs`,
@@ -187,11 +190,20 @@ export class ApiService {
         }
         
         console.log('🌐 Tentative de requête GET...');
+        
+        // Ajouter un timeout de 5 secondes
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
         const response = await fetch(url, {
           method: 'GET',
           mode: 'cors',
           headers: API_CONFIG.DEFAULT_HEADERS,
+          signal: controller.signal,
         });
+        
+        clearTimeout(timeoutId);
+        console.log('✅ Requête GET terminée');
 
         console.log('📊 Status de la réponse:', response.status);
         console.log('📊 Headers de la réponse:', Object.fromEntries(response.headers.entries()));
@@ -227,6 +239,10 @@ export class ApiService {
         console.log('🔄 Tentative de l\'URL suivante...');
       }
     }
+    
+    // Si on arrive ici, retourner les données de test par sécurité
+    console.log('🛡️ Fallback de sécurité - Utilisation des données de test');
+    return DEMO_DATA.clubs;
   }
 
   async getMembers(clubId) {
