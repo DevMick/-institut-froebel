@@ -167,8 +167,9 @@ export class ApiService {
     console.log('⏰ Timeout de 10 secondes pour éviter le blocage');
 
     const urlsToTry = [
-      `${API_CONFIG.LOCAL_URL}${API_CONFIG.API_PREFIX}/Clubs`,
+      // Pour Expo Snack, on essaie d'abord ngrok car localhost ne marchera pas
       `${API_CONFIG.NGROK_URL}${API_CONFIG.API_PREFIX}/Clubs`,
+      `${API_CONFIG.LOCAL_URL}${API_CONFIG.API_PREFIX}/Clubs`,
     ];
 
     for (let i = 0; i < urlsToTry.length; i++) {
@@ -191,9 +192,9 @@ export class ApiService {
         
         console.log('🌐 Tentative de requête GET...');
         
-        // Ajouter un timeout de 5 secondes
+        // Ajouter un timeout de 15 secondes (plus généreux)
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
         
         const response = await fetch(url, {
           method: 'GET',
