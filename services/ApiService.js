@@ -223,19 +223,18 @@ export class ApiService {
         return clubs;
       } catch (error) {
         console.error(`❌ Erreur avec URL ${url}:`, error);
-        if (i === urlsToTry.length - 1) {
-          // C'est la dernière tentative, on utilise les données de test
-          console.error('❌ Toutes les URLs ont échoué, utilisation des données de test');
-          console.log('⚠️ Mode démo activé - Utilisation de données de test');
-          return DEMO_DATA.clubs;
-        }
+                        if (i === urlsToTry.length - 1) {
+                  // C'est la dernière tentative, on lance une erreur
+                  console.error('❌ Toutes les URLs ont échoué');
+                  throw new Error('Impossible de se connecter à l\'API. Vérifiez votre connexion internet et que le serveur backend est démarré.');
+                }
         console.log('🔄 Tentative de l\'URL suivante...');
       }
     }
     
-    // Si on arrive ici, retourner les données de test par sécurité
-    console.log('🛡️ Fallback de sécurité - Utilisation des données de test');
-    return DEMO_DATA.clubs;
+    // Si on arrive ici, lancer une erreur
+    console.log('🛡️ Fallback de sécurité - Erreur de connexion');
+    throw new Error('Impossible de se connecter à l\'API. Vérifiez votre connexion internet et que le serveur backend est démarré.');
   }
 
   async getMembers(clubId) {
