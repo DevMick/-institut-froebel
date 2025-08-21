@@ -18,57 +18,53 @@ import { ApiService } from '../services/ApiService';
 
 interface CompteRenduScreenProps {
   user: User;
-  onNavigate: (screen: string) => void;
+  club: Club;
+  onBack: () => void;
 }
 
 export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
   user,
-  onNavigate,
+  club,
+  onBack,
 }) => {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
-  const [clubs, setClubs] = useState<Club[]>([]);
   const [reunions, setReunions] = useState<Reunion[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
-  const [selectedClub, setSelectedClub] = useState<string>('');
   const [selectedReunion, setSelectedReunion] = useState<string>('');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [searchText, setSearchText] = useState('');
-  const [showClubDropdown, setShowClubDropdown] = useState(false);
   const [showReunionDropdown, setShowReunionDropdown] = useState(false);
 
   const apiService = new ApiService();
 
   useEffect(() => {
-    loadClubs();
-  }, []);
+    loadData();
+  }, [club.id]);
 
-  useEffect(() => {
-    if (selectedClub) {
-      loadReunions(selectedClub);
-      loadMembers(selectedClub);
-    }
-  }, [selectedClub]);
-
-  const loadClubs = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
-      const clubsData = await apiService.getClubs();
-      setClubs(clubsData);
-      if (clubsData.length > 0) {
-        setSelectedClub(clubsData[0].id);
-      }
+      console.log('🔄 Chargement des données...');
+      
+      // Charger les réunions
+      await loadReunions();
+      
+      // Charger les membres
+      await loadMembers();
+      
+      console.log('✅ Données chargées');
     } catch (error: any) {
-      console.error('Erreur chargement clubs:', error);
-      Alert.alert('Erreur', 'Impossible de charger les clubs');
+      console.error('❌ Erreur chargement données:', error);
+      Alert.alert('Erreur', 'Impossible de charger les données');
     } finally {
       setLoading(false);
     }
   };
 
-  const loadReunions = async (clubId: string) => {
+  const loadReunions = async () => {
     try {
-      const reunionsData = await apiService.getClubReunions(clubId);
+      const reunionsData = await apiService.getClubReunions(club.id);
       // Filtrer les réunions passées (pour avoir des comptes rendus)
       const maintenant = new Date();
       const reunionsPassees = reunionsData.filter(reunion => {
@@ -88,9 +84,9 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
     }
   };
 
-  const loadMembers = async (clubId: string) => {
+  const loadMembers = async () => {
     try {
-      const membersData = await apiService.getClubMembers(clubId);
+      const membersData = await apiService.getClubMembers(club.id);
       setMembers(membersData);
       setSelectedMembers([]);
     } catch (error: any) {
@@ -119,7 +115,6 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
   };
 
   const closeAllDropdowns = () => {
-    setShowClubDropdown(false);
     setShowReunionDropdown(false);
   };
 
@@ -130,8 +125,8 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
   );
 
   const handleSendCompteRendu = async () => {
-    if (!selectedClub || !selectedReunion || selectedMembers.length === 0) {
-      Alert.alert('Erreur', 'Veuillez sélectionner un club, une réunion et au moins un membre');
+    if (!selectedReunion || selectedMembers.length === 0) {
+      Alert.alert('Erreur', 'Veuillez sélectionner une réunion et au moins un membre');
       return;
     }
 
@@ -139,15 +134,20 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
       setSending(true);
       
       const response = await apiService.sendCompteRendu({
-        clubId: selectedClub,
+        clubId: club.id,
         reunionId: selectedReunion,
         membresIds: selectedMembers,
       });
 
       if (response.success) {
+        const selectedMembersInfo = members
+          .filter(member => selectedMembers.includes(member.id))
+          .map(member => `• ${member.firstName} ${member.lastName}`)
+          .join('\n');
+        
         Alert.alert(
           'Succès',
-          `Compte rendu envoyé avec succès!\n\nStatistiques:\n- Total membres: ${response.statistiques.totalMembres}\n- Emails envoyés: ${response.statistiques.emailsEnvoyes}\n- Taux de réussite: ${response.statistiques.tauxReussite}%`,
+          `🎉 **Compte rendu envoyé avec succès !**\n\n📧 **Destinataires :** ${response.statistiques.emailsEnvoyes} membre(s)\n💯 **Taux de réussite :** ${response.statistiques.tauxReussite}%\n\n**Membres sélectionnés :**\n${selectedMembersInfo}`,
           [{ text: 'OK' }]
         );
         
@@ -172,7 +172,7 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => onNavigate('dashboard')}
+          onPress={onBack}
         >
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
@@ -189,43 +189,13 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
           </View>
         ) : (
           <>
-            {/* Sélection du Club */}
+            {/* Club Information */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Club</Text>
-              <TouchableOpacity
-                style={styles.dropdownContainer}
-                onPress={() => setShowClubDropdown(!showClubDropdown)}
-              >
-                <Text style={styles.dropdownText}>
-                  {selectedClub ? clubs.find(c => c.id === selectedClub)?.name || 'Sélectionner un club' : 'Sélectionner un club'}
-                </Text>
-                <Ionicons name={showClubDropdown ? "chevron-up" : "chevron-down"} size={20} color="#666" />
-              </TouchableOpacity>
-              
-              {showClubDropdown && (
-                <View style={styles.dropdownList}>
-                  {clubs.map(club => (
-                    <TouchableOpacity
-                      key={club.id}
-                      style={[
-                        styles.dropdownItem,
-                        selectedClub === club.id && styles.dropdownItemSelected
-                      ]}
-                      onPress={() => {
-                        setSelectedClub(club.id);
-                        setShowClubDropdown(false);
-                      }}
-                    >
-                      <Text style={[
-                        styles.dropdownItemText,
-                        selectedClub === club.id && styles.dropdownItemTextSelected
-                      ]}>
-                        {club.name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
+              <View style={styles.clubInfo}>
+                <Ionicons name="business" size={20} color="#005AA9" />
+                <Text style={styles.clubName}>{club.name}</Text>
+              </View>
             </View>
 
             {/* Sélection de la Réunion */}
@@ -245,7 +215,7 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
                       {selectedReunion ? 
                         (() => {
                           const reunion = reunions.find(r => r.id === selectedReunion);
-                          return reunion ? `${reunion.title} - ${new Date(reunion.date).toLocaleDateString()}` : 'Sélectionner une réunion';
+                          return reunion ? `${reunion.typeReunionLibelle} - ${new Date(reunion.date).toLocaleDateString()}` : 'Sélectionner une réunion';
                         })() 
                         : 'Sélectionner une réunion'
                       }
@@ -271,7 +241,7 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
                             styles.dropdownItemText,
                             selectedReunion === reunion.id && styles.dropdownItemTextSelected
                           ]}>
-                            {reunion.title} - {new Date(reunion.date).toLocaleDateString()}
+                            {reunion.typeReunionLibelle} - {new Date(reunion.date).toLocaleDateString()}
                           </Text>
                         </TouchableOpacity>
                       ))}
@@ -286,17 +256,24 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
               <View style={styles.reunionInfo}>
                 <Text style={styles.reunionInfoTitle}>Détails de la réunion</Text>
                 <Text style={styles.reunionInfoText}>
-                  <Text style={styles.label}>Titre:</Text> {selectedReunionData.title}
+                  <Text style={styles.label}>Type:</Text> {selectedReunionData.typeReunionLibelle}
                 </Text>
                 <Text style={styles.reunionInfoText}>
                   <Text style={styles.label}>Date:</Text> {new Date(selectedReunionData.date).toLocaleDateString()}
                 </Text>
                 <Text style={styles.reunionInfoText}>
-                  <Text style={styles.label}>Heure:</Text> {selectedReunionData.time}
+                  <Text style={styles.label}>Heure:</Text> {selectedReunionData.heure}
                 </Text>
-                <Text style={styles.reunionInfoText}>
-                  <Text style={styles.label}>Lieu:</Text> {selectedReunionData.location}
-                </Text>
+                {selectedReunionData.lieu && (
+                  <Text style={styles.reunionInfoText}>
+                    <Text style={styles.label}>Lieu:</Text> {selectedReunionData.lieu}
+                  </Text>
+                )}
+                {selectedReunionData.description && (
+                  <Text style={styles.reunionInfoText}>
+                    <Text style={styles.label}>Description:</Text> {selectedReunionData.description}
+                  </Text>
+                )}
               </View>
             )}
 
@@ -359,10 +336,10 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
             <TouchableOpacity
               style={[
                 styles.sendButton,
-                (!selectedClub || !selectedReunion || selectedMembers.length === 0 || sending) && styles.sendButtonDisabled
+                (!selectedReunion || selectedMembers.length === 0 || sending) && styles.sendButtonDisabled
               ]}
               onPress={handleSendCompteRendu}
-              disabled={!selectedClub || !selectedReunion || selectedMembers.length === 0 || sending}
+              disabled={!selectedReunion || selectedMembers.length === 0 || sending}
             >
               {sending ? (
                 <ActivityIndicator size="small" color="white" />
@@ -435,6 +412,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 12,
     color: '#333',
+  },
+  clubInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: '#f0f8ff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#005AA9',
+  },
+  clubName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#005AA9',
+    marginLeft: 8,
   },
   sectionHeader: {
     flexDirection: 'row',

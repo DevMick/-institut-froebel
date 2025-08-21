@@ -223,7 +223,8 @@ export default function App() {
               <StatusBar style="light" backgroundColor="#005AA9" />
               <CompteRenduScreen
                 user={user}
-                onNavigate={handleNavigation}
+                club={selectedClub}
+                onBack={handleBackToDashboard}
               />
             </>
           );

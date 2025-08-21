@@ -71,16 +71,21 @@ export interface Reunion {
   clubId: string;
   date: string;
   heure: string;
-  typeReunionId: string;
+  typeReunionId?: string;
   typeReunionLibelle: string;
-  ordresDuJour: string[];
-  presences: PresenceReunion[];
-  invites: InviteReunion[];
+  ordresDuJour?: string[];
+  presences?: PresenceReunion[];
+  invites?: InviteReunion[];
   lieu?: string;
   description?: string;
+  estActive?: boolean;
   statut?: string;
   createdAt?: string;
   updatedAt?: string;
+  // Alias pour compatibilité
+  title?: string;
+  time?: string;
+  location?: string;
 }
 
 export interface PresenceReunion {
