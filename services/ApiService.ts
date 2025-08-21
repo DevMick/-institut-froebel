@@ -116,11 +116,15 @@ export class ApiService {
           try {
             const errorData = await response.json();
             console.error('❌ Détails erreur 400:', errorData);
-            throw new Error(`Erreur de validation: ${errorData.message || errorData.error || 'Données invalides'}`);
+            throw new Error(`Erreur de validation: ${errorData.message || errorData.error || errorData.title || 'Données invalides'}`);
           } catch (parseError) {
-            const errorText = await response.text();
-            console.error('❌ Réponse erreur 400 (texte):', errorText);
-            throw new Error(`Erreur de validation (400): ${errorText.substring(0, 200)}`);
+            try {
+              const errorText = await response.text();
+              console.error('❌ Réponse erreur 400 (texte):', errorText);
+              throw new Error(`Erreur de validation (400): ${errorText.substring(0, 200)}`);
+            } catch (textError) {
+              throw new Error(`Erreur de validation (400): Impossible de lire la réponse`);
+            }
           }
         }
         
@@ -603,6 +607,13 @@ export class ApiService {
         throw new Error('Au moins un destinataire est requis');
       }
 
+      // Validation des emails
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const invalidEmails = emailData.recipients.filter(email => !emailRegex.test(email));
+      if (invalidEmails.length > 0) {
+        throw new Error(`Emails invalides: ${invalidEmails.join(', ')}`);
+      }
+
       // Préparer les données selon la structure attendue par l'API
       const requestData = {
         subject: emailData.subject.trim(),
@@ -631,13 +642,19 @@ export class ApiService {
           
           console.log('📏 Taille convertie en bytes:', contentSize);
           
+          // Validation des données de pièce jointe
+          if (!att.name || !att.type) {
+            console.warn('⚠️ Pièce jointe invalide:', att);
+            return null;
+          }
+          
           return {
             fileName: att.name,
             contentType: att.type,
             contentSize: contentSize,
-            content: att.base64
+            content: att.base64 || ''
           };
-        }) || []
+        }).filter(Boolean) || [] // Filtrer les pièces jointes invalides
       };
 
       console.log('📧 Données envoyées à l\'API:', requestData);
