@@ -574,6 +574,34 @@ export class ApiService {
     }
   }
 
+  // Méthode pour envoyer le compte rendu de réunion
+  async sendCompteRendu(compteRenduData: {
+    clubId: string;
+    reunionId: string;
+    membresIds: string[];
+  }): Promise<ApiResponse<any>> {
+    try {
+      console.log('📋 Envoi du compte rendu pour la réunion:', compteRenduData.reunionId);
+      
+      const requestBody = {
+        clubId: compteRenduData.clubId,
+        reunionId: compteRenduData.reunionId,
+        membresIds: compteRenduData.membresIds,
+      };
+      
+      const response = await this.makeRequest('/EmailCompteRendu/send-compte-rendu', {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+      });
+      
+      console.log('✅ Réponse envoi compte rendu:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Erreur sendCompteRendu:', error);
+      throw error;
+    }
+  }
+
   // Alias pour getMembers (pour compatibilité)
   async getClubMembers(clubId: string): Promise<Member[]> {
     return this.getMembers(clubId);

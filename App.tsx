@@ -21,6 +21,7 @@ import { ProfileScreen } from './components/ProfileScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { EmailScreen } from './components/EmailScreen';
 import { WhatsAppScreen } from './components/WhatsAppScreen';
+import { CompteRenduScreen } from './components/CompteRenduScreen';
 import { ApiService } from './services/ApiService';
 import { User, Club, NavigationScreen } from './types';
 
@@ -212,6 +213,17 @@ export default function App() {
                 club={selectedClub}
                 user={user}
                 onBack={handleBackToDashboard}
+              />
+            </>
+          );
+
+        case 'compte-rendu':
+          return (
+            <>
+              <StatusBar style="light" backgroundColor="#005AA9" />
+              <CompteRenduScreen
+                user={user}
+                onNavigate={handleNavigation}
               />
             </>
           );

@@ -131,6 +131,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
       screen: 'situation-cotisation' as NavigationScreen,
     },
     {
+      id: 'compte-rendu',
+      title: 'Compte Rendu',
+      subtitle: 'Envoyer compte rendu de réunion',
+      icon: 'document',
+      color: '#FF5722',
+      screen: 'compte-rendu' as NavigationScreen,
+    },
+    {
       id: 'calendrier',
       title: 'Calendrier',
       subtitle: 'Envoyer calendrier mensuel',

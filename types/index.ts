@@ -139,6 +139,7 @@ export type NavigationScreen =
   | 'reunions'
   | 'cotisations'
   | 'situation-cotisation'
+  | 'compte-rendu'
   | 'calendrier'
   | 'clubs'
   | 'profile'
