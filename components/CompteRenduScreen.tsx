@@ -9,9 +9,10 @@ import {
   Alert,
   ActivityIndicator,
   TextInput,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
+// Picker removed - using custom dropdown instead
 import { User, Club, Member, Reunion } from '../types';
 import { ApiService } from '../services/ApiService';
 
@@ -33,6 +34,8 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
   const [selectedReunion, setSelectedReunion] = useState<string>('');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [searchText, setSearchText] = useState('');
+  const [showClubDropdown, setShowClubDropdown] = useState(false);
+  const [showReunionDropdown, setShowReunionDropdown] = useState(false);
 
   const apiService = new ApiService();
 
@@ -115,6 +118,11 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
     setSelectedMembers([]);
   };
 
+  const closeAllDropdowns = () => {
+    setShowClubDropdown(false);
+    setShowReunionDropdown(false);
+  };
+
   const filteredMembers = members.filter(member =>
     member.firstName.toLowerCase().includes(searchText.toLowerCase()) ||
     member.lastName.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -172,7 +180,8 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.content}>
+      <TouchableWithoutFeedback onPress={closeAllDropdowns}>
+        <ScrollView style={styles.content}>
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#005AA9" />
@@ -183,21 +192,40 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
             {/* Sélection du Club */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Club</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={selectedClub}
-                  onValueChange={setSelectedClub}
-                  style={styles.picker}
-                >
+              <TouchableOpacity
+                style={styles.dropdownContainer}
+                onPress={() => setShowClubDropdown(!showClubDropdown)}
+              >
+                <Text style={styles.dropdownText}>
+                  {selectedClub ? clubs.find(c => c.id === selectedClub)?.name || 'Sélectionner un club' : 'Sélectionner un club'}
+                </Text>
+                <Ionicons name={showClubDropdown ? "chevron-up" : "chevron-down"} size={20} color="#666" />
+              </TouchableOpacity>
+              
+              {showClubDropdown && (
+                <View style={styles.dropdownList}>
                   {clubs.map(club => (
-                    <Picker.Item
+                    <TouchableOpacity
                       key={club.id}
-                      label={club.name}
-                      value={club.id}
-                    />
+                      style={[
+                        styles.dropdownItem,
+                        selectedClub === club.id && styles.dropdownItemSelected
+                      ]}
+                      onPress={() => {
+                        setSelectedClub(club.id);
+                        setShowClubDropdown(false);
+                      }}
+                    >
+                      <Text style={[
+                        styles.dropdownItemText,
+                        selectedClub === club.id && styles.dropdownItemTextSelected
+                      ]}>
+                        {club.name}
+                      </Text>
+                    </TouchableOpacity>
                   ))}
-                </Picker>
-              </View>
+                </View>
+              )}
             </View>
 
             {/* Sélection de la Réunion */}
@@ -208,21 +236,48 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
                   Aucune réunion passée trouvée pour ce club
                 </Text>
               ) : (
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={selectedReunion}
-                    onValueChange={setSelectedReunion}
-                    style={styles.picker}
+                <>
+                  <TouchableOpacity
+                    style={styles.dropdownContainer}
+                    onPress={() => setShowReunionDropdown(!showReunionDropdown)}
                   >
-                    {reunions.map(reunion => (
-                      <Picker.Item
-                        key={reunion.id}
-                        label={`${reunion.title} - ${new Date(reunion.date).toLocaleDateString()}`}
-                        value={reunion.id}
-                      />
-                    ))}
-                  </Picker>
-                </View>
+                    <Text style={styles.dropdownText}>
+                      {selectedReunion ? 
+                        (() => {
+                          const reunion = reunions.find(r => r.id === selectedReunion);
+                          return reunion ? `${reunion.title} - ${new Date(reunion.date).toLocaleDateString()}` : 'Sélectionner une réunion';
+                        })() 
+                        : 'Sélectionner une réunion'
+                      }
+                    </Text>
+                    <Ionicons name={showReunionDropdown ? "chevron-up" : "chevron-down"} size={20} color="#666" />
+                  </TouchableOpacity>
+                  
+                  {showReunionDropdown && (
+                    <View style={styles.dropdownList}>
+                      {reunions.map(reunion => (
+                        <TouchableOpacity
+                          key={reunion.id}
+                          style={[
+                            styles.dropdownItem,
+                            selectedReunion === reunion.id && styles.dropdownItemSelected
+                          ]}
+                          onPress={() => {
+                            setSelectedReunion(reunion.id);
+                            setShowReunionDropdown(false);
+                          }}
+                        >
+                          <Text style={[
+                            styles.dropdownItemText,
+                            selectedReunion === reunion.id && styles.dropdownItemTextSelected
+                          ]}>
+                            {reunion.title} - {new Date(reunion.date).toLocaleDateString()}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </>
               )}
             </View>
 
@@ -320,7 +375,8 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
             </TouchableOpacity>
           </>
         )}
-      </ScrollView>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 };
@@ -386,14 +442,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  pickerContainer: {
+  dropdownContainer: {
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
     backgroundColor: '#f9f9f9',
+    padding: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    minHeight: 50,
   },
-  picker: {
-    height: 50,
+  dropdownText: {
+    fontSize: 16,
+    color: '#333',
+    flex: 1,
+  },
+  dropdownList: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    backgroundColor: 'white',
+    marginTop: 4,
+    maxHeight: 200,
+  },
+  dropdownItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  dropdownItemSelected: {
+    backgroundColor: '#e3f2fd',
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  dropdownItemTextSelected: {
+    color: '#1976d2',
+    fontWeight: 'bold',
   },
   noDataText: {
     textAlign: 'center',
