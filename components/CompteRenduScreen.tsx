@@ -3,18 +3,18 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
-  SafeAreaView,
+  ScrollView,
   Alert,
   ActivityIndicator,
+  SafeAreaView,
   TextInput,
-  TouchableWithoutFeedback,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-// Picker removed - using custom dropdown instead
-import { User, Club, Member, Reunion } from '../types';
 import { ApiService } from '../services/ApiService';
+import { User, Club, Member, Reunion } from '../types';
 
 interface CompteRenduScreenProps {
   user: User;
@@ -22,48 +22,28 @@ interface CompteRenduScreenProps {
   onBack: () => void;
 }
 
-export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
-  user,
-  club,
-  onBack,
-}) => {
-  const [loading, setLoading] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [reunions, setReunions] = useState<Reunion[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
-  const [selectedReunion, setSelectedReunion] = useState<string>('');
+export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({ user, club, onBack }) => {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
-  const [searchText, setSearchText] = useState('');
-  const [showReunionDropdown, setShowReunionDropdown] = useState(false);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [reunions, setReunions] = useState<Reunion[]>([]);
+  const [selectedReunion, setSelectedReunion] = useState<string>('');
+  const [messagePersonnalise, setMessagePersonnalise] = useState<string>('');
+  const [sending, setSending] = useState<boolean>(false);
+  const [showMembersModal, setShowMembersModal] = useState<boolean>(false);
+  const [showReunionsModal, setShowReunionsModal] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const apiService = new ApiService();
 
   useEffect(() => {
     loadData();
-  }, [club.id]);
+  }, []);
 
   const loadData = async () => {
     try {
-      setLoading(true);
       console.log('🔄 Chargement des données...');
       
       // Charger les réunions
-      await loadReunions();
-      
-      // Charger les membres
-      await loadMembers();
-      
-      console.log('✅ Données chargées');
-    } catch (error: any) {
-      console.error('❌ Erreur chargement données:', error);
-      Alert.alert('Erreur', 'Impossible de charger les données');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadReunions = async () => {
-    try {
       const reunionsData = await apiService.getClubReunions(club.id);
       // Filtrer les réunions passées (pour avoir des comptes rendus)
       const maintenant = new Date();
@@ -72,67 +52,59 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
         return dateReunion < maintenant;
       });
       setReunions(reunionsPassees);
-      if (reunionsPassees.length > 0) {
-        setSelectedReunion(reunionsPassees[0].id);
-      } else {
-        setSelectedReunion('');
-      }
-    } catch (error: any) {
-      console.error('Erreur chargement réunions:', error);
-      setReunions([]);
-      setSelectedReunion('');
-    }
-  };
-
-  const loadMembers = async () => {
-    try {
+      
+      // Charger les membres
       const membersData = await apiService.getClubMembers(club.id);
-      setMembers(membersData);
-      setSelectedMembers([]);
-    } catch (error: any) {
-      console.error('Erreur chargement membres:', error);
-      setMembers([]);
-      setSelectedMembers([]);
+      // Filtrer pour exclure l'utilisateur connecté
+      const otherMembers = membersData.filter(member => member.id !== user.id);
+      setMembers(otherMembers);
+      
+      console.log('✅ Données chargées');
+    } catch (error) {
+      console.error('❌ Erreur chargement données:', error);
+      Alert.alert('Erreur', 'Impossible de charger les données');
     }
   };
 
-  const toggleMemberSelection = (memberId: string) => {
-    setSelectedMembers(prev => {
-      if (prev.includes(memberId)) {
-        return prev.filter(id => id !== memberId);
-      } else {
-        return [...prev, memberId];
-      }
-    });
+  const toggleMemberSelection = (memberId: string): void => {
+    setSelectedMembers(prev => 
+      prev.includes(memberId)
+        ? prev.filter(id => id !== memberId)
+        : [...prev, memberId]
+    );
   };
 
-  const selectAllMembers = () => {
-    setSelectedMembers(members.map(member => member.id));
+  const selectAllMembers = (): void => {
+    const allMemberIds = members.map(member => member.id);
+    setSelectedMembers(allMemberIds);
   };
 
-  const deselectAllMembers = () => {
+  const deselectAllMembers = (): void => {
     setSelectedMembers([]);
   };
 
-  const closeAllDropdowns = () => {
-    setShowReunionDropdown(false);
+  const getFilteredMembers = (): Member[] => {
+    if (!searchQuery.trim()) return members;
+    return members.filter(member =>
+      `${member.firstName} ${member.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.email.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   };
 
-  const filteredMembers = members.filter(member =>
-    member.firstName.toLowerCase().includes(searchText.toLowerCase()) ||
-    member.lastName.toLowerCase().includes(searchText.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchText.toLowerCase())
-  );
+  const handleSendCompteRendu = async (): Promise<void> => {
+    if (!selectedReunion) {
+      Alert.alert('Erreur', 'Veuillez sélectionner une réunion');
+      return;
+    }
 
-  const handleSendCompteRendu = async () => {
-    if (!selectedReunion || selectedMembers.length === 0) {
-      Alert.alert('Erreur', 'Veuillez sélectionner une réunion et au moins un membre');
+    if (selectedMembers.length === 0) {
+      Alert.alert('Erreur', 'Veuillez sélectionner au moins un membre');
       return;
     }
 
     try {
       setSending(true);
-      
+
       const response = await apiService.sendCompteRendu({
         clubId: club.id,
         reunionId: selectedReunion,
@@ -145,24 +117,237 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
           .map(member => `• ${member.firstName} ${member.lastName}`)
           .join('\n');
         
+        const selectedReunionData = reunions.find(r => r.id === selectedReunion);
+        const reunionInfo = selectedReunionData 
+          ? `${selectedReunionData.typeReunionLibelle} - ${new Date(selectedReunionData.date).toLocaleDateString()}`
+          : 'Réunion sélectionnée';
+
+        const successMessage = `🎉 **Compte rendu envoyé avec succès !**
+
+📅 **Réunion :** ${reunionInfo}
+📧 **Destinataires :** ${response.statistiques.emailsEnvoyes} membre(s)
+❌ **Échecs :** ${response.statistiques.emailsEchoues}
+📊 **Taux de réussite :** ${response.statistiques.tauxReussite}%
+
+👥 **Membres contactés :**
+${selectedMembersInfo}
+
+🕐 **Envoyé le :** ${new Date().toLocaleString('fr-FR')}
+
+✅ Le compte rendu de réunion a été transmis avec succès aux destinataires sélectionnés.`;
+
         Alert.alert(
-          'Succès',
-          `🎉 **Compte rendu envoyé avec succès !**\n\n📧 **Destinataires :** ${response.statistiques.emailsEnvoyes} membre(s)\n💯 **Taux de réussite :** ${response.statistiques.tauxReussite}%\n\n**Membres sélectionnés :**\n${selectedMembersInfo}`,
-          [{ text: 'OK' }]
+          '✅ Succès !',
+          successMessage,
+          [
+            {
+              text: 'Retour au menu',
+              onPress: () => {
+                setMessagePersonnalise('');
+                setSelectedMembers([]);
+                setSelectedReunion('');
+                onBack();
+              }
+            }
+          ]
         );
-        
-        // Réinitialiser les sélections
-        setSelectedMembers([]);
       } else {
         Alert.alert('Erreur', response.message || 'Erreur lors de l\'envoi du compte rendu');
       }
-    } catch (error: any) {
-      console.error('Erreur envoi compte rendu:', error);
-      Alert.alert('Erreur', 'Impossible d\'envoyer le compte rendu');
+    } catch (error) {
+      console.error('❌ Erreur envoi compte rendu:', error);
+      Alert.alert('Erreur', error instanceof Error ? error.message : 'Erreur lors de l\'envoi du compte rendu');
     } finally {
       setSending(false);
     }
   };
+
+  const renderMemberItem = ({ item: member }: { item: Member }) => {
+    const isSelected = selectedMembers.includes(member.id);
+    const hasEmail = member.email && member.email.trim() !== '';
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.memberItem,
+          isSelected && styles.memberItemSelected,
+          !hasEmail && styles.memberItemDisabled
+        ]}
+        onPress={() => hasEmail && toggleMemberSelection(member.id)}
+        disabled={!hasEmail}
+      >
+        <View style={styles.memberInfo}>
+          <View style={styles.memberAvatar}>
+            <Text style={styles.memberInitials}>
+              {member.firstName?.charAt(0) || ''}{member.lastName?.charAt(0) || ''}
+            </Text>
+          </View>
+          <View style={styles.memberDetails}>
+            <Text style={styles.memberName}>
+              {member.firstName} {member.lastName}
+            </Text>
+            <Text style={[styles.memberEmail, !hasEmail && styles.memberEmailDisabled]}>
+              {hasEmail ? member.email : 'Aucune adresse email'}
+            </Text>
+          </View>
+        </View>
+        {hasEmail && (
+          <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
+            {isSelected && <Ionicons name="checkmark" size={16} color="white" />}
+          </View>
+        )}
+        {!hasEmail && (
+          <View style={styles.noEmailIcon}>
+            <Ionicons name="warning" size={16} color="#FF9800" />
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
+
+  const renderReunionItem = ({ item: reunion }: { item: Reunion }) => {
+    const isSelected = selectedReunion === reunion.id;
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.reunionItem,
+          isSelected && styles.reunionItemSelected
+        ]}
+        onPress={() => {
+          setSelectedReunion(reunion.id);
+          setShowReunionsModal(false);
+        }}
+      >
+        <View style={styles.reunionInfo}>
+          <View style={styles.reunionAvatar}>
+            <Ionicons name="calendar" size={20} color="#005AA9" />
+          </View>
+          <View style={styles.reunionDetails}>
+            <Text style={styles.reunionTitle}>
+              {reunion.typeReunionLibelle}
+            </Text>
+            <Text style={styles.reunionDate}>
+              {new Date(reunion.date).toLocaleDateString()} à {reunion.heure}
+            </Text>
+            {reunion.lieu && (
+              <Text style={styles.reunionLocation}>
+                📍 {reunion.lieu}
+              </Text>
+            )}
+          </View>
+        </View>
+        <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
+          {isSelected && <Ionicons name="checkmark" size={16} color="white" />}
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderMembersModal = () => (
+    <Modal
+      visible={showMembersModal}
+      animationType="slide"
+      presentationStyle="pageSheet"
+    >
+      <SafeAreaView style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <TouchableOpacity
+            style={styles.modalCloseButton}
+            onPress={() => setShowMembersModal(false)}
+          >
+            <Ionicons name="close" size={24} color="#333" />
+          </TouchableOpacity>
+          <Text style={styles.modalTitle}>Sélectionner les membres</Text>
+          <View style={styles.placeholder} />
+        </View>
+
+        <View style={styles.modalSearchContainer}>
+          <View style={styles.searchContainer}>
+            <Ionicons name="search" size={20} color="#666" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Rechercher un membre..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+        </View>
+
+        <View style={styles.modalActions}>
+          <TouchableOpacity style={styles.actionButton} onPress={selectAllMembers}>
+            <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+            <Text style={styles.actionButtonText}>Tout sélectionner</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton} onPress={deselectAllMembers}>
+            <Ionicons name="close-circle" size={16} color="#F44336" />
+            <Text style={styles.actionButtonText}>Tout désélectionner</Text>
+          </TouchableOpacity>
+        </View>
+
+        <FlatList
+          data={getFilteredMembers()}
+          renderItem={renderMemberItem}
+          keyExtractor={(item) => item.id}
+          style={styles.membersList}
+          showsVerticalScrollIndicator={false}
+        />
+
+        <View style={styles.modalFooter}>
+          <Text style={styles.selectedCount}>
+            {selectedMembers.length} membre(s) sélectionné(s)
+          </Text>
+          <TouchableOpacity
+            style={styles.confirmButton}
+            onPress={() => setShowMembersModal(false)}
+          >
+            <Text style={styles.confirmButtonText}>Confirmer</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </Modal>
+  );
+
+  const renderReunionsModal = () => (
+    <Modal
+      visible={showReunionsModal}
+      animationType="slide"
+      presentationStyle="pageSheet"
+    >
+      <SafeAreaView style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <TouchableOpacity
+            style={styles.modalCloseButton}
+            onPress={() => setShowReunionsModal(false)}
+          >
+            <Ionicons name="close" size={24} color="#333" />
+          </TouchableOpacity>
+          <Text style={styles.modalTitle}>Sélectionner une réunion</Text>
+          <View style={styles.placeholder} />
+        </View>
+
+        <FlatList
+          data={reunions}
+          renderItem={renderReunionItem}
+          keyExtractor={(item) => item.id}
+          style={styles.reunionsList}
+          showsVerticalScrollIndicator={false}
+        />
+
+        <View style={styles.modalFooter}>
+          <Text style={styles.selectedCount}>
+            {selectedReunion ? '1 réunion sélectionnée' : 'Aucune réunion sélectionnée'}
+          </Text>
+          <TouchableOpacity
+            style={styles.confirmButton}
+            onPress={() => setShowReunionsModal(false)}
+          >
+            <Text style={styles.confirmButtonText}>Confirmer</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </Modal>
+  );
 
   const selectedReunionData = reunions.find(r => r.id === selectedReunion);
 
@@ -170,190 +355,99 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={onBack}
-        >
+        <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        <Text style={styles.title}>Compte Rendu de Réunion</Text>
+        <Text style={styles.headerTitle}>Compte Rendu</Text>
         <View style={styles.placeholder} />
       </View>
 
-      <TouchableWithoutFeedback onPress={closeAllDropdowns}>
-        <ScrollView style={styles.content}>
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#005AA9" />
-            <Text style={styles.loadingText}>Chargement...</Text>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Carte d'information */}
+        <View style={styles.infoCard}>
+          <View style={styles.infoHeader}>
+            <Ionicons name="document" size={24} color="#005AA9" />
+            <Text style={styles.infoTitle}>Envoi Compte Rendu de Réunion</Text>
           </View>
-        ) : (
-          <>
-            {/* Club Information */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Club</Text>
-              <View style={styles.clubInfo}>
-                <Ionicons name="business" size={20} color="#005AA9" />
-                <Text style={styles.clubName}>{club.name}</Text>
-              </View>
-            </View>
+          <Text style={styles.infoDescription}>
+            Envoyez le compte rendu d'une réunion passée par email aux membres sélectionnés.
+            Chaque membre recevra un résumé détaillé de la réunion.
+          </Text>
+        </View>
 
-            {/* Sélection de la Réunion */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Réunion</Text>
-              {reunions.length === 0 ? (
-                <Text style={styles.noDataText}>
-                  Aucune réunion passée trouvée pour ce club
-                </Text>
-              ) : (
-                <>
-                  <TouchableOpacity
-                    style={styles.dropdownContainer}
-                    onPress={() => setShowReunionDropdown(!showReunionDropdown)}
-                  >
-                    <Text style={styles.dropdownText}>
-                      {selectedReunion ? 
-                        (() => {
-                          const reunion = reunions.find(r => r.id === selectedReunion);
-                          return reunion ? `${reunion.typeReunionLibelle} - ${new Date(reunion.date).toLocaleDateString()}` : 'Sélectionner une réunion';
-                        })() 
-                        : 'Sélectionner une réunion'
-                      }
-                    </Text>
-                    <Ionicons name={showReunionDropdown ? "chevron-up" : "chevron-down"} size={20} color="#666" />
-                  </TouchableOpacity>
-                  
-                  {showReunionDropdown && (
-                    <View style={styles.dropdownList}>
-                      {reunions.map(reunion => (
-                        <TouchableOpacity
-                          key={reunion.id}
-                          style={[
-                            styles.dropdownItem,
-                            selectedReunion === reunion.id && styles.dropdownItemSelected
-                          ]}
-                          onPress={() => {
-                            setSelectedReunion(reunion.id);
-                            setShowReunionDropdown(false);
-                          }}
-                        >
-                          <Text style={[
-                            styles.dropdownItemText,
-                            selectedReunion === reunion.id && styles.dropdownItemTextSelected
-                          ]}>
-                            {reunion.typeReunionLibelle} - {new Date(reunion.date).toLocaleDateString()}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
-                </>
-              )}
-            </View>
+        {/* Sélection de la réunion */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Réunion</Text>
+          <TouchableOpacity
+            style={styles.recipientsButton}
+            onPress={() => setShowReunionsModal(true)}
+          >
+            <Ionicons name="calendar" size={20} color="#005AA9" />
+            <Text style={styles.recipientsText}>
+              {selectedReunionData 
+                ? `${selectedReunionData.typeReunionLibelle} - ${new Date(selectedReunionData.date).toLocaleDateString()}`
+                : 'Sélectionner une réunion'
+              }
+            </Text>
+            <Ionicons name="chevron-right" size={20} color="#666" />
+          </TouchableOpacity>
+        </View>
 
-            {/* Informations de la réunion sélectionnée */}
-            {selectedReunionData && (
-              <View style={styles.reunionInfo}>
-                <Text style={styles.reunionInfoTitle}>Détails de la réunion</Text>
-                <Text style={styles.reunionInfoText}>
-                  <Text style={styles.label}>Type:</Text> {selectedReunionData.typeReunionLibelle}
-                </Text>
-                <Text style={styles.reunionInfoText}>
-                  <Text style={styles.label}>Date:</Text> {new Date(selectedReunionData.date).toLocaleDateString()}
-                </Text>
-                <Text style={styles.reunionInfoText}>
-                  <Text style={styles.label}>Heure:</Text> {selectedReunionData.heure}
-                </Text>
-                {selectedReunionData.lieu && (
-                  <Text style={styles.reunionInfoText}>
-                    <Text style={styles.label}>Lieu:</Text> {selectedReunionData.lieu}
-                  </Text>
-                )}
-                {selectedReunionData.description && (
-                  <Text style={styles.reunionInfoText}>
-                    <Text style={styles.label}>Description:</Text> {selectedReunionData.description}
-                  </Text>
-                )}
-              </View>
-            )}
+        {/* Message personnalisé */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Message personnalisé (optionnel)</Text>
+          <TextInput
+            style={styles.messageInput}
+            placeholder="Ajouter un message personnalisé au compte rendu..."
+            value={messagePersonnalise}
+            onChangeText={setMessagePersonnalise}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+        </View>
 
-            {/* Sélection des Membres */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Membres ({selectedMembers.length} sélectionné(s))</Text>
-                <View style={styles.selectionButtons}>
-                  <TouchableOpacity
-                    style={styles.selectionButton}
-                    onPress={selectAllMembers}
-                  >
-                    <Text style={styles.selectionButtonText}>Tout sélectionner</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.selectionButton}
-                    onPress={deselectAllMembers}
-                  >
-                    <Text style={styles.selectionButtonText}>Tout désélectionner</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+        {/* Destinataires */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Destinataires</Text>
+          <TouchableOpacity
+            style={styles.recipientsButton}
+            onPress={() => setShowMembersModal(true)}
+          >
+            <Ionicons name="people" size={20} color="#005AA9" />
+            <Text style={styles.recipientsText}>
+              {selectedMembers.length > 0 
+                ? `${selectedMembers.length} membre(s) sélectionné(s)`
+                : 'Sélectionner les membres'
+              }
+            </Text>
+            <Ionicons name="chevron-right" size={20} color="#666" />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
 
-              {/* Barre de recherche */}
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Rechercher un membre..."
-                value={searchText}
-                onChangeText={setSearchText}
-              />
-
-              {/* Liste des membres */}
-              <View style={styles.membersList}>
-                {filteredMembers.map(member => (
-                  <TouchableOpacity
-                    key={member.id}
-                    style={[
-                      styles.memberItem,
-                      selectedMembers.includes(member.id) && styles.memberItemSelected
-                    ]}
-                    onPress={() => toggleMemberSelection(member.id)}
-                  >
-                    <View style={styles.memberInfo}>
-                      <Text style={styles.memberName}>
-                        {member.firstName} {member.lastName}
-                      </Text>
-                      <Text style={styles.memberEmail}>{member.email}</Text>
-                    </View>
-                    <View style={styles.checkbox}>
-                      {selectedMembers.includes(member.id) && (
-                        <Ionicons name="checkmark-circle" size={24} color="#005AA9" />
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* Bouton d'envoi */}
-            <TouchableOpacity
-              style={[
-                styles.sendButton,
-                (!selectedReunion || selectedMembers.length === 0 || sending) && styles.sendButtonDisabled
-              ]}
-              onPress={handleSendCompteRendu}
-              disabled={!selectedReunion || selectedMembers.length === 0 || sending}
-            >
-              {sending ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Ionicons name="send" size={20} color="white" />
-              )}
+      {/* Footer avec bouton d'envoi */}
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={[styles.sendButton, sending && styles.sendButtonDisabled]}
+          onPress={handleSendCompteRendu}
+          disabled={sending}
+        >
+          {sending ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <>
+              <Ionicons name="send" size={20} color="white" />
               <Text style={styles.sendButtonText}>
-                {sending ? 'Envoi en cours...' : 'Envoyer le Compte Rendu'}
+                Envoyer Compte Rendu
               </Text>
-            </TouchableOpacity>
-          </>
-        )}
-        </ScrollView>
-      </TouchableWithoutFeedback>
+            </>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      {renderMembersModal()}
+      {renderReunionsModal()}
     </SafeAreaView>
   );
 };
@@ -367,201 +461,102 @@ const styles = StyleSheet.create({
     backgroundColor: '#005AA9',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 15,
   },
   backButton: {
-    padding: 8,
+    padding: 10,
+    marginRight: 10,
   },
-  title: {
-    color: 'white',
-    fontSize: 18,
+  headerTitle: {
+    flex: 1,
+    fontSize: 20,
     fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
   },
   placeholder: {
-    width: 40,
+    width: 44,
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: 20,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666',
-  },
-  section: {
+  infoCard: {
     backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    elevation: 2,
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    elevation: 3,
+  },
+  infoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  infoTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginLeft: 10,
+  },
+  infoDescription: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20,
+  },
+  section: {
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 12,
+    fontWeight: '600',
     color: '#333',
+    marginBottom: 10,
   },
-  clubInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#f0f8ff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#005AA9',
-  },
-  clubName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#005AA9',
-    marginLeft: 8,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  dropdownContainer: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    backgroundColor: '#f9f9f9',
-    padding: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    minHeight: 50,
-  },
-  dropdownText: {
-    fontSize: 16,
-    color: '#333',
-    flex: 1,
-  },
-  dropdownList: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+  messageInput: {
     backgroundColor: 'white',
-    marginTop: 4,
-    maxHeight: 200,
-  },
-  dropdownItem: {
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  dropdownItemSelected: {
-    backgroundColor: '#e3f2fd',
-  },
-  dropdownItemText: {
-    fontSize: 16,
+    borderRadius: 8,
+    padding: 15,
+    fontSize: 14,
     color: '#333',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    minHeight: 100,
   },
-  dropdownItemTextSelected: {
-    color: '#1976d2',
-    fontWeight: 'bold',
+  recipientsButton: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
-  noDataText: {
-    textAlign: 'center',
-    color: '#666',
-    fontStyle: 'italic',
+  recipientsText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#333',
+    marginLeft: 10,
+  },
+  footer: {
+    backgroundColor: 'white',
     padding: 20,
-  },
-  reunionInfo: {
-    backgroundColor: '#e3f2fd',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-  },
-  reunionInfoTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#1976d2',
-  },
-  reunionInfoText: {
-    fontSize: 14,
-    marginBottom: 4,
-    color: '#333',
-  },
-  label: {
-    fontWeight: 'bold',
-  },
-  selectionButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  selectionButton: {
-    backgroundColor: '#005AA9',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-  },
-  selectionButtonText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  searchInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    backgroundColor: 'white',
-  },
-  membersList: {
-    maxHeight: 300,
-  },
-  memberItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  memberItemSelected: {
-    backgroundColor: '#e3f2fd',
-  },
-  memberInfo: {
-    flex: 1,
-  },
-  memberName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  memberEmail: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 2,
-  },
-  checkbox: {
-    width: 24,
-    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
   },
   sendButton: {
     backgroundColor: '#005AA9',
+    borderRadius: 8,
+    padding: 15,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
-    borderRadius: 8,
-    marginTop: 16,
-    marginBottom: 32,
   },
   sendButtonDisabled: {
     backgroundColor: '#ccc',
@@ -571,5 +566,210 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 8,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  modalHeader: {
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  modalCloseButton: {
+    padding: 5,
+  },
+  modalTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+  },
+  modalSearchContainer: {
+    backgroundColor: 'white',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    fontSize: 14,
+    color: '#333',
+  },
+  modalActions: {
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    marginRight: 10,
+  },
+  actionButtonText: {
+    fontSize: 12,
+    color: '#333',
+    marginLeft: 4,
+  },
+  membersList: {
+    flex: 1,
+  },
+  reunionsList: {
+    flex: 1,
+  },
+  memberItem: {
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  memberItemSelected: {
+    backgroundColor: '#e3f2fd',
+  },
+  memberItemDisabled: {
+    opacity: 0.6,
+  },
+  memberInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  memberAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#005AA9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  memberInitials: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  memberDetails: {
+    flex: 1,
+  },
+  memberName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  memberEmail: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
+  },
+  memberEmailDisabled: {
+    color: '#999',
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#ddd',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxSelected: {
+    backgroundColor: '#005AA9',
+    borderColor: '#005AA9',
+  },
+  noEmailIcon: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reunionItem: {
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  reunionItemSelected: {
+    backgroundColor: '#e3f2fd',
+  },
+  reunionInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  reunionAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f0f8ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  reunionDetails: {
+    flex: 1,
+  },
+  reunionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  reunionDate: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
+  },
+  reunionLocation: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 2,
+  },
+  modalFooter: {
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  selectedCount: {
+    fontSize: 14,
+    color: '#666',
+  },
+  confirmButton: {
+    backgroundColor: '#005AA9',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 6,
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });
