@@ -418,6 +418,7 @@ export class ApiService {
       
       // Essayer différents endpoints possibles pour les réunions
       const endpoints = [
+        `/clubs/${clubId}/reunions`,
         `/Auth/club/${clubId}/reunions`,
         `/Reunions/club/${clubId}`,
         `/Reunions/${clubId}`,

@@ -68,11 +68,17 @@ export interface Member {
 
 export interface Reunion {
   id: string;
-  clubId: string;
   date: string;
   heure: string;
-  typeReunionId?: string;
+  clubId: string;
+  clubNom: string;
+  typeReunionId: string;
   typeReunionLibelle: string;
+  nombreOrdresDuJour: number;
+  nombrePresences: number;
+  nombreInvites: number;
+  nombreDocuments: number;
+  // Champs optionnels pour compatibilité
   ordresDuJour?: string[];
   presences?: PresenceReunion[];
   invites?: InviteReunion[];

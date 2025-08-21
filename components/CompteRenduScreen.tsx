@@ -44,19 +44,20 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({ user, club
       console.log('🔄 Chargement des données...');
       
       // Charger les réunions
-      const reunionsData = await apiService.getClubReunions(club.id);
-      // Filtrer les réunions passées (pour avoir des comptes rendus)
-      const maintenant = new Date();
-      const reunionsPassees = reunionsData.filter(reunion => {
-        const dateReunion = new Date(reunion.date);
-        return dateReunion < maintenant;
-      });
-      setReunions(reunionsPassees);
+      const reunionsData = await apiService.getReunions(club.id);
+      console.log('📅 Réunions chargées:', reunionsData);
+      
+      // Pour les comptes rendus, on peut afficher toutes les réunions
+      // ou filtrer selon les besoins (ici on affiche toutes)
+      setReunions(reunionsData);
       
       // Charger les membres
       const membersData = await apiService.getClubMembers(club.id);
+      console.log('👥 Membres chargés:', membersData);
+      
       // Filtrer pour exclure l'utilisateur connecté
       const otherMembers = membersData.filter(member => member.id !== user.id);
+      console.log('👥 Membres filtrés (sans utilisateur connecté):', otherMembers);
       setMembers(otherMembers);
       
       console.log('✅ Données chargées');
