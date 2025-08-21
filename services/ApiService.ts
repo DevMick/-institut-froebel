@@ -652,7 +652,7 @@ export class ApiService {
             fileName: att.name,
             contentType: att.type,
             contentSize: contentSize,
-            content: att.base64 || ''
+            Base64Content: att.base64 || ''
           };
         }).filter(Boolean) || [] // Filtrer les pièces jointes invalides
       };
