@@ -36,7 +36,6 @@ export const CalendarEmailScreen: React.FC<CalendarEmailScreenProps> = ({
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Mois actuel (1-12)
-  const [messagePersonnalise, setMessagePersonnalise] = useState('');
 
   const apiService = new ApiService();
 
@@ -109,11 +108,11 @@ export const CalendarEmailScreen: React.FC<CalendarEmailScreenProps> = ({
       
       const calendarData = {
         subject: `Calendrier Rotary - ${getMonthName(selectedMonth)}`,
-        message: messagePersonnalise.trim() || `Calendrier des événements du Rotary Club pour le mois de ${getMonthName(selectedMonth)}.`,
+        message: `Calendrier des événements du Rotary Club pour le mois de ${getMonthName(selectedMonth)}.`,
         recipients: getSelectedEmails(),
         calendarEvent: {
           title: `Calendrier Rotary - ${getMonthName(selectedMonth)}`,
-          description: messagePersonnalise.trim() || `Calendrier des événements du Rotary Club pour le mois de ${getMonthName(selectedMonth)}.`,
+          description: `Calendrier des événements du Rotary Club pour le mois de ${getMonthName(selectedMonth)}.`,
           startDate: new Date(new Date().getFullYear(), selectedMonth - 1, 1).toISOString(),
           endDate: new Date(new Date().getFullYear(), selectedMonth, 0).toISOString(),
           location: club.name
@@ -131,14 +130,13 @@ export const CalendarEmailScreen: React.FC<CalendarEmailScreenProps> = ({
 Le calendrier a été transmis à tous les destinataires.`;
 
       Alert.alert(
-        '🎉 Succès !',
-        successMessage,
+        '✅ Merci !',
+        'Le calendrier a été envoyé avec succès.',
         [
           {
-            text: 'Retour au menu',
+            text: 'OK',
             onPress: () => {
               setSelectedMembers([]);
-              setMessagePersonnalise('');
               onBack();
             }
           }
@@ -239,19 +237,7 @@ Le calendrier a été transmis à tous les destinataires.`;
         {/* Sélection du mois */}
         {renderMonthSelector()}
 
-        {/* Message personnalisé */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Message personnalisé (optionnel)</Text>
-          <TextInput
-            style={styles.messageInput}
-            placeholder="Ajouter un message personnalisé au calendrier..."
-            value={messagePersonnalise}
-            onChangeText={setMessagePersonnalise}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-        </View>
+
 
         {/* Destinataires */}
         <View style={styles.section}>

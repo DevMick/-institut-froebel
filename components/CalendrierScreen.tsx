@@ -30,7 +30,6 @@ interface Month {
 
 export const CalendrierScreen: React.FC<CalendrierScreenProps> = ({ user, club, onBack }) => {
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
-  const [messagePersonnalise, setMessagePersonnalise] = useState<string>('');
   const [envoyerATousLesMembres, setEnvoyerATousLesMembres] = useState<boolean>(true);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -110,7 +109,6 @@ export const CalendrierScreen: React.FC<CalendrierScreenProps> = ({ user, club, 
       const emailData = {
         clubId: club.id,
         mois: selectedMonth,
-        messagePersonnalise: messagePersonnalise.trim(),
         envoyerATousLesMembres: envoyerATousLesMembres,
         emailsDestinataires: selectedMembersEmails
       };
@@ -131,13 +129,12 @@ export const CalendrierScreen: React.FC<CalendrierScreenProps> = ({ user, club, 
 ✅ Le calendrier du mois de ${result.nomMois} a été transmis avec succès aux destinataires.`;
 
         Alert.alert(
-          '✅ Succès !',
-          successMessage,
+          '✅ Merci !',
+          'Le calendrier a été envoyé avec succès.',
           [
             {
-              text: 'Retour au menu',
+              text: 'OK',
               onPress: () => {
-                setMessagePersonnalise('');
                 setSelectedMembers([]);
                 onBack();
               }
@@ -318,19 +315,7 @@ export const CalendrierScreen: React.FC<CalendrierScreenProps> = ({ user, club, 
         {/* Sélecteur de mois */}
         {renderMonthSelector()}
 
-        {/* Message personnalisé */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Message personnalisé (optionnel)</Text>
-          <TextInput
-            style={styles.messageInput}
-            placeholder="Ajouter un message personnalisé au calendrier..."
-            value={messagePersonnalise}
-            onChangeText={setMessagePersonnalise}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-        </View>
+
 
         {/* Destinataires */}
         <View style={styles.section}>

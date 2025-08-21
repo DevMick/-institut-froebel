@@ -27,7 +27,6 @@ export const CompteRenduScreen: React.FC<CompteRenduScreenProps> = ({ user, club
   const [members, setMembers] = useState<Member[]>([]);
   const [reunions, setReunions] = useState<Reunion[]>([]);
   const [selectedReunion, setSelectedReunion] = useState<string>('');
-  const [messagePersonnalise, setMessagePersonnalise] = useState<string>('');
   const [sending, setSending] = useState<boolean>(false);
   const [showMembersModal, setShowMembersModal] = useState<boolean>(false);
   const [showReunionsModal, setShowReunionsModal] = useState<boolean>(false);
@@ -137,21 +136,20 @@ ${selectedMembersInfo}
 
 ✅ Le compte rendu de réunion a été transmis avec succès aux destinataires sélectionnés.`;
 
-        Alert.alert(
-          '✅ Succès !',
-          successMessage,
-          [
-            {
-              text: 'Retour au menu',
-              onPress: () => {
-                setMessagePersonnalise('');
-                setSelectedMembers([]);
-                setSelectedReunion('');
-                onBack();
-              }
-            }
-          ]
-        );
+                 Alert.alert(
+           '✅ Merci !',
+           'Le compte rendu a été envoyé avec succès.',
+           [
+             {
+               text: 'OK',
+               onPress: () => {
+                 setSelectedMembers([]);
+                 setSelectedReunion('');
+                 onBack();
+               }
+             }
+           ]
+         );
       } else {
         Alert.alert('Erreur', response.message || 'Erreur lors de l\'envoi du compte rendu');
       }
@@ -394,19 +392,7 @@ ${selectedMembersInfo}
           </TouchableOpacity>
         </View>
 
-        {/* Message personnalisé */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Message personnalisé (optionnel)</Text>
-          <TextInput
-            style={styles.messageInput}
-            placeholder="Ajouter un message personnalisé au compte rendu..."
-            value={messagePersonnalise}
-            onChangeText={setMessagePersonnalise}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-        </View>
+        
 
         {/* Destinataires */}
         <View style={styles.section}>

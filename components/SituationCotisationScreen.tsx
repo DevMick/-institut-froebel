@@ -25,7 +25,6 @@ interface SituationCotisationScreenProps {
 export const SituationCotisationScreen: React.FC<SituationCotisationScreenProps> = ({ user, club, onBack }) => {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
-  const [messagePersonnalise, setMessagePersonnalise] = useState<string>('');
   const [sending, setSending] = useState<boolean>(false);
   const [showMembersModal, setShowMembersModal] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -109,13 +108,12 @@ ${selectedMembersInfo}
 ✅ Les situations de cotisation ont été transmises avec succès aux destinataires sélectionnés.`;
 
         Alert.alert(
-          '✅ Succès !',
-          successMessage,
+          '✅ Merci !',
+          'La situation de cotisation a été envoyée avec succès.',
           [
             {
-              text: 'Retour au menu',
+              text: 'OK',
               onPress: () => {
-                setMessagePersonnalise('');
                 setSelectedMembers([]);
                 onBack();
               }
@@ -264,19 +262,7 @@ ${selectedMembersInfo}
           </Text>
         </View>
 
-        {/* Message personnalisé */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Message personnalisé (optionnel)</Text>
-          <TextInput
-            style={styles.messageInput}
-            placeholder="Ajouter un message personnalisé à la situation..."
-            value={messagePersonnalise}
-            onChangeText={setMessagePersonnalise}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-        </View>
+
 
         {/* Destinataires */}
         <View style={styles.section}>
