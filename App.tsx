@@ -12,7 +12,7 @@ import { LoginScreen } from './components/LoginScreen';
 import { RegisterScreen } from './components/RegisterScreen';
 import { Dashboard } from './components/Dashboard';
 import { MembersScreen } from './components/MembersScreen';
-import { ReunionsScreen } from './components/ReunionsScreen';
+
 import CotisationsScreen from './components/CotisationsScreen';
 import { SituationCotisationScreen } from './components/SituationCotisationScreen';
 import { CalendrierScreen } from './components/CalendrierScreen';
@@ -182,16 +182,7 @@ export default function App() {
           </>
         );
 
-      case 'reunions':
-        return (
-          <>
-            <StatusBar style="light" backgroundColor="#005AA9" />
-            <ReunionsScreen
-              club={selectedClub}
-              onBack={handleBackToDashboard}
-            />
-          </>
-        );
+
 
       case 'cotisations':
         return (

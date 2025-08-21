@@ -31,7 +31,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [stats, setStats] = useState({
     totalMembers: 0,
     totalClubs: 0,
-    totalReunions: 0,
   });
 
   const apiService = new ApiService();
@@ -60,23 +59,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
       // Charger le nombre de clubs
       const clubsData = await apiService.getClubs();
 
-      // Charger les réunions et compter celles qui sont programmées (futures)
-      let reunionsProgrammees = 0;
-      try {
-        const reunionsData = await apiService.getClubReunions(club.id);
-        const maintenant = new Date();
-        reunionsProgrammees = reunionsData.filter(reunion => {
-          const dateReunion = new Date(reunion.date);
-          return dateReunion > maintenant; // Réunion dans le futur = programmée
-        }).length;
-      } catch (error) {
-        // Erreur silencieuse pour les réunions
-      }
+
 
       setStats({
         totalMembers: membersData.length,
         totalClubs: clubsData.length,
-        totalReunions: reunionsProgrammees,
       });
     } catch (error: any) {
       console.error('Erreur chargement dashboard:', error);
@@ -106,14 +93,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       color: '#005AA9',
       screen: 'members' as NavigationScreen,
     },
-    {
-      id: 'reunions',
-      title: 'Réunions',
-      subtitle: 'Planifier et gérer les réunions',
-      icon: 'calendar',
-      color: '#28a745',
-      screen: 'reunions' as NavigationScreen,
-    },
+
     {
       id: 'cotisations',
       title: 'Cotisations',
@@ -222,10 +202,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <Text style={styles.statNumber}>{stats.totalClubs}</Text>
             <Text style={styles.statLabel}>Clubs</Text>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{stats.totalReunions}</Text>
-            <Text style={styles.statLabel}>Réunions</Text>
-          </View>
+
         </View>
 
         {/* Menu Items */}

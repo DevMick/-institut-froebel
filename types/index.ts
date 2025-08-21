@@ -147,7 +147,7 @@ export type NavigationScreen =
   | 'register'
   | 'dashboard'
   | 'members'
-  | 'reunions'
+
   | 'cotisations'
   | 'situation-cotisation'
   | 'compte-rendu'
