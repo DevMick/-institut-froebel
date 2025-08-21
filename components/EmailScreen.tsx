@@ -160,7 +160,7 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
                 return updated;
               });
               
-              Alert.alert(
+      Alert.alert(
                 '✅ Pièce jointe ajoutée',
                 `Fichier "${file.name}" ajouté avec succès`,
                 [{ text: 'OK' }]
@@ -248,16 +248,26 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
   };
 
   const handleSendEmail = async () => {
+    // Validation du sujet
     if (!subject.trim()) {
       Alert.alert('Erreur', 'Veuillez saisir un sujet');
       return;
     }
 
+    // Vérifier que le sujet ne contient pas d'email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (emailRegex.test(subject.trim())) {
+      Alert.alert('Erreur', 'Le sujet ne peut pas être une adresse email. Veuillez saisir un vrai sujet.');
+      return;
+    }
+
+    // Validation du message
     if (!message.trim()) {
       Alert.alert('Erreur', 'Veuillez saisir un message');
       return;
     }
 
+    // Validation des destinataires
     if (selectedMembers.length === 0) {
       Alert.alert('Erreur', 'Veuillez sélectionner au moins un destinataire');
       return;
@@ -437,11 +447,14 @@ export const EmailScreen: React.FC<EmailScreenProps> = ({
           <Text style={styles.sectionTitle}>Sujet *</Text>
           <TextInput
             style={styles.input}
-            placeholder="Sujet de l'email"
+            placeholder="Ex: Réunion du club - Ordre du jour"
             value={subject}
             onChangeText={setSubject}
             maxLength={100}
           />
+          <Text style={styles.charCount}>
+            {subject.length}/100 caractères
+          </Text>
         </View>
 
         <View style={styles.section}>

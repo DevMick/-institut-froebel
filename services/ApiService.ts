@@ -91,6 +91,9 @@ export class ApiService {
 
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
+        console.log('🔑 Token présent pour la requête');
+      } else {
+        console.log('⚠️ Aucun token trouvé pour la requête');
       }
 
       const response = await fetch(url, {
@@ -107,6 +110,20 @@ export class ApiService {
           console.log('⚠️ Endpoint non trouvé (404)');
           throw new Error(`Endpoint non trouvé: ${response.status}`);
         }
+        
+        // Pour les erreurs 400, essayer de lire le message d'erreur détaillé
+        if (response.status === 400) {
+          try {
+            const errorData = await response.json();
+            console.error('❌ Détails erreur 400:', errorData);
+            throw new Error(`Erreur de validation: ${errorData.message || errorData.error || 'Données invalides'}`);
+          } catch (parseError) {
+            const errorText = await response.text();
+            console.error('❌ Réponse erreur 400 (texte):', errorText);
+            throw new Error(`Erreur de validation (400): ${errorText.substring(0, 200)}`);
+          }
+        }
+        
         throw new Error(`Erreur HTTP: ${response.status}`);
       }
 
@@ -573,22 +590,60 @@ export class ApiService {
         };
       }
 
+      // Validation des données
+      if (!emailData.subject || !emailData.subject.trim()) {
+        throw new Error('Le sujet de l\'email est requis');
+      }
+
+      if (!emailData.message || !emailData.message.trim()) {
+        throw new Error('Le message de l\'email est requis');
+      }
+
+      if (!emailData.recipients || emailData.recipients.length === 0) {
+        throw new Error('Au moins un destinataire est requis');
+      }
+
       // Préparer les données selon la structure attendue par l'API
       const requestData = {
-        subject: emailData.subject,
-        message: emailData.message,
+        subject: emailData.subject.trim(),
+        message: emailData.message.trim(),
         recipients: emailData.recipients,
-        attachments: emailData.attachments?.map((att: any) => ({
-          fileName: att.name,
-          contentType: att.type,
-          contentSize: parseInt(att.size) || 0,
-          content: att.base64
-        })) || []
+        attachments: emailData.attachments?.map((att: any) => {
+          // Convertir la taille en bytes si elle est en format "X KB"
+          let contentSize = 0;
+          if (att.size) {
+            const sizeStr = att.size.toString();
+            console.log('📏 Taille originale:', sizeStr);
+            
+            if (sizeStr.includes('KB')) {
+              const kbValue = parseFloat(sizeStr.replace(/[^\d.]/g, ''));
+              contentSize = Math.round(kbValue * 1024);
+            } else if (sizeStr.includes('MB')) {
+              const mbValue = parseFloat(sizeStr.replace(/[^\d.]/g, ''));
+              contentSize = Math.round(mbValue * 1024 * 1024);
+            } else if (sizeStr.includes('B')) {
+              contentSize = parseInt(sizeStr.replace(/[^\d]/g, '')) || 0;
+            } else {
+              // Si c'est déjà un nombre
+              contentSize = parseInt(sizeStr) || 0;
+            }
+          }
+          
+          console.log('📏 Taille convertie en bytes:', contentSize);
+          
+          return {
+            fileName: att.name,
+            contentType: att.type,
+            contentSize: contentSize,
+            content: att.base64
+          };
+        }) || []
       };
 
       console.log('📧 Données envoyées à l\'API:', requestData);
+      console.log('📧 URL complète:', `${API_CONFIG.NGROK_URL}${API_CONFIG.API_PREFIX}/Email/send`);
 
-      const response = await this.makeRequest('/email/send', {
+      const response = await this.makeRequest('/Email/send', {
         method: 'POST',
         body: JSON.stringify(requestData),
       });
