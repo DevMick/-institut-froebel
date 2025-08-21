@@ -2,5 +2,17 @@
   "name": "Rotary Club Mobile",
   "description": "Application mobile pour les clubs Rotary",
   "sdkVersion": "52.0.0",
-  "entryPoint": "App.tsx"
+  "entryPoint": "App.tsx",
+  "platforms": ["ios", "android", "web"],
+  "ignore": [
+    "node_modules/**/*",
+    ".git/**/*",
+    "*.log",
+    "build/**/*",
+    ".expo/**/*",
+    "dist/**/*",
+    "web-build/**/*",
+    "coverage/**/*",
+    "*.jsbundle"
+  ]
 }
