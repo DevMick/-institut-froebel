@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,15 +10,13 @@ import {
   Modal,
   ScrollView,
   SafeAreaView,
-  Animated,
-  Dimensions,
   StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Club, User, LoginData } from '../types';
 import { ApiService } from '../services/ApiService';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
 
 interface LoginScreenProps {
   clubs: Club[];
@@ -42,37 +40,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const [loginLoading, setLoginLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Animations
-  const fadeAnim = new Animated.Value(0);
-  const slideAnim = new Animated.Value(50);
-  const logoScaleAnim = new Animated.Value(0.8);
-
   const apiService = new ApiService();
-
-  useEffect(() => {
-    startAnimations();
-  }, []);
-
-  const startAnimations = () => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.spring(logoScaleAnim, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
 
   const handleLogin = async () => {
     if (!email || !password || !selectedClubId) {
@@ -170,22 +138,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
       
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
+      <View style={styles.content}>
         {/* Header avec Logo */}
-        <Animated.View 
-          style={[
-            styles.header,
-            {
-              opacity: fadeAnim,
-              transform: [{ scale: logoScaleAnim }],
-            },
-          ]}
-        >
+        <View style={styles.header}>
           <View style={styles.logoContainer}>
             <View style={styles.logoBackground}>
               <Ionicons name="people-circle" size={60} color="white" />
@@ -193,18 +148,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           </View>
           <Text style={styles.title}>Rotary Club Mobile</Text>
           <Text style={styles.subtitle}>Connectez-vous à votre compte</Text>
-        </Animated.View>
+        </View>
 
         {/* Formulaire */}
-        <Animated.View 
-          style={[
-            styles.form,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            },
-          ]}
-        >
+        <View style={styles.form}>
           {/* Email Input */}
           <View style={styles.inputContainer}>
             <View style={styles.inputIconContainer}>
@@ -280,8 +227,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <Text style={styles.registerLink}>Créer un compte</Text>
             </TouchableOpacity>
           </View>
-        </Animated.View>
-      </ScrollView>
+        </View>
+      </View>
 
       {renderClubModal()}
     </SafeAreaView>
@@ -293,14 +240,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F9FA',
   },
-  scrollView: {
+  content: {
     flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
     justifyContent: 'center',
     padding: 20,
-    paddingBottom: 40,
   },
   header: {
     alignItems: 'center',
