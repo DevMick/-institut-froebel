@@ -8,15 +8,13 @@ import {
   Alert,
   ActivityIndicator,
   SafeAreaView,
-  Dimensions,
-  Animated,
   StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ApiService } from '../services/ApiService';
 import { User, Club, Member, NavigationScreen } from '../types';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
 
 interface DashboardProps {
   user: User;
@@ -48,31 +46,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
     totalClubs: 0,
   });
 
-  // Animations
-  const fadeAnim = new Animated.Value(0);
-  const slideAnim = new Animated.Value(50);
-
   const apiService = new ApiService();
 
   useEffect(() => {
     loadDashboardData();
-    startAnimations();
   }, [club.id]);
-
-  const startAnimations = () => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
 
   const loadDashboardData = async () => {
     try {
@@ -201,42 +179,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
   ], [stats]);
 
   const renderMenuItem = (item: MenuItem, index: number) => {
-    const itemScaleAnim = new Animated.Value(1);
-
-    const handlePressIn = () => {
-      Animated.spring(itemScaleAnim, {
-        toValue: 0.95,
-        tension: 100,
-        friction: 5,
-        useNativeDriver: true,
-      }).start();
-    };
-
-    const handlePressOut = () => {
-      Animated.spring(itemScaleAnim, {
-        toValue: 1,
-        tension: 100,
-        friction: 5,
-        useNativeDriver: true,
-      }).start();
-    };
-
     return (
-      <Animated.View
-        key={item.id}
-        style={[
-          styles.menuItemContainer,
-          {
-            transform: [{ scale: itemScaleAnim }],
-            opacity: fadeAnim,
-          },
-        ]}
-      >
+      <View key={item.id} style={styles.menuItemContainer}>
         <TouchableOpacity
           style={styles.menuItem}
           onPress={() => onNavigate(item.screen)}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
           activeOpacity={0.8}
         >
           <View style={[styles.menuIconContainer, { backgroundColor: item.color }]}>
@@ -257,7 +204,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
           </View>
         </TouchableOpacity>
-      </Animated.View>
+      </View>
     );
   };
 
@@ -296,15 +243,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         contentContainerStyle={styles.contentContainer}
       >
         {/* Statistiques */}
-        <Animated.View 
-          style={[
-            styles.statsContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            },
-          ]}
-        >
+        <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <View style={[styles.statIconContainer, { backgroundColor: '#4CAF50' }]}>
               <Ionicons name="people" size={24} color="white" />
@@ -320,21 +259,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <Text style={styles.statNumber}>{stats.totalClubs}</Text>
             <Text style={styles.statLabel}>Clubs</Text>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Menu Items */}
-        <Animated.View 
-          style={[
-            styles.menuContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            },
-          ]}
-        >
+        <View style={styles.menuContainer}>
           <Text style={styles.menuSectionTitle}>Fonctionnalités</Text>
           {menuItems.map((item, index) => renderMenuItem(item, index))}
-        </Animated.View>
+        </View>
 
         {/* Loading Overlay */}
         {loading && (
