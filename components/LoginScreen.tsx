@@ -13,8 +13,6 @@ import {
   Animated,
   Dimensions,
   StatusBar,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Club, User, LoginData } from '../types';
@@ -172,121 +170,118 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
       
-      <KeyboardAvoidingView 
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
+        {/* Header avec Logo */}
+        <Animated.View 
+          style={[
+            styles.header,
+            {
+              opacity: fadeAnim,
+              transform: [{ scale: logoScaleAnim }],
+            },
+          ]}
         >
-          {/* Header avec Logo */}
-          <Animated.View 
-            style={[
-              styles.header,
-              {
-                opacity: fadeAnim,
-                transform: [{ scale: logoScaleAnim }],
-              },
-            ]}
-          >
-            <View style={styles.logoContainer}>
-              <View style={styles.logoBackground}>
-                <Ionicons name="people-circle" size={60} color="white" />
-              </View>
+          <View style={styles.logoContainer}>
+            <View style={styles.logoBackground}>
+              <Ionicons name="people-circle" size={60} color="white" />
             </View>
-            <Text style={styles.title}>Rotary Club Mobile</Text>
-            <Text style={styles.subtitle}>Connectez-vous à votre compte</Text>
-          </Animated.View>
+          </View>
+          <Text style={styles.title}>Rotary Club Mobile</Text>
+          <Text style={styles.subtitle}>Connectez-vous à votre compte</Text>
+        </Animated.View>
 
-          {/* Formulaire */}
-          <Animated.View 
-            style={[
-              styles.form,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
-          >
-            {/* Email Input */}
-            <View style={styles.inputContainer}>
-              <View style={styles.inputIconContainer}>
-                <Ionicons name="mail" size={20} color="#005AA9" />
-              </View>
-              <TextInput
-                style={styles.input}
-                placeholder="Adresse email"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                placeholderTextColor="#9E9E9E"
-              />
+        {/* Formulaire */}
+        <Animated.View 
+          style={[
+            styles.form,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          {/* Email Input */}
+          <View style={styles.inputContainer}>
+            <View style={styles.inputIconContainer}>
+              <Ionicons name="mail" size={20} color="#005AA9" />
             </View>
-            
-            {/* Password Input */}
-            <View style={styles.inputContainer}>
-              <View style={styles.inputIconContainer}>
-                <Ionicons name="lock-closed" size={20} color="#005AA9" />
-              </View>
-              <TextInput
-                style={styles.input}
-                placeholder="Mot de passe"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-                autoCorrect={false}
-                placeholderTextColor="#9E9E9E"
-              />
-              <TouchableOpacity
-                style={styles.passwordToggle}
-                onPress={() => setShowPassword(!showPassword)}
-                activeOpacity={0.7}
-              >
-                <Ionicons 
-                  name={showPassword ? "eye-off" : "eye"} 
-                  size={20} 
-                  color="#9E9E9E" 
-                />
-              </TouchableOpacity>
+            <TextInput
+              style={styles.input}
+              placeholder="Adresse email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholderTextColor="#9E9E9E"
+            />
+          </View>
+          
+          {/* Password Input */}
+          <View style={styles.inputContainer}>
+            <View style={styles.inputIconContainer}>
+              <Ionicons name="lock-closed" size={20} color="#005AA9" />
             </View>
-
-            {/* Club Selector */}
-            {renderClubSelector()}
-
-            {/* Login Button */}
+            <TextInput
+              style={styles.input}
+              placeholder="Mot de passe"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholderTextColor="#9E9E9E"
+            />
             <TouchableOpacity
-              style={[
-                styles.loginButton,
-                (loading || loginLoading) && styles.loginButtonDisabled
-              ]}
-              onPress={handleLogin}
-              disabled={loading || loginLoading}
-              activeOpacity={0.8}
+              style={styles.passwordToggle}
+              onPress={() => setShowPassword(!showPassword)}
+              activeOpacity={0.7}
             >
-              {(loading || loginLoading) ? (
-                <ActivityIndicator color="white" size="small" />
-              ) : (
-                <View style={styles.loginButtonContent}>
-                  <Ionicons name="log-in" size={20} color="white" />
-                  <Text style={styles.loginButtonText}>Se connecter</Text>
-                </View>
-              )}
+              <Ionicons 
+                name={showPassword ? "eye-off" : "eye"} 
+                size={20} 
+                color="#9E9E9E" 
+              />
             </TouchableOpacity>
+          </View>
 
-            {/* Register Section */}
-            <View style={styles.registerSection}>
-              <Text style={styles.registerText}>Pas encore membre ? </Text>
-              <TouchableOpacity onPress={() => onNavigateToRegister()} activeOpacity={0.7}>
-                <Text style={styles.registerLink}>Créer un compte</Text>
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          {/* Club Selector */}
+          {renderClubSelector()}
+
+          {/* Login Button */}
+          <TouchableOpacity
+            style={[
+              styles.loginButton,
+              (loading || loginLoading) && styles.loginButtonDisabled
+            ]}
+            onPress={handleLogin}
+            disabled={loading || loginLoading}
+            activeOpacity={0.8}
+          >
+            {(loading || loginLoading) ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <View style={styles.loginButtonContent}>
+                <Ionicons name="log-in" size={20} color="white" />
+                <Text style={styles.loginButtonText}>Se connecter</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          {/* Register Section */}
+          <View style={styles.registerSection}>
+            <Text style={styles.registerText}>Pas encore membre ? </Text>
+            <TouchableOpacity onPress={() => onNavigateToRegister()} activeOpacity={0.7}>
+              <Text style={styles.registerLink}>Créer un compte</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      </ScrollView>
 
       {renderClubModal()}
     </SafeAreaView>
@@ -298,13 +293,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F9FA',
   },
-  keyboardAvoidingView: {
+  scrollView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
     padding: 20,
+    paddingBottom: 40,
   },
   header: {
     alignItems: 'center',
