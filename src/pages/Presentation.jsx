@@ -24,7 +24,7 @@ const Presentation = () => {
         <div className="relative z-20 flex flex-col items-center justify-center w-full h-full text-center px-4">
           <h1 className="text-3xl md:text-5xl font-extrabold mb-4 drop-shadow-lg" style={{ color: '#00A86B' }}>Présentation de l'Institut Froebel</h1>
           <p className="text-white text-lg md:text-2xl font-medium drop-shadow max-w-2xl mx-auto">
-            Découvrez notre école, nos valeurs et notre engagement pour l'excellence éducative depuis 1994.
+            Découvrez notre école, nos valeurs et notre engagement pour l'excellence éducative depuis 1975.
           </p>
         </div>
       </section>

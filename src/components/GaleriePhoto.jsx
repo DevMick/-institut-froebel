@@ -7,6 +7,11 @@ import eleve from '../assets/images/eleve.jpg';
 import secondaireImg from '../assets/images/secondaire.jpg';
 import sallePolyvalenteImg from '../assets/images/salle polyvalente.jpg';
 import transportImg from '../assets/images/_DSC0278.jpg';
+import eleve1 from '../assets/images/eleve1.jpg';
+import eleve2 from '../assets/images/eleve2.jpg';
+import eleve3 from '../assets/images/eleve3.jpg';
+import eleve4 from '../assets/images/eleve4.jpg';
+import eleve5 from '../assets/images/eleve5.jpg';
 
 const photos = [
   {
@@ -53,6 +58,31 @@ const photos = [
     src: transportImg,
     titre: "Moyen de Transport",
     desc: "Service de transport scolaire sécurisé pour nos élèves",
+  },
+  {
+    src: eleve1,
+    titre: "Nos Élèves du Primaire en Action",
+    desc: "Présentation de nos jeunes élèves du primaire, curieux et enthousiastes dans leur parcours d'apprentissage",
+  },
+  {
+    src: eleve2,
+    titre: "Élèves du Secondaire",
+    desc: "Nos adolescents du secondaire, déterminés et ambitieux, se préparent pour leur avenir académique",
+  },
+  {
+    src: eleve3,
+    titre: "Session de Révision",
+    desc: "Nos élèves du secondaire en pleine concentration lors d'une session de révision studieuse",
+  },
+  {
+    src: eleve4,
+    titre: "Prise de Notes Active",
+    desc: "L'art de la prise de notes : nos élèves du secondaire développent leurs compétences d'écoute et de synthèse",
+  },
+  {
+    src: eleve5,
+    titre: "Participation Interactive",
+    desc: "L'engagement total de nos élèves du secondaire qui réagissent avec enthousiasme aux questions du professeur",
   },
 ];
 
