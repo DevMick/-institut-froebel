@@ -1,0 +1,16 @@
+# Fichiers à ignorer lors de l'importation Expo Snack
+node_modules/
+.git/
+.gitignore
+.snackignore
+test-email-endpoint.js
+*.log
+.DS_Store
+*.keystore
+!debug.keystore
+build/
+.expo/
+dist/
+web-build/
+coverage/
+*.jsbundle
