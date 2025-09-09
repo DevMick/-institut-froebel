@@ -23,7 +23,7 @@ import {
   UndoOutlined,
   CheckOutlined,
   BookOutlined,
-  BabyCarOutlined,
+  SmileOutlined,
   UserOutlined,
   GraduationCapOutlined
 } from '@ant-design/icons';
@@ -45,7 +45,7 @@ const CyclesAdminPage = () => {
 
   // Icônes pour chaque cycle
   const cycleIcons = {
-    'creche-garderie': <BabyCarOutlined />,
+    'creche-garderie': <SmileOutlined />,
     'maternelle': <UserOutlined />,
     'primaire': <BookOutlined />,
     'secondaire': <GraduationCapOutlined />
