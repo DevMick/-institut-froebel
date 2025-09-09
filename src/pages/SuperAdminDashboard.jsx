@@ -43,7 +43,8 @@ import {
   CalendarOutlined,
   TrophyOutlined,
   WarningOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  HomeOutlined
 } from '@ant-design/icons';
 
 import PersonnelPage from './PersonnelPage';
@@ -56,6 +57,7 @@ import FAQAdmissionsPage from './FAQAdmissionsPage';
 import PaiementsScolaritePage from './PaiementsScolaritePage';
 import CommunicationPage from './CommunicationPage';
 import CahierLiaisonPage from './CahierLiaisonPage';
+import VieScolaireAdminPage from './VieScolaireAdminPage';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchDashboardStats, fetchRecentCommunications } from '../services/superAdminApi';
 
@@ -72,6 +74,7 @@ const menuItems = [
   { key: 'dossier-a-fournir', icon: <FolderOutlined />, label: 'Dossiers à Fournir' },
   { key: 'faq-admissions', icon: <QuestionCircleOutlined />, label: 'FAQ Admissions' },
   { key: 'tarifs', icon: <DollarOutlined />, label: 'Tarifs' },
+  { key: 'vie-scolaire-admin', icon: <HomeOutlined />, label: 'Gestion Vie Scolaire' },
   { key: 'communication', icon: <MessageOutlined />, label: 'Communication' },
   { key: 'cahier-liaison', icon: <BookOutlined />, label: 'Cahier de Liaison' },
   { key: 'paiements-scolarite', icon: <DollarOutlined />, label: 'Paiements Scolarité' },
@@ -286,6 +289,8 @@ export default function SuperAdminDashboard() {
         return <FAQAdmissionsPage />;
       case 'tarifs':
         return <TarifsPage />;
+      case 'vie-scolaire-admin':
+        return <VieScolaireAdminPage />;
       case 'paiements-scolarite':
         return <PaiementsScolaritePage />;
       case 'communication':

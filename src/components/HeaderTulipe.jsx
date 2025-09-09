@@ -14,12 +14,12 @@ const HeaderTulipe = () => {
 
   return (
     <header className="w-full bg-white shadow-sm sticky top-0 z-30">
-      <nav className="max-w-6xl mx-auto flex flex-row items-center justify-between px-4 py-3">
+      <nav className="max-w-6xl mx-auto flex flex-row items-center justify-between px-4 py-4">
         {/* Logo */}
         <div className="flex items-center gap-2">
           <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <img src={Logo} alt="Institut Froebel Logo" className="h-10 w-auto" />
-            <span className="ml-3 text-lg font-bold text-green-700">INSTITUT FROEBEL</span>
+            <img src={Logo} alt="Institut Froebel Logo" className="h-16 w-auto" />
+            <span className="ml-4 text-2xl font-bold text-green-700">INSTITUT FROEBEL</span>
           </Link>
         </div>
 
