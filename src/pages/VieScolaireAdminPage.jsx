@@ -205,7 +205,6 @@ const VieScolaireAdminPage = () => {
           <Form.Item
             name="mainTitle"
             label="Titre de la page"
-            rules={[{ required: true, message: 'Le titre est obligatoire' }]}
           >
             <Input
               placeholder="Ex: Vie Scolaire"
@@ -242,7 +241,6 @@ const VieScolaireAdminPage = () => {
                 <Form.Item
                   name={`section_${section.id}_title`}
                   label="Titre de la section"
-                  rules={[{ required: true, message: 'Le titre est obligatoire' }]}
                 >
                   <Input placeholder="Titre de la section" />
                 </Form.Item>
@@ -251,7 +249,6 @@ const VieScolaireAdminPage = () => {
                 <Form.Item
                   name={`section_${section.id}_description`}
                   label="Description"
-                  rules={[{ required: true, message: 'La description est obligatoire' }]}
                 >
                   <TextArea
                     rows={4}
@@ -263,7 +260,6 @@ const VieScolaireAdminPage = () => {
                 <Form.Item
                   name={`section_${section.id}_features`}
                   label="Caractéristiques (une par ligne)"
-                  rules={[{ required: true, message: 'Au moins une caractéristique est obligatoire' }]}
                 >
                   <TextArea
                     rows={3}

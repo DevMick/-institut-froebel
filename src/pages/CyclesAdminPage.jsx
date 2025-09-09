@@ -230,7 +230,6 @@ const CyclesAdminPage = () => {
           <Form.Item
             name="mainTitle"
             label="Titre de la page"
-            rules={[{ required: true, message: 'Le titre est obligatoire' }]}
           >
             <Input
               placeholder="Ex: Nos Cycles Éducatifs"
@@ -259,7 +258,6 @@ const CyclesAdminPage = () => {
                   <Form.Item
                     name={`cycle_${cycle.id}_titre`}
                     label="Titre du cycle"
-                    rules={[{ required: true, message: 'Le titre est obligatoire' }]}
                   >
                     <Input placeholder="Titre du cycle" />
                   </Form.Item>
@@ -268,7 +266,6 @@ const CyclesAdminPage = () => {
                   <Form.Item
                     name={`cycle_${cycle.id}_age`}
                     label="Tranche d'âge"
-                    rules={[{ required: true, message: 'La tranche d\'âge est obligatoire' }]}
                   >
                     <Input placeholder="Ex: 0-3 ans" />
                   </Form.Item>
@@ -277,7 +274,6 @@ const CyclesAdminPage = () => {
                   <Form.Item
                     name={`cycle_${cycle.id}_description`}
                     label="Description"
-                    rules={[{ required: true, message: 'La description est obligatoire' }]}
                   >
                     <TextArea
                       rows={4}
@@ -289,7 +285,6 @@ const CyclesAdminPage = () => {
                   <Form.Item
                     name={`cycle_${cycle.id}_points`}
                     label="Points clés (un par ligne)"
-                    rules={[{ required: true, message: 'Au moins un point clé est obligatoire' }]}
                   >
                     <TextArea
                       rows={4}
@@ -309,7 +304,6 @@ const CyclesAdminPage = () => {
               <Form.Item
                 name="ctaTitle"
                 label="Titre de la section"
-                rules={[{ required: true, message: 'Le titre est obligatoire' }]}
               >
                 <Input placeholder="Ex: Prêt à rejoindre notre famille éducative ?" />
               </Form.Item>
@@ -318,7 +312,6 @@ const CyclesAdminPage = () => {
               <Form.Item
                 name="ctaButtonText"
                 label="Texte du bouton"
-                rules={[{ required: true, message: 'Le texte du bouton est obligatoire' }]}
               >
                 <Input placeholder="Ex: Nous contacter" />
               </Form.Item>
@@ -327,7 +320,6 @@ const CyclesAdminPage = () => {
               <Form.Item
                 name="ctaDescription"
                 label="Description"
-                rules={[{ required: true, message: 'La description est obligatoire' }]}
               >
                 <TextArea
                   rows={3}
