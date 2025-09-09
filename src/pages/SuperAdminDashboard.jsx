@@ -44,7 +44,9 @@ import {
   TrophyOutlined,
   WarningOutlined,
   ClockCircleOutlined,
-  HomeOutlined
+  HomeOutlined,
+  ReadOutlined,
+  EditOutlined
 } from '@ant-design/icons';
 
 import PersonnelPage from './PersonnelPage';
@@ -76,9 +78,9 @@ const menuItems = [
   { key: 'faq-admissions', icon: <QuestionCircleOutlined />, label: 'FAQ Admissions' },
   { key: 'tarifs', icon: <DollarOutlined />, label: 'Tarifs' },
   { key: 'vie-scolaire-admin', icon: <HomeOutlined />, label: 'Gestion Vie Scolaire' },
-  { key: 'cycles-admin', icon: <BookOutlined />, label: 'Gestion Cycles' },
+  { key: 'cycles-admin', icon: <ReadOutlined />, label: 'Gestion Cycles' },
   { key: 'communication', icon: <MessageOutlined />, label: 'Communication' },
-  { key: 'cahier-liaison', icon: <BookOutlined />, label: 'Cahier de Liaison' },
+  { key: 'cahier-liaison', icon: <EditOutlined />, label: 'Cahier de Liaison' },
   { key: 'paiements-scolarite', icon: <DollarOutlined />, label: 'Paiements Scolarité' },
 ];
 
