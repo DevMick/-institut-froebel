@@ -25,7 +25,7 @@ import {
   BookOutlined,
   SmileOutlined,
   UserOutlined,
-  GraduationCapOutlined
+  TrophyOutlined
 } from '@ant-design/icons';
 import {
   fetchCyclesData,
@@ -48,7 +48,7 @@ const CyclesAdminPage = () => {
     'creche-garderie': <SmileOutlined />,
     'maternelle': <UserOutlined />,
     'primaire': <BookOutlined />,
-    'secondaire': <GraduationCapOutlined />
+    'secondaire': <TrophyOutlined />
   };
 
   // Charger les données au montage du composant
