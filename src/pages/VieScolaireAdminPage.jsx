@@ -73,7 +73,7 @@ const VieScolaireAdminPage = () => {
 
   const handleSave = async () => {
     try {
-      const values = await form.validateFields();
+      const values = form.getFieldsValue();
       setLoading(true);
 
       // Construire les données à sauvegarder
