@@ -1,6 +1,5 @@
 // Service API pour la gestion des contenus de la page Vie Scolaire
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// UTILISE localStorage - PAS d'API externe
 
 // Structure par défaut des données Vie Scolaire
 const defaultVieScolaireData = {
