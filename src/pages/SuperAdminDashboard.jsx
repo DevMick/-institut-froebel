@@ -61,6 +61,7 @@ import CommunicationPage from './CommunicationPage';
 import CahierLiaisonPage from './CahierLiaisonPage';
 import VieScolaireAdminPage from './VieScolaireAdminPage';
 import CyclesAdminPage from './CyclesAdminPage';
+import HomeAdminPage from './HomeAdminPage';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchDashboardStats, fetchRecentCommunications } from '../services/superAdminApi';
 
@@ -77,7 +78,8 @@ const menuItems = [
   { key: 'dossier-a-fournir', icon: <FolderOutlined />, label: 'Dossiers à Fournir' },
   { key: 'faq-admissions', icon: <QuestionCircleOutlined />, label: 'FAQ Admissions' },
   { key: 'tarifs', icon: <DollarOutlined />, label: 'Tarifs' },
-  { key: 'vie-scolaire-admin', icon: <HomeOutlined />, label: 'Gestion Vie Scolaire' },
+  { key: 'home-admin', icon: <HomeOutlined />, label: 'Gestion Page d\'Accueil' },
+  { key: 'vie-scolaire-admin', icon: <EyeOutlined />, label: 'Gestion Vie Scolaire' },
   { key: 'cycles-admin', icon: <ReadOutlined />, label: 'Gestion Cycles' },
   { key: 'communication', icon: <MessageOutlined />, label: 'Communication' },
   { key: 'cahier-liaison', icon: <EditOutlined />, label: 'Cahier de Liaison' },
@@ -293,6 +295,8 @@ export default function SuperAdminDashboard() {
         return <FAQAdmissionsPage />;
       case 'tarifs':
         return <TarifsPage />;
+      case 'home-admin':
+        return <HomeAdminPage />;
       case 'vie-scolaire-admin':
         return <VieScolaireAdminPage />;
       case 'cycles-admin':
