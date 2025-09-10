@@ -91,41 +91,98 @@ const CyclesAdminPage = () => {
     }
   };
 
-  const handleSave = async () => {
+  // Sauvegarde du titre principal
+  const handleSaveMainTitle = async () => {
     try {
-      const values = form.getFieldsValue();
+      const values = form.getFieldsValue(['mainTitle']);
       setLoading(true);
 
-      // Construire les données à sauvegarder
       const updatedData = {
-        mainTitle: values.mainTitle,
-        cycles: data.cycles.map(cycle => ({
-          ...cycle,
-          titre: values[`cycle_${cycle.id}_titre`],
-          description: values[`cycle_${cycle.id}_description`],
-          points: values[`cycle_${cycle.id}_points`]
-            .split('\n')
-            .map(p => p.trim())
-            .filter(p => p.length > 0),
-          age: values[`cycle_${cycle.id}_age`]
-        })),
-        ctaSection: {
-          title: values.ctaTitle,
-          description: values.ctaDescription,
-          buttonText: values.ctaButtonText
-        }
+        ...data,
+        mainTitle: values.mainTitle || data.mainTitle
       };
 
       const result = await saveCyclesData(updatedData);
       if (result.success) {
-        message.success('Données sauvegardées avec succès !');
+        message.success('Titre principal sauvegardé !');
         setData(updatedData);
         setHasChanges(false);
       } else {
         message.error('Erreur lors de la sauvegarde : ' + result.error);
       }
     } catch (error) {
-      message.error('Veuillez vérifier les champs obligatoires');
+      message.error('Erreur lors de la sauvegarde');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Sauvegarde d'un cycle spécifique
+  const handleSaveCycle = async (cycleId) => {
+    try {
+      const values = form.getFieldsValue([
+        `cycle_${cycleId}_titre`,
+        `cycle_${cycleId}_age`,
+        `cycle_${cycleId}_description`,
+        `cycle_${cycleId}_points`
+      ]);
+      setLoading(true);
+
+      const updatedData = {
+        ...data,
+        cycles: data.cycles.map(cycle =>
+          cycle.id === cycleId ? {
+            ...cycle,
+            titre: values[`cycle_${cycleId}_titre`] || cycle.titre,
+            age: values[`cycle_${cycleId}_age`] || cycle.age,
+            description: values[`cycle_${cycleId}_description`] || cycle.description,
+            points: values[`cycle_${cycleId}_points`] ?
+              values[`cycle_${cycleId}_points`].split('\n').map(p => p.trim()).filter(p => p.length > 0) :
+              cycle.points
+          } : cycle
+        )
+      };
+
+      const result = await saveCyclesData(updatedData);
+      if (result.success) {
+        message.success(`Cycle sauvegardé !`);
+        setData(updatedData);
+        setHasChanges(false);
+      } else {
+        message.error('Erreur lors de la sauvegarde : ' + result.error);
+      }
+    } catch (error) {
+      message.error('Erreur lors de la sauvegarde');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Sauvegarde de la section CTA
+  const handleSaveCTA = async () => {
+    try {
+      const values = form.getFieldsValue(['ctaTitle', 'ctaDescription', 'ctaButtonText']);
+      setLoading(true);
+
+      const updatedData = {
+        ...data,
+        ctaSection: {
+          title: values.ctaTitle || data.ctaSection?.title,
+          description: values.ctaDescription || data.ctaSection?.description,
+          buttonText: values.ctaButtonText || data.ctaSection?.buttonText
+        }
+      };
+
+      const result = await saveCyclesData(updatedData);
+      if (result.success) {
+        message.success('Section CTA sauvegardée !');
+        setData(updatedData);
+        setHasChanges(false);
+      } else {
+        message.error('Erreur lors de la sauvegarde : ' + result.error);
+      }
+    } catch (error) {
+      message.error('Erreur lors de la sauvegarde');
     } finally {
       setLoading(false);
     }
@@ -183,18 +240,9 @@ const CyclesAdminPage = () => {
         />
       )}
 
-      {/* Boutons d'action */}
+      {/* Boutons d'action globaux */}
       <Card style={{ marginBottom: '24px' }}>
         <Space size="middle">
-          <Button
-            type="primary"
-            icon={<SaveOutlined />}
-            onClick={handleSave}
-            loading={loading}
-            disabled={!hasChanges}
-          >
-            Sauvegarder
-          </Button>
           <Button
             icon={<ReloadOutlined />}
             onClick={loadData}
@@ -226,7 +274,21 @@ const CyclesAdminPage = () => {
         onValuesChange={handleFormChange}
       >
         {/* Titre principal */}
-        <Card title="Titre Principal" style={{ marginBottom: '24px' }}>
+        <Card
+          title="Titre Principal"
+          style={{ marginBottom: '24px' }}
+          extra={
+            <Button
+              type="primary"
+              size="small"
+              icon={<SaveOutlined />}
+              onClick={handleSaveMainTitle}
+              loading={loading}
+            >
+              Sauvegarder
+            </Button>
+          }
+        >
           <Form.Item
             name="mainTitle"
             label="Titre de la page"
@@ -292,13 +354,39 @@ const CyclesAdminPage = () => {
                     />
                   </Form.Item>
                 </Col>
+                <Col xs={24}>
+                  <div style={{ textAlign: 'right', marginTop: '16px' }}>
+                    <Button
+                      type="primary"
+                      icon={<SaveOutlined />}
+                      onClick={() => handleSaveCycle(cycle.id)}
+                      loading={loading}
+                    >
+                      Sauvegarder ce cycle
+                    </Button>
+                  </div>
+                </Col>
               </Row>
             </Panel>
           ))}
         </Collapse>
 
         {/* Section CTA */}
-        <Card title="Section d'Appel à l'Action" style={{ marginBottom: '24px' }}>
+        <Card
+          title="Section d'Appel à l'Action"
+          style={{ marginBottom: '24px' }}
+          extra={
+            <Button
+              type="primary"
+              size="small"
+              icon={<SaveOutlined />}
+              onClick={handleSaveCTA}
+              loading={loading}
+            >
+              Sauvegarder
+            </Button>
+          }
+        >
           <Row gutter={[16, 16]}>
             <Col xs={24} lg={12}>
               <Form.Item
@@ -330,30 +418,6 @@ const CyclesAdminPage = () => {
           </Row>
         </Card>
       </Form>
-
-      {/* Bouton de sauvegarde fixe en bas */}
-      {hasChanges && (
-        <div style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          zIndex: 1000
-        }}>
-          <Button
-            type="primary"
-            size="large"
-            icon={<SaveOutlined />}
-            onClick={handleSave}
-            loading={loading}
-            style={{
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              borderRadius: '8px'
-            }}
-          >
-            Sauvegarder les modifications
-          </Button>
-        </div>
-      )}
     </div>
   );
 };
