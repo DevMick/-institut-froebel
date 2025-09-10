@@ -82,13 +82,18 @@ const HomeAdminPage = () => {
   }, [hasChanges]);
 
   const loadData = async () => {
+    console.log('🔄 Chargement des données...');
     setLoading(true);
     try {
       const result = await fetchHomeData();
+      console.log('📊 Résultat fetchHomeData:', result);
+
       if (result.success) {
+        console.log('✅ Données chargées:', result.data);
         setData(result.data);
+
         // Remplir le formulaire avec toutes les données des sections
-        form.setFieldsValue({
+        const formValues = {
           // Hero section
           heroTitle: result.data.hero?.title,
           heroVideoUrl: result.data.hero?.videoUrl,
@@ -128,67 +133,93 @@ const HomeAdminPage = () => {
           // Galerie
           galerieTitle: result.data.galeriePhoto?.title,
           galerieDescription: result.data.galeriePhoto?.description
-        });
+        };
+
+        console.log('📝 Valeurs pour le formulaire:', formValues);
+        form.setFieldsValue(formValues);
         setHasChanges(false);
+        console.log('✅ Formulaire rempli avec succès');
       } else {
+        console.error('❌ Échec du chargement:', result);
         message.error('Erreur lors du chargement des données');
       }
     } catch (error) {
-      message.error('Erreur lors du chargement des données');
+      console.error('💥 Erreur dans loadData:', error);
+      message.error('Erreur lors du chargement des données: ' + error.message);
     } finally {
       setLoading(false);
+      console.log('🏁 Fin chargement des données');
     }
   };
 
-  // Sauvegarde de la section Hero
+  // Sauvegarde de la section Hero - VERSION SIMPLIFIÉE POUR TEST
   const handleSaveHero = async () => {
     try {
+      console.log('🚀 Début sauvegarde Hero...');
+
       const values = form.getFieldsValue(['heroTitle', 'heroVideoUrl', 'heroMessages', 'heroBadge1', 'heroBadge2']);
+      console.log('📝 Valeurs récupérées:', values);
+
       setLoading(true);
 
-      // Valider l'URL de la vidéo si fournie
-      if (values.heroVideoUrl) {
-        const validation = validateVideoUrl(values.heroVideoUrl);
-        if (!validation.isValid) {
-          message.error(validation.message);
-          return;
+      // Validation simple de l'URL vidéo
+      if (values.heroVideoUrl && values.heroVideoUrl.trim()) {
+        console.log('🎥 Validation URL vidéo:', values.heroVideoUrl);
+        try {
+          const validation = validateVideoUrl(values.heroVideoUrl);
+          if (!validation.isValid) {
+            message.error('URL vidéo invalide: ' + validation.message);
+            setLoading(false);
+            return;
+          }
+        } catch (validationError) {
+          console.warn('⚠️ Erreur validation vidéo:', validationError);
+          // Continue sans validation si la fonction échoue
         }
       }
 
+      // Construction des données mises à jour
       const updatedData = {
         ...data,
         hero: {
-          ...data.hero,
-          title: values.heroTitle || data.hero?.title,
-          videoUrl: values.heroVideoUrl || data.hero?.videoUrl,
+          title: values.heroTitle || data?.hero?.title || "L'ÉDUCATION D'AUJOURD'HUI, LES LEADERS DE DEMAIN.",
+          videoUrl: values.heroVideoUrl || data?.hero?.videoUrl || "",
           messages: values.heroMessages ?
             values.heroMessages.split('\n').map(m => m.trim()).filter(m => m.length > 0) :
-            data.hero?.messages,
+            (data?.hero?.messages || []),
           badges: [
             {
               icon: "fas fa-graduation-cap",
-              text: values.heroBadge1 || data.hero?.badges?.[0]?.text
+              text: values.heroBadge1 || data?.hero?.badges?.[0]?.text || "Maternelle • Primaire • Secondaire"
             },
             {
               icon: "fas fa-award",
-              text: values.heroBadge2 || data.hero?.badges?.[1]?.text
+              text: values.heroBadge2 || data?.hero?.badges?.[1]?.text || "Excellence Pédagogique"
             }
           ]
         }
       };
 
+      console.log('💾 Données à sauvegarder:', updatedData);
+
       const result = await saveHomeData(updatedData);
+      console.log('✅ Résultat sauvegarde:', result);
+
       if (result.success) {
-        message.success('Section Hero sauvegardée !');
+        message.success('✅ Section Hero sauvegardée avec succès !');
         setData(updatedData);
         setHasChanges(false);
+        console.log('🎉 Sauvegarde Hero réussie !');
       } else {
-        message.error('Erreur lors de la sauvegarde : ' + result.error);
+        message.error('❌ Erreur lors de la sauvegarde : ' + (result.error || 'Erreur inconnue'));
+        console.error('❌ Erreur sauvegarde:', result);
       }
     } catch (error) {
-      message.error('Erreur lors de la sauvegarde');
+      console.error('💥 Erreur dans handleSaveHero:', error);
+      message.error('❌ Erreur lors de la sauvegarde: ' + error.message);
     } finally {
       setLoading(false);
+      console.log('🏁 Fin sauvegarde Hero');
     }
   };
 

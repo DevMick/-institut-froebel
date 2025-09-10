@@ -380,15 +380,21 @@ const defaultHomeData = {
 // Récupérer les données depuis localStorage
 export const fetchHomeData = () => {
   try {
+    console.log('🔍 fetchHomeData: Récupération des données...');
     const stored = localStorage.getItem(STORAGE_KEY);
+    console.log('📦 Données stockées:', stored ? 'Trouvées' : 'Aucune');
+
     if (stored) {
       const data = JSON.parse(stored);
+      console.log('✅ Données parsées:', data);
       return { success: true, data };
     }
     // Si pas de données, retourner les données par défaut
+    console.log('🔄 Utilisation des données par défaut');
+    console.log('📋 Données par défaut Hero:', defaultHomeData.hero);
     return { success: true, data: defaultHomeData };
   } catch (error) {
-    console.error('Erreur lors de la récupération des données:', error);
+    console.error('💥 Erreur lors de la récupération des données:', error);
     return { success: false, error: error.message, data: defaultHomeData };
   }
 };
@@ -396,15 +402,28 @@ export const fetchHomeData = () => {
 // Sauvegarder les données dans localStorage
 export const saveHomeData = (data) => {
   try {
+    console.log('💾 saveHomeData: Début sauvegarde...');
+    console.log('📊 Données à sauvegarder:', data);
+
     // Validation basique des données
     if (!data || typeof data !== 'object') {
       throw new Error('Données invalides');
     }
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    // Vérification spécifique de la section Hero
+    if (data.hero) {
+      console.log('🏠 Section Hero à sauvegarder:', data.hero);
+    }
+
+    const jsonData = JSON.stringify(data);
+    console.log('📝 JSON généré (taille):', jsonData.length, 'caractères');
+
+    localStorage.setItem(STORAGE_KEY, jsonData);
+    console.log('✅ Sauvegarde localStorage réussie');
+
     return { success: true, message: 'Données sauvegardées avec succès' };
   } catch (error) {
-    console.error('Erreur lors de la sauvegarde:', error);
+    console.error('💥 Erreur lors de la sauvegarde:', error);
     return { success: false, error: error.message };
   }
 };
