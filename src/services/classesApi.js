@@ -15,10 +15,21 @@ const classesApiClient = axios.create({
   timeout: 15000,
 });
 
-// Intercepteur pour les requêtes
+// Fonction helper pour obtenir le token
+const getToken = () => {
+  return localStorage.getItem('token');
+};
+
+// Intercepteur pour les requêtes (avec authentification)
 classesApiClient.interceptors.request.use(
   (config) => {
-    console.log('Requête classes:', config.method?.toUpperCase(), config.url);
+    // Ajouter le token d'authentification si disponible
+    const token = getToken();
+    if (token && token !== 'null') {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    console.log('Requête classes:', config.method?.toUpperCase(), config.url, token ? 'avec token' : 'sans token');
     return config;
   },
   (error) => {

@@ -142,6 +142,25 @@ to = "https://mon-api-aspnet.onrender.com/api/:splat"
 
 ---
 
+## 🔧 **Corrections Récentes**
+
+### **✅ URLs hardcodées corrigées :**
+- **`ClassesPage.jsx`** - Toutes les fonctions CRUD (create, read, update, delete)
+- **`PaiementsScolaritePage.jsx`** - Récupération des parents d'enfants
+- **`DossierAFournirPage.jsx`** - Gestion des classes et dossiers à fournir
+
+### **🧹 Nettoyage effectué :**
+- **`vieScolaireApi.js`** - Suppression référence localhost inutile
+- **`cyclesApi.js`** - Suppression référence localhost inutile
+- **Documentation complète** - Architecture clarifiée
+
+### **🎯 Résultat :**
+- **100% des services** utilisent maintenant la configuration correcte
+- **Fini les erreurs** `ERR_CONNECTION_REFUSED`
+- **Architecture unifiée** et documentée
+
+---
+
 **✅ Configuration correcte et optimisée !**
 **🔗 API Backend :** https://mon-api-aspnet.onrender.com
 **💾 Contenu éditorial :** localStorage
