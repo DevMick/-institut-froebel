@@ -59,9 +59,10 @@ import FAQAdmissionsPage from './FAQAdmissionsPage';
 import PaiementsScolaritePage from './PaiementsScolaritePage';
 import CommunicationPage from './CommunicationPage';
 import CahierLiaisonPage from './CahierLiaisonPage';
-import VieScolaireAdminPage from './VieScolaireAdminPage';
-import CyclesAdminPage from './CyclesAdminPage';
-import HomeAdminPage from './HomeAdminPage';
+// IMPORTS TEMPORAIREMENT CACHÉS - EN DÉVELOPPEMENT
+// import VieScolaireAdminPage from './VieScolaireAdminPage';
+// import CyclesAdminPage from './CyclesAdminPage';
+// import HomeAdminPage from './HomeAdminPage';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchDashboardStats, fetchRecentCommunications } from '../services/superAdminApi';
 
@@ -78,9 +79,10 @@ const menuItems = [
   { key: 'dossier-a-fournir', icon: <FolderOutlined />, label: 'Dossiers à Fournir' },
   { key: 'faq-admissions', icon: <QuestionCircleOutlined />, label: 'FAQ Admissions' },
   { key: 'tarifs', icon: <DollarOutlined />, label: 'Tarifs' },
-  { key: 'home-admin', icon: <HomeOutlined />, label: 'Gestion Page d\'Accueil' },
-  { key: 'vie-scolaire-admin', icon: <EyeOutlined />, label: 'Gestion Vie Scolaire' },
-  { key: 'cycles-admin', icon: <ReadOutlined />, label: 'Gestion Cycles' },
+  // MENUS TEMPORAIREMENT CACHÉS - EN DÉVELOPPEMENT
+  // { key: 'home-admin', icon: <HomeOutlined />, label: 'Gestion Page d\'Accueil' },
+  // { key: 'vie-scolaire-admin', icon: <EyeOutlined />, label: 'Gestion Vie Scolaire' },
+  // { key: 'cycles-admin', icon: <ReadOutlined />, label: 'Gestion Cycles' },
   { key: 'communication', icon: <MessageOutlined />, label: 'Communication' },
   { key: 'cahier-liaison', icon: <EditOutlined />, label: 'Cahier de Liaison' },
   { key: 'paiements-scolarite', icon: <DollarOutlined />, label: 'Paiements Scolarité' },
@@ -295,12 +297,13 @@ export default function SuperAdminDashboard() {
         return <FAQAdmissionsPage />;
       case 'tarifs':
         return <TarifsPage />;
-      case 'home-admin':
-        return <HomeAdminPage />;
-      case 'vie-scolaire-admin':
-        return <VieScolaireAdminPage />;
-      case 'cycles-admin':
-        return <CyclesAdminPage />;
+      // CASES TEMPORAIREMENT CACHÉS - EN DÉVELOPPEMENT
+      // case 'home-admin':
+      //   return <HomeAdminPage />;
+      // case 'vie-scolaire-admin':
+      //   return <VieScolaireAdminPage />;
+      // case 'cycles-admin':
+      //   return <CyclesAdminPage />;
       case 'paiements-scolarite':
         return <PaiementsScolaritePage />;
       case 'communication':

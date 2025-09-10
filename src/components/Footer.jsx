@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Logo from '../assets/images/Logo.png';
-import { FaFacebookF, FaTwitter, FaTelegramPlane, FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaChevronUp } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaChevronUp } from 'react-icons/fa';
 
 const Footer = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -41,17 +41,6 @@ const Footer = () => {
             <p className="text-sm">
               Ancré dans des valeurs d'excellence et d'innovation pédagogique, l'Institut Froebel se positionne comme une référence éducative à Abidjan depuis plus de 50 ans.
             </p>
-            <div className="flex space-x-3">
-              <a href="#" className="w-9 h-9 bg-froebel-blue text-white rounded-full flex items-center justify-center hover:bg-froebel-blue-dark transition-colors">
-                <FaFacebookF />
-              </a>
-              <a href="#" className="w-9 h-9 bg-froebel-blue text-white rounded-full flex items-center justify-center hover:bg-froebel-blue-dark transition-colors">
-                <FaTwitter />
-              </a>
-              <a href="#" className="w-9 h-9 bg-froebel-blue text-white rounded-full flex items-center justify-center hover:bg-froebel-blue-dark transition-colors">
-                <FaTelegramPlane />
-              </a>
-            </div>
           </div>
 
           {/* Column 2: Liens Rapides */}
@@ -113,7 +102,7 @@ const Footer = () => {
                 </div>
                 <div>
                   <h4 className="font-bold">Téléphone</h4>
-                  <p className="text-sm">0717171718</p>
+                  <p className="text-sm">0565451919</p>
                 </div>
               </li>
               <li className="flex items-start space-x-3">
