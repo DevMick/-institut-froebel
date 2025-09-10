@@ -1,15 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { fetchHomeData } from '../services/homeApi';
 import './Hero.css';
 
-// URL Cloudinary pour la vidéo (optimisée pour le web)
-const spotEcoleVideo = 'https://res.cloudinary.com/dntyghmap/video/upload/v1755144106/Spot_Ecole_hrko3u.mp4';
-
-const messagesData = [
-  "Cultivons l'excellence ensemble",
-  "Épanouissement et apprentissage",
-  "Innovation pédagogique",
-  "Construisons l'avenir de vos enfants"
-];
+// Données par défaut en cas d'erreur de chargement
+const defaultData = {
+  title: "L'ÉDUCATION D'AUJOURD'HUI, LES LEADERS DE DEMAIN.",
+  videoUrl: 'https://res.cloudinary.com/dntyghmap/video/upload/v1755144106/Spot_Ecole_hrko3u.mp4',
+  messages: [
+    "Cultivons l'excellence ensemble",
+    "Épanouissement et apprentissage",
+    "Innovation pédagogique",
+    "Construisons l'avenir de vos enfants"
+  ],
+  badges: [
+    { text: "Maternelle • Primaire • Secondaire" },
+    { text: "Excellence Pédagogique" }
+  ]
+};
 
 const Particles = () => {
     const particles = Array.from({ length: 20 }).map((_, i) => (
@@ -31,8 +38,34 @@ const Particles = () => {
 const Hero = () => {
   const [currentMessage, setCurrentMessage] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [heroData, setHeroData] = useState(defaultData);
+  const [loading, setLoading] = useState(true);
   const timeoutRef = useRef(null);
   const videoRef = useRef(null);
+
+  // Charger les données depuis l'API
+  useEffect(() => {
+    const loadHeroData = async () => {
+      try {
+        console.log('🏠 Hero: Chargement des données...');
+        const result = await fetchHomeData();
+        if (result.success && result.data.hero) {
+          console.log('✅ Hero: Données chargées:', result.data.hero);
+          setHeroData(result.data.hero);
+        } else {
+          console.warn('⚠️ Hero: Utilisation des données par défaut');
+          setHeroData(defaultData);
+        }
+      } catch (error) {
+        console.error('❌ Hero: Erreur chargement:', error);
+        setHeroData(defaultData);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadHeroData();
+  }, []);
 
   const getTheme = () => {
     const hour = new Date().getHours();
@@ -49,11 +82,11 @@ const Hero = () => {
 
   useEffect(() => {
     resetTimeout();
-    if (!isPaused) {
+    if (!isPaused && heroData.messages && heroData.messages.length > 0) {
       timeoutRef.current = setTimeout(
         () =>
           setCurrentMessage((prevIndex) =>
-            prevIndex === messagesData.length - 1 ? 0 : prevIndex + 1
+            prevIndex === heroData.messages.length - 1 ? 0 : prevIndex + 1
           ),
         6000
       );
@@ -62,7 +95,7 @@ const Hero = () => {
     return () => {
       resetTimeout();
     };
-  }, [currentMessage, isPaused]);
+  }, [currentMessage, isPaused, heroData.messages]);
   
   return (
     <section
@@ -79,7 +112,7 @@ const Hero = () => {
         loop
         playsInline
       >
-        <source src={spotEcoleVideo} type="video/mp4" />
+        <source src={heroData.videoUrl || defaultData.videoUrl} type="video/mp4" />
         Votre navigateur ne supporte pas la lecture de vidéos.
       </video>
 
@@ -87,20 +120,35 @@ const Hero = () => {
       <Particles />
 
       <div className="hero-content">
-        <h1 className="hero-title text-2xl sm:text-3xl md:text-5xl">L'ÉDUCATION D'AUJOURD'HUI, LES LEADERS DE DEMAIN.</h1>
+        <h1 className="hero-title text-2xl sm:text-3xl md:text-5xl">
+          {heroData.title || defaultData.title}
+        </h1>
 
         <div className="hero-badges">
-          <div className="hero-badge">
-            <i className="fas fa-graduation-cap"></i>
-            <span>Maternelle • Primaire • Secondaire</span>
-          </div>
-          <div className="hero-badge">
-            <i className="fas fa-award"></i>
-            <span>Excellence Pédagogique</span>
-          </div>
+          {heroData.badges && heroData.badges.length > 0 ? (
+            heroData.badges.map((badge, index) => (
+              <div key={index} className="hero-badge">
+                <i className={badge.icon || (index === 0 ? "fas fa-graduation-cap" : "fas fa-award")}></i>
+                <span>{badge.text}</span>
+              </div>
+            ))
+          ) : (
+            // Fallback vers les badges par défaut
+            defaultData.badges.map((badge, index) => (
+              <div key={index} className="hero-badge">
+                <i className={index === 0 ? "fas fa-graduation-cap" : "fas fa-award"}></i>
+                <span>{badge.text}</span>
+              </div>
+            ))
+          )}
         </div>
 
-        <p className="hero-message" id="heroMessage">{messagesData[currentMessage]}</p>
+        <p className="hero-message" id="heroMessage">
+          {heroData.messages && heroData.messages.length > 0
+            ? heroData.messages[currentMessage]
+            : defaultData.messages[currentMessage]
+          }
+        </p>
       </div>
     </section>
   );
