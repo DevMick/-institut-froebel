@@ -51,6 +51,7 @@ const Hero = () => {
         const result = await fetchHomeData();
         if (result.success && result.data.hero) {
           console.log('✅ Hero: Données chargées:', result.data.hero);
+          console.log('🎥 Hero: URL vidéo:', result.data.hero.videoUrl);
           setHeroData(result.data.hero);
         } else {
           console.warn('⚠️ Hero: Utilisation des données par défaut');
@@ -66,6 +67,31 @@ const Hero = () => {
 
     loadHeroData();
   }, []);
+
+  // Forcer le rechargement de la vidéo quand l'URL change
+  useEffect(() => {
+    if (videoRef.current && heroData.videoUrl) {
+      console.log('🔄 Hero: Rechargement vidéo avec URL:', heroData.videoUrl);
+      videoRef.current.load(); // Force le rechargement de la vidéo
+
+      // Ajouter un listener pour vérifier si la vidéo se charge
+      const handleLoadStart = () => console.log('🎬 Hero: Début chargement vidéo');
+      const handleCanPlay = () => console.log('✅ Hero: Vidéo prête à jouer');
+      const handleError = (e) => console.error('❌ Hero: Erreur chargement vidéo:', e);
+
+      videoRef.current.addEventListener('loadstart', handleLoadStart);
+      videoRef.current.addEventListener('canplay', handleCanPlay);
+      videoRef.current.addEventListener('error', handleError);
+
+      return () => {
+        if (videoRef.current) {
+          videoRef.current.removeEventListener('loadstart', handleLoadStart);
+          videoRef.current.removeEventListener('canplay', handleCanPlay);
+          videoRef.current.removeEventListener('error', handleError);
+        }
+      };
+    }
+  }, [heroData.videoUrl]);
 
   const getTheme = () => {
     const hour = new Date().getHours();
@@ -111,6 +137,7 @@ const Hero = () => {
         muted
         loop
         playsInline
+        key={heroData.videoUrl || defaultData.videoUrl} // Force le rechargement quand l'URL change
       >
         <source src={heroData.videoUrl || defaultData.videoUrl} type="video/mp4" />
         Votre navigateur ne supporte pas la lecture de vidéos.

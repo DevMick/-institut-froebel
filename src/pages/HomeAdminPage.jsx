@@ -163,7 +163,7 @@ const HomeAdminPage = () => {
 
       setLoading(true);
 
-      // Validation simple de l'URL vidéo
+      // Validation améliorée de l'URL vidéo
       if (values.heroVideoUrl && values.heroVideoUrl.trim()) {
         console.log('🎥 Validation URL vidéo:', values.heroVideoUrl);
         try {
@@ -173,10 +173,13 @@ const HomeAdminPage = () => {
             setLoading(false);
             return;
           }
+          console.log('✅ URL vidéo validée avec succès');
         } catch (validationError) {
           console.warn('⚠️ Erreur validation vidéo:', validationError);
           // Continue sans validation si la fonction échoue
         }
+      } else if (values.heroVideoUrl === '') {
+        console.log('🎥 URL vidéo vidée - utilisation de la vidéo par défaut');
       }
 
       // Construction des données mises à jour - CORRECTION: Garder toutes les données
