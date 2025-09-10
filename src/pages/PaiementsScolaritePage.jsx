@@ -310,7 +310,7 @@ export default function PaiementsScolaritePage() {
             enfantsData.map(async (enfant) => {
               try {
                 console.log(`🔍 Récupération parents pour enfant ${enfant.id} (${enfant.prenom} ${enfant.nom})`);
-                const parentsResponse = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/parent-enfants/enfants/${enfant.id}/parents`, {
+                const parentsResponse = await fetch(`/api/ecoles/${ecoleId}/parent-enfants/enfants/${enfant.id}/parents`, {
                   headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'

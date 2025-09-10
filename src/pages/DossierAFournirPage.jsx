@@ -162,7 +162,7 @@ export default function DossierAFournirPage() {
       const user = getUser();
       const ecoleId = user.ecoleId || 2;
       
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/classes`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/classes`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json'
@@ -207,7 +207,7 @@ export default function DossierAFournirPage() {
 
       console.log('Création dossier avec token:', token ? 'Token présent' : 'Token manquant');
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/dossier-a-fournir`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/dossier-a-fournir`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -252,7 +252,7 @@ export default function DossierAFournirPage() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/dossier-a-fournir/${id}`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/dossier-a-fournir/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -297,7 +297,7 @@ export default function DossierAFournirPage() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/dossier-a-fournir/${id}`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/dossier-a-fournir/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

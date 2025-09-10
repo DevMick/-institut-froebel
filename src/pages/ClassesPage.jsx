@@ -27,6 +27,7 @@ import {
   ExclamationCircleOutlined
 } from '@ant-design/icons';
 import '../styles/LoginPage.css'; // Pour les styles du select personnalisé
+import classesApi from '../services/classesApi';
 
 const { Title, Text } = Typography;
 
@@ -71,26 +72,15 @@ export default function ClassesPage() {
     try {
       const user = getUser();
       const ecoleId = user.ecoleId || 1;
-      
+
       console.log('Chargement des classes pour l\'école:', ecoleId);
-      
-      const response = await fetch(`/api/ecoles/${ecoleId}/classes`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${getToken()}`,
-          'Content-Type': 'application/json'
-        }
-      });
 
-      console.log('Réponse classes:', response.status, response.statusText);
+      const result = await classesApi.getClassesByEcole(ecoleId);
+      console.log('Classes chargées:', result);
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Données classes reçues:', data);
-        
-        const classesData = Array.isArray(data) ? data : (data.classes || data.data || []);
-        console.log('Classes extraites:', classesData);
-        setClasses(classesData);
+      if (result.success && Array.isArray(result.data)) {
+        setClasses(result.data);
+        message.success(`${result.data.length} classes chargées`);
       } else {
         // Mode démonstration si serveur indisponible
         console.log('Serveur non disponible, utilisation des données de démonstration');
@@ -123,25 +113,15 @@ export default function ClassesPage() {
       const user = getUser();
       const ecoleId = user.ecoleId || 1;
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/classes`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${getToken()}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          nom: values.nom
-        })
-      });
+      const result = await classesApi.createClasse(ecoleId, { nom: values.nom });
 
-      if (response.ok) {
+      if (result.success) {
         message.success('Classe créée avec succès');
         loadClasses();
         setModalOpen(false);
         form.resetFields();
       } else {
-        const error = await response.json();
-        message.error(error.message || 'Erreur lors de la création');
+        message.error(result.message || 'Erreur lors de la création');
       }
     } catch (error) {
       console.error('Erreur:', error);
@@ -155,27 +135,17 @@ export default function ClassesPage() {
       const user = getUser();
       const ecoleId = user.ecoleId || 1;
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/classes/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${getToken()}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          nom: values.nom
-        })
-      });
+      const result = await classesApi.updateClasse(ecoleId, id, { nom: values.nom });
 
-      if (response.ok) {
+      if (result.success) {
         message.success('Classe modifiée avec succès');
         loadClasses();
         setModalOpen(false);
         form.resetFields();
         setEditingClass(null);
       } else {
-        const error = await response.text();
-        console.error('Erreur modification classe:', error);
-        message.error('Erreur lors de la modification de la classe');
+        console.error('Erreur modification classe:', result.message);
+        message.error(result.message || 'Erreur lors de la modification de la classe');
       }
     } catch (error) {
       console.error('Erreur:', error);
@@ -189,21 +159,14 @@ export default function ClassesPage() {
       const user = getUser();
       const ecoleId = user.ecoleId || 1;
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/classes/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${getToken()}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const result = await classesApi.deleteClasse(ecoleId, id);
 
-      if (response.ok) {
+      if (result.success) {
         message.success('Classe supprimée avec succès');
         loadClasses();
       } else {
-        const error = await response.text();
-        console.error('Erreur suppression classe:', error);
-        message.error('Erreur lors de la suppression de la classe');
+        console.error('Erreur suppression classe:', result.message);
+        message.error(result.message || 'Erreur lors de la suppression de la classe');
       }
     } catch (error) {
       console.error('Erreur:', error);
