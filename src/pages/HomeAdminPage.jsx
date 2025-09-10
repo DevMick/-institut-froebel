@@ -90,16 +90,17 @@ const HomeAdminPage = () => {
 
       if (result.success) {
         console.log('✅ Données chargées:', result.data);
+        console.log('🏠 Section Hero chargée:', result.data.hero);
         setData(result.data);
 
         // Remplir le formulaire avec toutes les données des sections
         const formValues = {
-          // Hero section
-          heroTitle: result.data.hero?.title,
-          heroVideoUrl: result.data.hero?.videoUrl,
-          heroMessages: result.data.hero?.messages?.join('\n'),
-          heroBadge1: result.data.hero?.badges?.[0]?.text,
-          heroBadge2: result.data.hero?.badges?.[1]?.text,
+          // Hero section - CORRECTION: Vérification des données
+          heroTitle: result.data.hero?.title || '',
+          heroVideoUrl: result.data.hero?.videoUrl || '',
+          heroMessages: result.data.hero?.messages ? result.data.hero.messages.join('\n') : '',
+          heroBadge1: result.data.hero?.badges?.[0]?.text || '',
+          heroBadge2: result.data.hero?.badges?.[1]?.text || '',
 
           // Directrice Message
           directriceTitle: result.data.directriceMessage?.title,
@@ -178,9 +179,9 @@ const HomeAdminPage = () => {
         }
       }
 
-      // Construction des données mises à jour
+      // Construction des données mises à jour - CORRECTION: Garder toutes les données
       const updatedData = {
-        ...data,
+        ...data, // Garder toutes les autres sections
         hero: {
           title: values.heroTitle || data?.hero?.title || "L'ÉDUCATION D'AUJOURD'HUI, LES LEADERS DE DEMAIN.",
           videoUrl: values.heroVideoUrl || data?.hero?.videoUrl || "",
@@ -200,6 +201,9 @@ const HomeAdminPage = () => {
         }
       };
 
+      console.log('🔍 Données complètes avant sauvegarde:', updatedData);
+      console.log('🔍 Toutes les sections présentes:', Object.keys(updatedData));
+
       console.log('💾 Données à sauvegarder:', updatedData);
 
       const result = await saveHomeData(updatedData);
@@ -210,6 +214,14 @@ const HomeAdminPage = () => {
         setData(updatedData);
         setHasChanges(false);
         console.log('🎉 Sauvegarde Hero réussie !');
+
+        // CORRECTION: Recharger les données pour vérifier la persistance
+        console.log('🔄 Rechargement pour vérification...');
+        setTimeout(async () => {
+          const verifyResult = await fetchHomeData();
+          console.log('🔍 Vérification après sauvegarde:', verifyResult.data.hero);
+        }, 100);
+
       } else {
         message.error('❌ Erreur lors de la sauvegarde : ' + (result.error || 'Erreur inconnue'));
         console.error('❌ Erreur sauvegarde:', result);

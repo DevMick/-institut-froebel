@@ -378,7 +378,7 @@ const defaultHomeData = {
 };
 
 // Récupérer les données depuis localStorage
-export const fetchHomeData = () => {
+export const fetchHomeData = async () => {
   try {
     console.log('🔍 fetchHomeData: Récupération des données...');
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -400,7 +400,7 @@ export const fetchHomeData = () => {
 };
 
 // Sauvegarder les données dans localStorage
-export const saveHomeData = (data) => {
+export const saveHomeData = async (data) => {
   try {
     console.log('💾 saveHomeData: Début sauvegarde...');
     console.log('📊 Données à sauvegarder:', data);
@@ -429,7 +429,7 @@ export const saveHomeData = (data) => {
 };
 
 // Réinitialiser aux données par défaut
-export const resetHomeData = () => {
+export const resetHomeData = async () => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultHomeData));
     return { success: true, data: defaultHomeData, message: 'Données réinitialisées' };
