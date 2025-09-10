@@ -207,7 +207,7 @@ const ClassesManager = () => {
       {/* Informations de débogage */}
       <Card title="Informations de débogage" size="small">
         <div style={{ fontSize: 12, color: '#666' }}>
-          <div><strong>Endpoint:</strong> GET http://localhost:5000/api/ecoles/{selectedEcole}/classes</div>
+          <div><strong>Endpoint:</strong> GET /api/ecoles/{selectedEcole}/classes</div>
           <div><strong>Headers:</strong> Accept: application/json</div>
           <div><strong>État:</strong> {loading ? 'Chargement...' : hasData ? 'Données chargées' : 'Aucune donnée'}</div>
         </div>

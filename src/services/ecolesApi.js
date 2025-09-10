@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-// Configuration pour l'API des écoles - utilise le proxy
-const ECOLES_API_BASE = '/api';
+// Configuration pour l'API des écoles - utilise les variables d'environnement
+const ECOLES_API_BASE = process.env.REACT_APP_API_BASE_URL || (
+  process.env.NODE_ENV === 'production'
+    ? '/api'  // Utilise le proxy en production
+    : 'https://mon-api-aspnet.onrender.com/api' // Fallback pour le développement
+);
 
 console.log('ECOLES_API_BASE:', ECOLES_API_BASE);
 

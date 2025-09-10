@@ -196,7 +196,7 @@ export default function PersonnelPage() {
       const user = getUser();
       const ecoleId = user.ecoleId || 1;
 
-      const response = await fetch('http://localhost:5000/api/auth/register/admin', {
+      const response = await fetch('/api/auth/register/admin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -239,7 +239,7 @@ export default function PersonnelPage() {
 
       console.log('Modification administrateur:', id, values);
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/users/${id}`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/users/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -282,7 +282,7 @@ export default function PersonnelPage() {
 
       console.log('Suppression administrateur:', id);
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/users/${id}`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/users/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${getToken()}`,

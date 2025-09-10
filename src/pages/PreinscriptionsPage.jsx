@@ -171,7 +171,7 @@ export default function PreinscriptionsPage() {
       const user = getUser();
       const ecoleId = user.ecoleId || 2;
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/preinscriptions/${id}`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/preinscriptions/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${getToken()}`,
@@ -261,7 +261,7 @@ export default function PreinscriptionsPage() {
         }))
       };
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/preinscriptions`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/preinscriptions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

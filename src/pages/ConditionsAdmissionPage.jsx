@@ -201,7 +201,7 @@ export default function ConditionsAdmissionPage() {
 
       console.log('Création condition avec token:', token ? 'Token présent' : 'Token manquant');
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/conditions-admission`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/conditions-admission`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -246,7 +246,7 @@ export default function ConditionsAdmissionPage() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/conditions-admission/${id}`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/conditions-admission/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -291,7 +291,7 @@ export default function ConditionsAdmissionPage() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/conditions-admission/${id}`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/conditions-admission/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -1,6 +1,10 @@
 import axios from 'axios';
 
-const API_BASE = '/api';
+const API_BASE = process.env.REACT_APP_API_BASE_URL || (
+  process.env.NODE_ENV === 'production'
+    ? '/api'  // Utilise le proxy en production
+    : 'https://mon-api-aspnet.onrender.com/api' // Fallback pour le développement
+);
 
 // Create axios instance
 const apiClient = axios.create({

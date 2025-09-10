@@ -127,7 +127,7 @@ const ClassesTest = () => {
       )}
 
       <div style={{ marginTop: 16, fontSize: 12, color: '#666' }}>
-        <strong>Endpoint testé:</strong> GET http://localhost:5000/api/ecoles/{selectedEcole}/classes
+        <strong>Endpoint testé:</strong> GET /api/ecoles/{selectedEcole}/classes
         <br />
         <strong>Headers:</strong> Accept: application/json
       </div>

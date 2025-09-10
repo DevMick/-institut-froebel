@@ -1,9 +1,11 @@
 import axios from 'axios';
 
-// Configuration de l'API - utilise le proxy en développement et production
-const API_BASE = process.env.NODE_ENV === 'production'
-  ? '/api'  // Utilise le proxy en production
-  : '/api'; // Utilise le proxy en développement aussi
+// Configuration de l'API - utilise les variables d'environnement
+const API_BASE = process.env.REACT_APP_API_BASE_URL || (
+  process.env.NODE_ENV === 'production'
+    ? '/api'  // Utilise le proxy en production
+    : 'https://mon-api-aspnet.onrender.com/api' // Fallback pour le développement
+);
 
 console.log('API_BASE:', API_BASE);
 

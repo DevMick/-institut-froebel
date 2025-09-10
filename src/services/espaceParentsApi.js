@@ -1,7 +1,11 @@
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || (
+  process.env.NODE_ENV === 'production'
+    ? '/api'  // Utilise le proxy en production
+    : 'https://mon-api-aspnet.onrender.com/api' // Fallback pour le développement
+);
 
 const getAuthHeaders = (token) => ({
   Authorization: `Bearer ${token}`,

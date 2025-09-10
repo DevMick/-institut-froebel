@@ -83,9 +83,9 @@ const menuItems = [
   // { key: 'home-admin', icon: <HomeOutlined />, label: 'Gestion Page d\'Accueil' },
   // { key: 'vie-scolaire-admin', icon: <EyeOutlined />, label: 'Gestion Vie Scolaire' },
   // { key: 'cycles-admin', icon: <ReadOutlined />, label: 'Gestion Cycles' },
-  { key: 'communication', icon: <MessageOutlined />, label: 'Communication' },
-  { key: 'cahier-liaison', icon: <EditOutlined />, label: 'Cahier de Liaison' },
-  { key: 'paiements-scolarite', icon: <DollarOutlined />, label: 'Paiements Scolarité' },
+  // { key: 'communication', icon: <MessageOutlined />, label: 'Communication' },
+  // { key: 'cahier-liaison', icon: <EditOutlined />, label: 'Cahier de Liaison' },
+  // { key: 'paiements-scolarite', icon: <DollarOutlined />, label: 'Paiements Scolarité' },
 ];
 
 // Composant StatCard responsive
@@ -304,12 +304,12 @@ export default function SuperAdminDashboard() {
       //   return <VieScolaireAdminPage />;
       // case 'cycles-admin':
       //   return <CyclesAdminPage />;
-      case 'paiements-scolarite':
-        return <PaiementsScolaritePage />;
-      case 'communication':
-        return <CommunicationPage />;
-      case 'cahier-liaison':
-        return <CahierLiaisonPage />;
+      // case 'paiements-scolarite':
+      //   return <PaiementsScolaritePage />;
+      // case 'communication':
+      //   return <CommunicationPage />;
+      // case 'cahier-liaison':
+      //   return <CahierLiaisonPage />;
       case 'dashboard':
       default:
         return (
@@ -447,6 +447,7 @@ export default function SuperAdminDashboard() {
                     >
                       Voir les Préinscriptions
                     </Button>
+                    {/* BOUTON TEMPORAIREMENT CACHÉ - EN DÉVELOPPEMENT
                     <Button
                       icon={<MessageOutlined />}
                       onClick={() => setSelectedKey('communication')}
@@ -454,6 +455,7 @@ export default function SuperAdminDashboard() {
                     >
                       Communication
                     </Button>
+                    */}
                     <Divider />
                     <div style={{ color: '#666', fontSize: '12px' }}>
                       <div style={{ marginBottom: '8px' }}>

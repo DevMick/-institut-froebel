@@ -198,7 +198,7 @@ export default function FAQAdmissionsPage() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/faq-admissions/${id}`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/faq-admissions/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -243,7 +243,7 @@ export default function FAQAdmissionsPage() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/ecoles/${ecoleId}/faq-admissions/${id}`, {
+      const response = await fetch(`/api/ecoles/${ecoleId}/faq-admissions/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

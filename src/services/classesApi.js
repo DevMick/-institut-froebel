@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-// Configuration pour l'API des classes - utilise le proxy
-const CLASSES_API_BASE = '/api';
+// Configuration pour l'API des classes - utilise les variables d'environnement
+const CLASSES_API_BASE = process.env.REACT_APP_API_BASE_URL || (
+  process.env.NODE_ENV === 'production'
+    ? '/api'  // Utilise le proxy en production
+    : 'https://mon-api-aspnet.onrender.com/api' // Fallback pour le développement
+);
 
 console.log('CLASSES_API_BASE:', CLASSES_API_BASE);
 
@@ -118,6 +122,90 @@ const classesApi = {
                           error.message || 
                           'Erreur lors de la récupération de la classe';
       
+      return {
+        success: false,
+        data: null,
+        message: errorMessage,
+        error: error
+      };
+    }
+  },
+
+  // Créer une nouvelle classe
+  createClasse: async (ecoleId, classeData) => {
+    try {
+      console.log(`Création d'une classe pour l'école ${ecoleId}:`, classeData);
+      const response = await classesApiClient.post(`/ecoles/${ecoleId}/classes`, classeData);
+
+      return {
+        success: true,
+        data: response.data,
+        message: 'Classe créée avec succès'
+      };
+    } catch (error) {
+      console.error('Erreur lors de la création de la classe:', error);
+
+      const errorMessage = error.response?.data?.message ||
+                          error.response?.data?.errors?.[0] ||
+                          error.message ||
+                          'Erreur lors de la création de la classe';
+
+      return {
+        success: false,
+        data: null,
+        message: errorMessage,
+        error: error
+      };
+    }
+  },
+
+  // Mettre à jour une classe existante
+  updateClasse: async (ecoleId, classeId, classeData) => {
+    try {
+      console.log(`Mise à jour de la classe ${classeId} de l'école ${ecoleId}:`, classeData);
+      const response = await classesApiClient.put(`/ecoles/${ecoleId}/classes/${classeId}`, classeData);
+
+      return {
+        success: true,
+        data: response.data,
+        message: 'Classe mise à jour avec succès'
+      };
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de la classe:', error);
+
+      const errorMessage = error.response?.data?.message ||
+                          error.response?.data?.errors?.[0] ||
+                          error.message ||
+                          'Erreur lors de la mise à jour de la classe';
+
+      return {
+        success: false,
+        data: null,
+        message: errorMessage,
+        error: error
+      };
+    }
+  },
+
+  // Supprimer une classe
+  deleteClasse: async (ecoleId, classeId) => {
+    try {
+      console.log(`Suppression de la classe ${classeId} de l'école ${ecoleId}`);
+      const response = await classesApiClient.delete(`/ecoles/${ecoleId}/classes/${classeId}`);
+
+      return {
+        success: true,
+        data: response.data,
+        message: 'Classe supprimée avec succès'
+      };
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la classe:', error);
+
+      const errorMessage = error.response?.data?.message ||
+                          error.response?.data?.errors?.[0] ||
+                          error.message ||
+                          'Erreur lors de la suppression de la classe';
+
       return {
         success: false,
         data: null,
