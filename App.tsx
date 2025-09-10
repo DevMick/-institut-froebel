@@ -25,7 +25,7 @@ import { CompteRenduScreen } from './components/CompteRenduScreen';
 import { ApiService } from './services/ApiService';
 import { User, Club, NavigationScreen } from './types';
 
-export default function App() {
+function App() {
   // États principaux de l'application
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -355,3 +355,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+export default App;
