@@ -60,8 +60,8 @@ import PaiementsScolaritePage from './PaiementsScolaritePage';
 import CommunicationPage from './CommunicationPage';
 import CahierLiaisonPage from './CahierLiaisonPage';
 // IMPORTS TEMPORAIREMENT CACHÉS - EN DÉVELOPPEMENT
-// import VieScolaireAdminPage from './VieScolaireAdminPage';
-// import CyclesAdminPage from './CyclesAdminPage';
+import VieScolaireAdminPage from './VieScolaireAdminPage';
+import CyclesAdminPage from './CyclesAdminPage';
 // import HomeAdminPage from './HomeAdminPage';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchDashboardStats, fetchRecentCommunications } from '../services/superAdminApi';
@@ -81,8 +81,8 @@ const menuItems = [
   { key: 'tarifs', icon: <DollarOutlined />, label: 'Tarifs' },
   // MENUS TEMPORAIREMENT CACHÉS - EN DÉVELOPPEMENT
   // { key: 'home-admin', icon: <HomeOutlined />, label: 'Gestion Page d\'Accueil' },
-  // { key: 'vie-scolaire-admin', icon: <EyeOutlined />, label: 'Gestion Vie Scolaire' },
-  // { key: 'cycles-admin', icon: <ReadOutlined />, label: 'Gestion Cycles' },
+  { key: 'vie-scolaire-admin', icon: <EyeOutlined />, label: 'Gestion Vie Scolaire' },
+  { key: 'cycles-admin', icon: <ReadOutlined />, label: 'Gestion Cycles' },
   // { key: 'communication', icon: <MessageOutlined />, label: 'Communication' },
   // { key: 'cahier-liaison', icon: <EditOutlined />, label: 'Cahier de Liaison' },
   // { key: 'paiements-scolarite', icon: <DollarOutlined />, label: 'Paiements Scolarité' },
@@ -300,10 +300,10 @@ export default function SuperAdminDashboard() {
       // CASES TEMPORAIREMENT CACHÉS - EN DÉVELOPPEMENT
       // case 'home-admin':
       //   return <HomeAdminPage />;
-      // case 'vie-scolaire-admin':
-      //   return <VieScolaireAdminPage />;
-      // case 'cycles-admin':
-      //   return <CyclesAdminPage />;
+      case 'vie-scolaire-admin':
+        return <VieScolaireAdminPage />;
+      case 'cycles-admin':
+        return <CyclesAdminPage />;
       // case 'paiements-scolarite':
       //   return <PaiementsScolaritePage />;
       // case 'communication':
