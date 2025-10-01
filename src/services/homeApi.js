@@ -298,7 +298,7 @@ const defaultHomeData = {
 
   // Section Galerie Photo
   galeriePhoto: {
-    title: "GALERIE PHOTO",
+    title: "GALERIE PHOTOS",
     description: "Découvrez nos espaces d'apprentissage et de vie",
     photos: [
       {

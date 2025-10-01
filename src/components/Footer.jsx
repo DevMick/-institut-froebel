@@ -83,17 +83,17 @@ const Footer = () => {
           {/* Column 4: Contact */}
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-froebel-blue relative pb-2">
-              CONTACT
+              NOS INSTITUTS
               <span className="absolute bottom-0 left-0 w-12 h-0.5 bg-froebel-blue"></span>
             </h3>
-            <ul className="space-y-3">
+            <ul className="space-y-4">
               <li className="flex items-start space-x-3">
                 <div className="w-9 h-9 bg-froebel-blue text-white rounded-full flex items-center justify-center flex-shrink-0">
-                  <FaMapMarkerAlt />
+                  <FaPhoneAlt />
                 </div>
                 <div>
-                  <h4 className="font-bold">Adresse</h4>
-                  <p className="text-sm">11 BP 277 ABIDJAN 11<br/>Côte d'Ivoire</p>
+                  <h4 className="font-bold text-sm">Institut Frœbel la Tulipe</h4>
+                  <p className="text-sm text-gray-600">07 17 17 17 18</p>
                 </div>
               </li>
               <li className="flex items-start space-x-3">
@@ -101,17 +101,35 @@ const Footer = () => {
                   <FaPhoneAlt />
                 </div>
                 <div>
-                  <h4 className="font-bold">Téléphone</h4>
-                  <p className="text-sm">0565451919</p>
+                  <h4 className="font-bold text-sm">Institut Frœbel la Marguerite</h4>
+                  <p className="text-sm text-gray-600">0714260854</p>
                 </div>
               </li>
               <li className="flex items-start space-x-3">
                 <div className="w-9 h-9 bg-froebel-blue text-white rounded-full flex items-center justify-center flex-shrink-0">
-                  <FaEnvelope />
+                  <FaPhoneAlt />
                 </div>
                 <div>
-                  <h4 className="font-bold">Email</h4>
-                  <p className="text-sm">institutfroebel7@gmail.com</p>
+                  <h4 className="font-bold text-sm">Institut Frœbel les Orchidées</h4>
+                  <p className="text-sm text-gray-600">0575376215</p>
+                </div>
+              </li>
+              <li className="flex items-start space-x-3">
+                <div className="w-9 h-9 bg-froebel-blue text-white rounded-full flex items-center justify-center flex-shrink-0">
+                  <FaPhoneAlt />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm">Institut Frœbel la Rose</h4>
+                  <p className="text-sm text-gray-600">0575376583</p>
+                </div>
+              </li>
+              <li className="flex items-start space-x-3">
+                <div className="w-9 h-9 bg-froebel-blue text-white rounded-full flex items-center justify-center flex-shrink-0">
+                  <FaPhoneAlt />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm">Institut Frœbel les Frangipaniers</h4>
+                  <p className="text-sm text-gray-600">0702017153</p>
                 </div>
               </li>
             </ul>

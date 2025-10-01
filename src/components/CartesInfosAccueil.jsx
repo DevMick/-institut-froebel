@@ -37,10 +37,10 @@ const CartesInfosAccueil = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                 <div className="relative z-10 flex flex-col justify-end h-full p-6">
                   <h3 className="text-2xl font-extrabold text-white mb-2 drop-shadow-lg">{carte.titre}</h3>
-                  <p className="text-white text-base mb-6 drop-shadow">{carte.sousTitre}</p>
+                  <p className="text-white text-base mb-8 drop-shadow">{carte.sousTitre}</p>
                   <a
                     href={carte.lien}
-                    className="inline-block bg-white text-green-600 font-semibold px-6 py-2 rounded-full border-2 border-green-500 hover:bg-green-50 transition shadow text-sm group"
+                    className="inline-block bg-white text-green-600 font-semibold px-4 py-2 rounded-full border-2 border-green-500 hover:bg-green-50 transition shadow text-sm group w-fit"
                   >
                     En savoir plus <span aria-hidden>→</span>
                   </a>

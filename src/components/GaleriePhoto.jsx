@@ -1,8 +1,6 @@
 import React from 'react';
 import maternelleImg from '../assets/images/maternelle.jpg';
-import blio from '../assets/images/blio.jpg';
 import salleClasseImg from '../assets/images/_DSC0230.jpg';
-import cours from '../assets/images/cours.jpg';
 import eleve from '../assets/images/eleve.jpg';
 import secondaireImg from '../assets/images/secondaire.jpg';
 import sallePolyvalenteImg from '../assets/images/salle polyvalente.jpg';
@@ -20,24 +18,9 @@ const photos = [
     desc: "Nos plus jeunes élèves évoluent dans un environnement coloré et adapté à leur développement",
   },
   {
-    src: blio,
-    titre: "Bibliothèque Moderne",
-    desc: "Un espace de lecture et de découverte équipé des dernières technologies pour encourager l'amour des livres",
-  },
-  {
     src: salleClasseImg,
     titre: "Salles de Classe",
     desc: "Environnement d'apprentissage lumineux et technologiquement avancé",
-  },
-  {
-    src: blio,
-    titre: "Laboratoire Sciences",
-    desc: "Équipements modernes pour l'expérimentation et la découverte scientifique",
-  },
-  {
-    src: cours,
-    titre: "Cour de Récréation",
-    desc: "Grand espace de jeu sécurisé où nos élèves peuvent se détendre et socialiser",
   },
   {
     src: eleve,
@@ -92,7 +75,7 @@ const GaleriePhoto = () => {
   return (
     <section className="py-16 bg-green-50">
       <div className="max-w-5xl mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-froebel-blue text-center mb-2">GALERIE PHOTO</h2>
+        <h2 className="text-2xl md:text-3xl font-extrabold text-froebel-blue text-center mb-2">GALERIE PHOTOS</h2>
         <p className="text-gray-500 text-center mb-8">Découvrez nos espaces d'apprentissage et de vie</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {photos.map((photo, idx) => (

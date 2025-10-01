@@ -1194,7 +1194,7 @@ const HomeAdminPage = () => {
                     label="Titre de la galerie"
                   >
                     <Input
-                      placeholder="Ex: GALERIE PHOTO"
+                      placeholder="Ex: GALERIE PHOTOS"
                       size="large"
                     />
                   </Form.Item>
